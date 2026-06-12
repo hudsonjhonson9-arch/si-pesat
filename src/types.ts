@@ -39,6 +39,7 @@ export interface OpdAudit {
   status: AuditStatus;
   progress: number; // Persentase penyelesaian KKA
   categories: AuditCategory[];
+  teamMembers?: string[]; // Daftar nama anggota tim
   googleDriveFolderId?: string;
   googleDriveFileId?: string; // Cache of consolidated file ID
   lastSyncedAt?: string;

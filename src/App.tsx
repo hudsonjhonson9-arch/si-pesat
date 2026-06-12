@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem } from './types';
-import { INITIAL_OPD_AUDITS, DEFAULT_KKA_TEMPLATE } from './data';
+import { EMPTY_KKA_TEMPLATE } from './data';
 import { supabase } from './lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
 
@@ -42,7 +42,7 @@ export default function App() {
 
   // Core Applet States
   const [audits, setAudits] = useState<OpdAudit[]>([]);
-  const [template, setTemplate] = useState<KKATemplate>(DEFAULT_KKA_TEMPLATE);
+  const [template, setTemplate] = useState<KKATemplate>(EMPTY_KKA_TEMPLATE);
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
 
   // Simulated internal account role ('Auditor' | 'Inspektur Pembantu' | 'Inspektur')
@@ -98,10 +98,10 @@ export default function App() {
         setTemplate(JSON.parse(cachedTemplate));
       } catch (e) {
         console.error('Error parsing cached KKA templates:', e);
-        setTemplate(DEFAULT_KKA_TEMPLATE);
+        setTemplate(EMPTY_KKA_TEMPLATE);
       }
     } else {
-      setTemplate(DEFAULT_KKA_TEMPLATE);
+      setTemplate(EMPTY_KKA_TEMPLATE);
     }
 
     if (cachedLogs) {
@@ -126,6 +126,7 @@ export default function App() {
             budget: d.budget,
             status: d.status,
             progress: d.progress,
+            teamMembers: d.team_members || [],
             categories: d.categories || []
           }));
           if (mapped.length > 0 || !cachedAudits) {
@@ -185,6 +186,7 @@ export default function App() {
             budget: a.budget,
             status: a.status,
             progress: calculateProgress(a),
+            team_members: a.teamMembers || [],
             categories: a.categories,
             updated_at: new Date().toISOString()
           }));
@@ -336,7 +338,8 @@ export default function App() {
     opdType: OpdAudit['opdType'], 
     fiscalYear: string, 
     auditorName: string, 
-    budget: number
+    budget: number,
+    teamMembers: string[]
   ) => {
     // Copy checklist structures from active configured template (Requirement A.2)
     const initialCategories: AuditCategory[] = template.categories.map(tempCat => {
@@ -368,7 +371,8 @@ export default function App() {
       budget,
       status: 'Draft',
       progress: 0,
-      categories: initialCategories
+      categories: initialCategories,
+      teamMembers
     };
 
     setAudits(prev => [newAudit, ...prev]);
@@ -455,7 +459,7 @@ export default function App() {
             template={template}
             onUpdateTemplate={setTemplate}
             onResetTemplate={() => {
-              setTemplate(DEFAULT_KKA_TEMPLATE);
+              setTemplate(EMPTY_KKA_TEMPLATE);
               showToast('Template master diatur ulang ke standar juknis.', 'info');
             }}
           />

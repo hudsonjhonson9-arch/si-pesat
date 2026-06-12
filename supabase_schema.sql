@@ -37,6 +37,7 @@ CREATE TABLE audits (
   status TEXT NOT NULL,
   progress NUMERIC DEFAULT 0,
   categories JSONB NOT NULL DEFAULT '[]'::jsonb,
+  team_members JSONB NOT NULL DEFAULT '[]'::jsonb,
   created_by UUID REFERENCES profiles(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL

@@ -86,6 +86,7 @@ export default function AuditWorkspaceView({
   const [metaBosBudget, setMetaBosBudget] = useState(audit.budget.toString());
   const [metaStatus, setMetaStatus] = useState<AuditStatus>(audit.status);
   const [metaFiscalYear, setMetaFiscalYear] = useState(audit.fiscalYear);
+  const [metaTeamMembers, setMetaTeamMembers] = useState(audit.teamMembers?.join(', ') || '');
 
   const formatIDR = (num: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -108,7 +109,8 @@ export default function AuditWorkspaceView({
       auditorName: metaAuditorName,
       budget: parseFloat(metaBosBudget) || 0,
       status: metaStatus,
-      fiscalYear: metaFiscalYear
+      fiscalYear: metaFiscalYear,
+      teamMembers: metaTeamMembers.split(',').map(s => s.trim()).filter(Boolean)
     });
     setIsEditingMetadata(false);
   };
@@ -377,6 +379,12 @@ export default function AuditWorkspaceView({
                     <span className="text-dark-gray/60 font-bold">Ketua Pemeriksa:</span>
                     <span className="font-extrabold text-dark-gray truncate max-w-[150px]">{audit.auditorName}</span>
                   </div>
+                  {audit.teamMembers && audit.teamMembers.length > 0 && (
+                    <div className="flex flex-col">
+                      <span className="text-dark-gray/60 font-bold">Anggota Tim:</span>
+                      <span className="font-extrabold text-dark-gray">{audit.teamMembers.join(', ')}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-dark-gray/60 font-bold">Pagu Anggaran:</span>
                     <span className="font-extrabold font-mono text-dark-gray">{formatIDR(audit.budget)}</span>
@@ -450,6 +458,16 @@ export default function AuditWorkspaceView({
                     type="text"
                     value={metaAuditorName}
                     onChange={e => setMetaAuditorName(e.target.value)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white/70 text-dark-gray"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Anggota Tim (Koma)</label>
+                  <input
+                    type="text"
+                    value={metaTeamMembers}
+                    onChange={e => setMetaTeamMembers(e.target.value)}
                     className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white/70 text-dark-gray"
                   />
                 </div>

@@ -31,7 +31,8 @@ interface AuditListViewProps {
     opdType: 'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya', 
     fiscalYear: string, 
     auditorName: string, 
-    budget: number
+    budget: number,
+    teamMembers: string[]
   ) => void;
   onDeleteAudit: (auditId: string) => void;
   onSyncToDrive: (audit: OpdAudit) => void;
@@ -63,6 +64,7 @@ export default function AuditListView({
   const [newFiscalYear, setNewFiscalYear] = useState('2026');
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
   const [newBosBudget, setNewBosBudget] = useState('150000000');
+  const [newTeamMembers, setNewTeamMembers] = useState('');
 
   // Prefill auditor name when context is ready or modal is launched
   React.useEffect(() => {
@@ -142,12 +144,14 @@ export default function AuditListView({
       newSchoolType,
       newFiscalYear,
       newAuditorName,
-      parseFloat(newBosBudget) || 0
+      parseFloat(newBosBudget) || 0,
+      newTeamMembers.split(',').map(s => s.trim()).filter(Boolean)
     );
 
     // Reset and close
     setNewSchoolName('');
     setNewAuditorName('');
+    setNewTeamMembers('');
     setNewBosBudget('150000000');
     setIsCreateModalOpen(false);
   };
@@ -285,9 +289,16 @@ export default function AuditListView({
                   </div>
 
                   {/* Auditor in charge info */}
-                  <div className="flex items-center gap-1.5 text-xs text-dark-gray/80 bg-white/40 px-2.5 py-1.5 rounded-lg border border-dark-gray/5 truncate">
-                    <User className="w-3.5 h-3.5 text-dark-gray/50 flex-shrink-0" />
-                    <span className="truncate">Auditor: {audit.auditorName || 'Belum Ditugaskan'}</span>
+                  <div className="flex flex-col gap-1.5 text-xs text-dark-gray/80 bg-white/40 px-2.5 py-1.5 rounded-lg border border-dark-gray/5">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <User className="w-3.5 h-3.5 text-dark-gray/50 flex-shrink-0" />
+                      <span className="truncate font-bold">Ketua Tim: {audit.auditorName || 'Belum Ditugaskan'}</span>
+                    </div>
+                    {audit.teamMembers && audit.teamMembers.length > 0 && (
+                      <div className="flex items-start gap-1.5 text-[10px] text-dark-gray/60 pl-5">
+                        <span className="truncate">Anggota: {audit.teamMembers.join(', ')}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* BOS budget and findings summary */}
@@ -456,6 +467,18 @@ export default function AuditListView({
                   placeholder="Misal: Drs. Suhendra, Ak."
                   value={newAuditorName}
                   onChange={e => setNewAuditorName(e.target.value)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
+                />
+              </div>
+
+              {/* Anggota Tim */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Anggota Tim (Pisahkan dengan koma)</label>
+                <input
+                  type="text"
+                  placeholder="Misal: Budi, Cici, Dedi"
+                  value={newTeamMembers}
+                  onChange={e => setNewTeamMembers(e.target.value)}
                   className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
                 />
               </div>
