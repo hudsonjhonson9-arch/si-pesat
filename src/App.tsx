@@ -176,23 +176,29 @@ export default function App() {
       
       try {
         if (audits.length > 0) {
-          const payload = audits.map(a => ({
-            id: a.id,
-            opd_name: a.opdName,
-            opd_type: a.opdType,
-            fiscal_year: a.fiscalYear,
-            auditor_name: a.auditorName,
-            audit_date: a.auditDate,
-            budget: a.budget,
-            status: a.status,
-            progress: calculateProgress(a),
-            team_members: a.teamMembers || [],
-            categories: a.categories,
-            updated_at: new Date().toISOString()
-          }));
+          // UUID validation regex to prevent Supabase rejection
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+          const validAudits = audits.filter(a => uuidRegex.test(a.id));
 
-          const { error } = await supabase.from('audits').upsert(payload, { onConflict: 'id' });
-          if (error) console.error('Background sync audits failed:', error);
+          if (validAudits.length > 0) {
+            const payload = validAudits.map(a => ({
+              id: a.id,
+              opd_name: a.opdName,
+              opd_type: a.opdType,
+              fiscal_year: a.fiscalYear,
+              auditor_name: a.auditorName,
+              audit_date: a.auditDate,
+              budget: a.budget,
+              status: a.status,
+              progress: calculateProgress(a),
+              categories: a.categories,
+              team_members: a.teamMembers || [],
+              updated_at: new Date().toISOString()
+            }));
+
+            const { error } = await supabase.from('audits').upsert(payload, { onConflict: 'id' });
+            if (error) console.error('Background sync audits failed:', error);
+          }
         }
 
         if (template && template.categories && template.categories.length > 0) {
@@ -361,8 +367,16 @@ export default function App() {
       };
     });
 
+    // Generate a valid UUID for Supabase
+    const auditId = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+
     const newAudit: OpdAudit = {
-      id: `audit_school_${Date.now()}`,
+      id: auditId,
       opdName,
       opdType,
       fiscalYear,
