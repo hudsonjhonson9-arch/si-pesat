@@ -87,10 +87,10 @@ export default function App() {
         setAudits(JSON.parse(cachedAudits));
       } catch (e) {
         console.error('Error parsing cached school audits:', e);
-        setAudits(INITIAL_OPD_AUDITS);
+        setAudits([]);
       }
     } else {
-      setAudits(INITIAL_OPD_AUDITS);
+      setAudits([]);
     }
 
     if (cachedTemplate) {
@@ -110,6 +110,28 @@ export default function App() {
       } catch (e) {
         setSyncLogs([]);
       }
+
+    // Try to fetch real data from Supabase to overwrite local cache if online
+    if (navigator.onLine) {
+      supabase.from('audits').select('*').then(({ data, error }) => {
+        if (!error && data) {
+          const mapped = data.map(d => ({
+            id: d.id,
+            opdName: d.opd_name,
+            opdType: d.opd_type,
+            fiscalYear: d.fiscal_year,
+            auditorName: d.auditor_name,
+            auditDate: d.audit_date,
+            budget: d.budget,
+            status: d.status,
+            progress: d.progress,
+            categories: d.categories || []
+          }));
+          if (mapped.length > 0 || !cachedAudits) {
+             setAudits(mapped);
+          }
+        }
+      });
     }
   }, []);
 
