@@ -1,0 +1,6 @@
+{
+  "name": "SI-KKP Audit",
+  "description": "Sistem Informasi KKP Inspektorat Terintegrasi Google Drive.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
