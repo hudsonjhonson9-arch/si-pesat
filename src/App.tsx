@@ -204,16 +204,20 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Login handlers via Supabase
-  const handleGoogleSignIn = async () => {
+  // Login handlers via Supabase Email/Password
+  const handleEmailSignIn = async (email: string, pass: string) => {
+    setIsSyncing(true);
     try {
-      // Initiate Supabase OAuth
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: pass,
       });
-      // Page will redirect to Google
+      if (error) throw error;
+      showToast(`Berhasil masuk sebagai ${data.user.email}`, 'success');
     } catch (err: any) {
       showToast(`Login gagal: ${err.message}`, 'error');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -237,7 +241,7 @@ export default function App() {
     showToast('Telah keluar dari sesi SI-KKA.', 'info');
   };
 
-  const handleLogin = handleGoogleSignIn; // Alias
+  const handleLogin = () => {}; // Alias
   const handleLogout = handleSessionLogout;
 
   // Log Sync helpers
