@@ -1,4 +1,8 @@
-/**
+import os
+
+filepath_login = 'src/components/LoginView.tsx'
+
+new_login_content = """/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -98,3 +102,68 @@ export default function LoginView({
     </div>
   );
 }
+"""
+
+with open(filepath_login, 'w', encoding='utf-8') as f:
+    f.write(new_login_content)
+
+# Update App.tsx
+filepath_app = 'src/App.tsx'
+with open(filepath_app, 'r', encoding='utf-8') as f:
+    app_content = f.read()
+
+# 1. Update handleGoogleSignInWithRole
+old_handler = """  const handleGoogleSignInWithRole = async (role: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') => {
+    try {
+      setUserRole(role);
+      localStorage.setItem('si_kka_user_role', role);
+      // Initiate Supabase OAuth
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      // Page will redirect to Google
+    } catch (err: any) {
+      showToast(`Login gagal: ${err.message}`, 'error');
+      addSyncLog('ERROR', `Koneksi Gagal: ${err.message}`);
+    }
+  };"""
+
+new_handler = """  const handleGoogleSignIn = async () => {
+    try {
+      // Initiate Supabase OAuth
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      // Page will redirect to Google
+    } catch (err: any) {
+      showToast(`Login gagal: ${err.message}`, 'error');
+    }
+  };"""
+app_content = app_content.replace(old_handler, new_handler)
+
+# 2. Update alias
+app_content = app_content.replace("const handleLogin = handleGoogleSignInWithRole; // Alias", "const handleLogin = handleGoogleSignIn; // Alias")
+
+# 3. Update LoginView invocation
+old_login_invocation = """      {!isSessionActive ? (
+        <LoginView
+          onLoginSuccess={handleSessionLogin}
+          onGoogleSignIn={handleGoogleSignInWithRole}
+          userRole={userRole}
+          setUserRole={setUserRole}
+          isSyncing={isSyncing}
+        />
+      ) : ("""
+
+new_login_invocation = """      {!isSessionActive ? (
+        <LoginView
+          onGoogleSignIn={handleGoogleSignIn}
+          isSyncing={isSyncing}
+        />
+      ) : ("""
+app_content = app_content.replace(old_login_invocation, new_login_invocation)
+
+with open(filepath_app, 'w', encoding='utf-8') as f:
+    f.write(app_content)
+
+print("Refactored LoginView and App.tsx to remove offline mode")

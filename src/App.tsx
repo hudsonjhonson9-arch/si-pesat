@@ -205,10 +205,8 @@ export default function App() {
   }, []);
 
   // Login handlers via Supabase
-  const handleGoogleSignInWithRole = async (role: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') => {
+  const handleGoogleSignIn = async () => {
     try {
-      setUserRole(role);
-      localStorage.setItem('si_kka_user_role', role);
       // Initiate Supabase OAuth
       await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -216,7 +214,6 @@ export default function App() {
       // Page will redirect to Google
     } catch (err: any) {
       showToast(`Login gagal: ${err.message}`, 'error');
-      addSyncLog('ERROR', `Koneksi Gagal: ${err.message}`);
     }
   };
 
@@ -240,7 +237,7 @@ export default function App() {
     showToast('Telah keluar dari sesi SI-KKA.', 'info');
   };
 
-  const handleLogin = handleGoogleSignInWithRole; // Alias
+  const handleLogin = handleGoogleSignIn; // Alias
   const handleLogout = handleSessionLogout;
 
   // Log Sync helpers
@@ -555,10 +552,7 @@ export default function App() {
 
       {!isSessionActive ? (
         <LoginView
-          onLoginSuccess={handleSessionLogin}
-          onGoogleSignIn={handleGoogleSignInWithRole}
-          userRole={userRole}
-          setUserRole={setUserRole}
+          onGoogleSignIn={handleGoogleSignIn}
           isSyncing={isSyncing}
         />
       ) : (
