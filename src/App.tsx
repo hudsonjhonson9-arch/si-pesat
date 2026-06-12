@@ -335,19 +335,13 @@ export default function App() {
     setAudits(prev => prev.map(a => a.id === updatedAudit.id ? updatedAudit : a));
     
     // Auto sync to Drive in background if it has already been synced once
-    if (user && accessToken && updatedAudit.googleDriveFileId) {
-      addSyncLog('UPLOAD', 'Pembaruan disimpan lokal. Sync otomatis akan berjalan.');
-    }
+    // Auto sync to Drive in background is now handled by Supabase effect
   };
 
   const handleDeleteAudit = async (auditId: string) => {
     const auditToDelete = audits.find(a => a.id === auditId);
     
-    // If synced on Drive, attempt to delete there as well
-    if (user && accessToken && auditToDelete?.googleDriveFileId) {
-      try {
-        await deleteAuditFromDrive(accessToken, auditToDelete.googleDriveFileId);
-        addSyncLog('UPLOAD', `Berkas KKA ${auditToDelete.opdName} dihapus dari Drive.`, auditToDelete.opdName);
+    // Deletion from Drive is not supported in current central Web App yet dihapus dari Drive.`, auditToDelete.opdName);
       } catch (err: any) {
         addSyncLog('ERROR', `Gagal menghapus berkas di Drive: ${err.message}`, auditToDelete?.opdName);
       }
@@ -362,95 +356,18 @@ export default function App() {
 
   // Push single Audit to Drive
   const syncSingleToDrive = async (audit: OpdAudit, silent = false) => {
-    if (!accessToken) {
-      showToast('Harap hubungkan akun Google Drive terlebih dahulu.', 'error');
-      return;
-    }
-
-    if (!silent) setIsSyncing(true);
-    try {
-      addSyncLog('CREATE_FOLDER', `Menyiapkan folder struktur di Google Drive...`, audit.opdName);
-      const docs = await syncAuditToDrive(accessToken, audit);
-      
-      // Update local storage with connection references
-      setAudits(prev => prev.map(a => {
-        if (a.id === audit.id) {
-          return {
-            ...a,
-            googleDriveFolderId: docs.schoolFolderId,
-            googleDriveFileId: docs.fileId,
-            lastSyncedAt: new Date().toISOString()
-          };
-        }
-        return a;
-      }));
-
-      addSyncLog('UPLOAD', `LHP KKA disinkronkan ke Drive folder: /${audit.opdName} (${audit.fiscalYear})`, audit.opdName);
-      if (!silent) showToast(`KKA ${audit.opdName} berhasil disimpan ke Google Drive!`, 'success');
-    } catch (err: any) {
-      console.error(err);
-      addSyncLog('ERROR', `Gagal menyinkronkan: ${err.message}`, audit.opdName);
-      if (!silent) showToast(`Gagal mengunggah Drive: ${err.message}`, 'error');
-    } finally {
-      if (!silent) setIsSyncing(false);
-    }
+    // Legacy function. Supabase handles sync automatically.
+    if (!silent) showToast('Data disinkronkan otomatis melalui Supabase.', 'info');
   };
 
-  // batch sync all local audits to drive
-  const batchSyncAllToDrive = async () => { /* TO DO */
-    if (!accessToken) return;
-    setIsSyncing(true);
-    let successCount = 0;
-
-    addSyncLog('UPLOAD', 'Memulai pencadangan massal KKA ke Google Drive...');
-    
-    for (const audit of audits) {
-      try {
-        await syncAuditToDrive(accessToken, audit);
-        successCount++;
-      } catch (err: any) {
-        addSyncLog('ERROR', `Gagal migrasi massal ${audit.opdName}: ${err.message}`, audit.opdName);
-      }
-    }
-
-    setIsSyncing(false);
-    showToast(`Sinkronisasi Massal Selesai: ${successCount} dari ${audits.length} berkas berhasil diunggah.`, 'success');
+  // batch sync all local audits
+  const batchSyncAllToDrive = async () => {
+    showToast('Semua data sudah disinkronkan otomatis.', 'success');
   };
 
   // pull from Drive
-  const fetchAllFromDrive = async () => { /* TO DO */
-    if (!accessToken) return;
-    setIsSyncing(true);
-    addSyncLog('DOWNLOAD', 'Membaca repositori pemeriksaan KKA di Google Drive...');
-    
-    try {
-      const pulledAudits = await fetchAuditsFromDrive(accessToken);
-      if (pulledAudits.length === 0) {
-        showToast('Tidak ditemukan berkas KKA SI_KKA_Audit_OPD_Inspektorat di Google Drive Anda.', 'info');
-        addSyncLog('DOWNLOAD', 'Pencarian selesai. Tidak ada berkas baru.');
-      } else {
-        // Merge or replace depending on what already exists
-        setAudits(prev => {
-          const merged = [...prev];
-          pulledAudits.forEach(pulled => {
-            const idx = merged.findIndex(a => a.opdName === pulled.opdName && a.fiscalYear === pulled.fiscalYear);
-            if (idx >= 0) {
-              merged[idx] = pulled; // Overwrite older physical records
-            } else {
-              merged.push(pulled);
-            }
-          });
-          return merged;
-        });
-        showToast(`Impor Berhasil: ${pulledAudits.length} KKA ditarik dari Google Drive!`, 'success');
-        addSyncLog('DOWNLOAD', `Berhasil memuat ${pulledAudits.length} lembar kkk dari Drive cloud.`);
-      }
-    } catch (err: any) {
-      showToast(`Tarikan gagal: ${err.message}`, 'error');
-      addSyncLog('ERROR', `Gagal menarik: ${err.message}`);
-    } finally {
-      setIsSyncing(false);
-    }
+  const fetchAllFromDrive = async () => {
+    showToast('Data ditarik otomatis saat login awal.', 'info');
   };
 
   const activeAudit = audits.find(a => a.id === selectedAuditId);
@@ -466,7 +383,7 @@ export default function App() {
           onSync={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
           isDriveConnected={true}
           isSyncing={isSyncing}
-          accessToken={''}
+          
           userRole={userRole}
         />
       );
@@ -509,7 +426,7 @@ export default function App() {
         return (
           <SyncManagerView
             user={user}
-            accessToken={''}
+            
             logs={syncLogs}
             audits={audits}
             onLogin={handleLogin}

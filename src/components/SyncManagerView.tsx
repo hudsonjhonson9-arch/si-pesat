@@ -24,7 +24,6 @@ import {
 
 interface SyncManagerViewProps {
   user: User | null;
-  accessToken: string | null;
   logs: SyncLog[];
   audits: OpdAudit[];
   onLogin: () => void;
