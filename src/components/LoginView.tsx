@@ -40,7 +40,7 @@ export default function LoginView({
         {/* Top Header Panel */}
         <div className="bg-baby-blue p-6 md:p-8 text-dark-gray relative border-b border-dark-gray/10">
           <div className="absolute right-4 top-4 bg-peach-accent/80 border border-dark-gray/10 text-dark-gray px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider">
-            Inspektorat Pengawas Daerah
+            Inspektorat Kab. Sumba Barat
           </div>
           
           <div className="flex items-center gap-3.5 mt-2">
