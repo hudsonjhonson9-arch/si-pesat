@@ -110,6 +110,7 @@ export default function App() {
       } catch (e) {
         setSyncLogs([]);
       }
+    }
 
     // Try to fetch real data from Supabase to overwrite local cache if online
     if (navigator.onLine) {
