@@ -339,14 +339,7 @@ export default function App() {
   };
 
   const handleDeleteAudit = async (auditId: string) => {
-    const auditToDelete = audits.find(a => a.id === auditId);
-    
-    // Deletion from Drive is not supported in current central Web App yet dihapus dari Drive.`, auditToDelete.opdName);
-      } catch (err: any) {
-        addSyncLog('ERROR', `Gagal menghapus berkas di Drive: ${err.message}`, auditToDelete?.opdName);
-      }
-    }
-
+    // Deletion from Drive is not supported in current central Web App yet
     setAudits(prev => prev.filter(a => a.id !== auditId));
     if (selectedAuditId === auditId) {
       setSelectedAuditId(null);
