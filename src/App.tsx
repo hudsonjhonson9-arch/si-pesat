@@ -289,6 +289,16 @@ export default function App() {
       if (session) {
          setIsSessionActive(true);
          localStorage.setItem('si_kka_session_active', 'true');
+         const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
+         setCustomAuditorName(name);
+         
+         supabase.from('profiles').select('role').eq('id', session.user.id).single()
+           .then(({ data }) => {
+              if (data?.role) {
+                setUserRole(data.role as any);
+                localStorage.setItem('si_kka_user_role', data.role);
+              }
+           });
       } else {
          setIsSessionActive(false);
          localStorage.removeItem('si_kka_session_active');
