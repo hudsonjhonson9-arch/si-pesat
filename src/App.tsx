@@ -552,7 +552,7 @@ export default function App() {
 
       {!isSessionActive ? (
         <LoginView
-          onGoogleSignIn={handleGoogleSignIn}
+          onEmailSignIn={handleEmailSignIn}
           isSyncing={isSyncing}
         />
       ) : (

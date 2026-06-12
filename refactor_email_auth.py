@@ -1,4 +1,7 @@
-/**
+import os
+
+# 1. Update LoginView.tsx to use Email/Password
+login_content = """/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -147,3 +150,88 @@ export default function LoginView({
     </div>
   );
 }
+"""
+
+with open('src/components/LoginView.tsx', 'w', encoding='utf-8') as f:
+    f.write(login_content)
+
+# 2. Update App.tsx logic to use signInWithPassword
+with open('src/App.tsx', 'r', encoding='utf-8') as f:
+    app_content = f.read()
+
+old_auth = """  // Login handlers via Supabase
+  const handleGoogleSignIn = async () => {
+    try {
+      // Initiate Supabase OAuth
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      // Page will redirect to Google
+    } catch (err: any) {
+      showToast(`Login gagal: ${err.message}`, 'error');
+    }
+  };
+
+  const handleSessionLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setIsSessionActive(false);
+    localStorage.removeItem('si_kka_session_active');
+    localStorage.removeItem('si_kka_custom_name');
+    showToast('Telah keluar dari sesi SI-KKA.', 'info');
+  };
+
+  const handleLogin = handleGoogleSignIn; // Alias"""
+
+new_auth = """  // Login handlers via Supabase Email/Password
+  const handleEmailSignIn = async (email: string, pass: string) => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: pass,
+      });
+      if (error) throw error;
+      showToast(`Berhasil masuk sebagai ${data.user.email}`, 'success');
+    } catch (err: any) {
+      showToast(`Login gagal: ${err.message}`, 'error');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSessionLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setIsSessionActive(false);
+    localStorage.removeItem('si_kka_session_active');
+    localStorage.removeItem('si_kka_custom_name');
+    showToast('Telah keluar dari sesi SI-KKA.', 'info');
+  };
+
+  const handleLogin = () => {}; // Alias"""
+
+app_content = app_content.replace(old_auth, new_auth)
+
+old_login_invocation = """      {!isSessionActive ? (
+        <LoginView
+          onGoogleSignIn={handleGoogleSignIn}
+          isSyncing={isSyncing}
+        />
+      ) : ("""
+
+new_login_invocation = """      {!isSessionActive ? (
+        <LoginView
+          onEmailSignIn={handleEmailSignIn}
+          isSyncing={isSyncing}
+        />
+      ) : ("""
+
+app_content = app_content.replace(old_login_invocation, new_login_invocation)
+
+with open('src/App.tsx', 'w', encoding='utf-8') as f:
+    f.write(app_content)
+
+print("Auth refactored to Email/Password.")
