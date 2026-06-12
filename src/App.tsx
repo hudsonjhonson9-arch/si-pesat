@@ -133,6 +133,18 @@ export default function App() {
           }
         }
       });
+
+      supabase.from('templates').select('*').eq('id', 'master_template').single().then(({ data, error }) => {
+        if (!error && data) {
+          const fetchedTemplate = {
+            id: data.id,
+            name: data.name,
+            isDefault: data.is_default,
+            categories: data.categories || []
+          };
+          setTemplate(fetchedTemplate);
+        }
+      });
     }
   }, []);
 
@@ -159,28 +171,38 @@ export default function App() {
   // Supabase Background Sync (Debounced)
   useEffect(() => {
     const handleSync = async () => {
-      if (!navigator.onLine || audits.length === 0) return;
+      if (!navigator.onLine) return;
       
       try {
-        const payload = audits.map(a => ({
-          id: a.id,
-          opd_name: a.opdName,
-          opd_type: a.opdType,
-          fiscal_year: a.fiscalYear,
-          auditor_name: a.auditorName,
-          audit_date: a.auditDate,
-          budget: a.budget,
-          status: a.status,
-          progress: calculateProgress(a),
-          categories: a.categories,
-          updated_at: new Date().toISOString()
-        }));
+        if (audits.length > 0) {
+          const payload = audits.map(a => ({
+            id: a.id,
+            opd_name: a.opdName,
+            opd_type: a.opdType,
+            fiscal_year: a.fiscalYear,
+            auditor_name: a.auditorName,
+            audit_date: a.auditDate,
+            budget: a.budget,
+            status: a.status,
+            progress: calculateProgress(a),
+            categories: a.categories,
+            updated_at: new Date().toISOString()
+          }));
 
-        const { error } = await supabase.from('audits').upsert(payload, { onConflict: 'id' });
-        if (error) {
-          console.error('Background sync failed:', error);
-        } else {
-          console.log('Background sync to Supabase successful.');
+          const { error } = await supabase.from('audits').upsert(payload, { onConflict: 'id' });
+          if (error) console.error('Background sync audits failed:', error);
+        }
+
+        if (template && template.categories && template.categories.length > 0) {
+          const templatePayload = {
+            id: 'master_template',
+            name: template.name,
+            is_default: template.isDefault,
+            categories: template.categories,
+            updated_at: new Date().toISOString()
+          };
+          const { error: tError } = await supabase.from('templates').upsert(templatePayload, { onConflict: 'id' });
+          if (tError) console.error('Background sync templates failed:', tError);
         }
       } catch (err) {
         console.error('Background sync error:', err);

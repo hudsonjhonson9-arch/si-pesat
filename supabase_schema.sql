@@ -55,6 +55,20 @@ CREATE TRIGGER on_audits_updated
   BEFORE UPDATE ON audits
   FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
--- Disable RLS for now (or set up proper Row Level Security if needed for production)
 ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;
 ALTER TABLE audits DISABLE ROW LEVEL SECURITY;
+
+-- 3. Create Templates table for KKA Templates
+CREATE TABLE templates (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  is_default BOOLEAN DEFAULT false,
+  categories JSONB NOT NULL DEFAULT '[]'::jsonb,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TRIGGER on_templates_updated
+  BEFORE UPDATE ON templates
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+
+ALTER TABLE templates DISABLE ROW LEVEL SECURITY;

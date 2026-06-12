@@ -61,14 +61,6 @@ export default function AuditWorkspaceView({
   const [uploadingIds, setUploadingIds] = useState<Record<string, boolean>>({});
 
   const handleDirectUpload = async (itemId: string, file: File) => {
-    if (!accessToken) {
-      alert('Harap hubungkan akun Google Drive Anda terlebih dahulu!');
-      return;
-    }
-    if (!audit.googleDriveFolderId) {
-      alert('Folder Google Drive untuk audit ini belum dibuat. Silakan klik tombol "Kirim Ke Drive" di pojok kanan atas untuk menginisiasi map penyimpanan KKA Anda.');
-      return;
-    }
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const res = await uploadEvidenceFile(file);
