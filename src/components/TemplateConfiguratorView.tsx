@@ -20,19 +20,29 @@ import {
 } from 'lucide-react';
 
 interface TemplateConfiguratorViewProps {
-  template: KKATemplate;
-  onUpdateTemplate: (updatedTemplate: KKATemplate) => void;
-  onResetTemplate: () => void;
+  templates: KKATemplate[];
+  onUpdateTemplates: (updatedTemplates: KKATemplate[]) => void;
+  onResetTemplates: () => void;
 }
 
 export default function TemplateConfiguratorView({
-  template,
-  onUpdateTemplate,
-  onResetTemplate
+  templates,
+  onUpdateTemplates,
+  onResetTemplates
 }: TemplateConfiguratorViewProps) {
   
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
+    templates.length > 0 ? templates[0].id : ''
+  );
+
+  const template = templates.find(t => t.id === selectedTemplateId) || templates[0];
+
+  const onUpdateTemplate = (updatedTemplate: KKATemplate) => {
+    onUpdateTemplates(templates.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
+  };
+
   const [selectedCatId, setSelectedCatId] = useState<string>(
-    template.categories.length > 0 ? template.categories[0].id : ''
+    template?.categories?.length > 0 ? template.categories[0].id : ''
   );
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -54,7 +64,48 @@ export default function TemplateConfiguratorView({
   const [editItemDesc, setEditItemDesc] = useState('');
 
   // Active Category helper
-  const activeCategory = template.categories.find(c => c.id === selectedCatId);
+  const activeCategory = template?.categories?.find(c => c.id === selectedCatId);
+
+  // Add a new template
+  const handleAddTemplate = () => {
+    const newTemplateId = `template_${Date.now()}`;
+    const newTemplate: KKATemplate = {
+      id: newTemplateId,
+      name: 'Template Baru',
+      isDefault: false,
+      categories: [
+        {
+          id: `cat_temp_${Date.now()}`,
+          name: 'Kategori Default',
+          description: 'Deskripsi kategori',
+          items: []
+        }
+      ]
+    };
+    onUpdateTemplates([...templates, newTemplate]);
+    setSelectedTemplateId(newTemplateId);
+  };
+
+  // Delete a template
+  const handleDeleteTemplate = (id: string) => {
+    if (templates.length <= 1) {
+      alert('Harus ada setidaknya satu template.');
+      return;
+    }
+    const confirmed = window.confirm('Apakah Anda yakin ingin menghapus template ini?');
+    if (confirmed) {
+      const newTemplates = templates.filter(t => t.id !== id);
+      onUpdateTemplates(newTemplates);
+      if (selectedTemplateId === id) {
+        setSelectedTemplateId(newTemplates[0].id);
+      }
+    }
+  };
+
+  // Update Template name
+  const handleTemplateNameChange = (name: string) => {
+    onUpdateTemplate({ ...template, name });
+  };
 
   // Add category to master template
   const handleAddCategory = (e: React.FormEvent) => {
@@ -251,9 +302,9 @@ export default function TemplateConfiguratorView({
 
         <button
           onClick={() => {
-            const confirmed = window.confirm('Apakah Anda yakin ingin menyetel ulang template ke standar Dana BOS Nasional Inspektorat? Semua kustomisasi template Anda akan dihapus.');
+            const confirmed = window.confirm('Apakah Anda yakin ingin menyetel ulang semua template ke standar Dana BOS Nasional Inspektorat? Semua kustomisasi Anda akan dihapus.');
             if (confirmed) {
-              onResetTemplate();
+              onResetTemplates();
             }
           }}
           className="bg-white border border-dark-gray/15 hover:bg-white/85 text-dark-gray text-xs font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
@@ -264,9 +315,54 @@ export default function TemplateConfiguratorView({
 
       {/* Main Dual Grid config layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* Template Sidebar column */}
+        <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
+            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Template</span>
+            <button
+              onClick={handleAddTemplate}
+              className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5" /> Tambah
+            </button>
+          </div>
+          <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
+            {templates.map(t => {
+              const isActive = t.id === selectedTemplateId;
+              return (
+                <div
+                  key={t.id}
+                  onClick={() => setSelectedTemplateId(t.id)}
+                  className={`group relative flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition border ${
+                    isActive 
+                      ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold' 
+                      : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/60 font-semibold'
+                  }`}
+                >
+                  <span className="truncate pr-8">{t.name}</span>
+                  {!t.isDefault && (
+                    <div className="absolute right-2 opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTemplate(t.id);
+                        }}
+                        className={`p-1 rounded text-xs ${isActive ? 'text-white/80 hover:bg-white/20 hover:text-white' : 'text-dark-gray/60 hover:text-rose-700'}`}
+                        title="Hapus Template"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
         
-        {/* Left Side: Category config column */}
-        <div className="lg:col-span-4 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
+        {/* Category config column */}
+        <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
             <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Kategori Template</span>
             <button
@@ -275,6 +371,16 @@ export default function TemplateConfiguratorView({
             >
               <PlusCircle className="w-3.5 h-3.5" /> Tambah Seksi
             </button>
+          </div>
+
+          <div className="space-y-2 mb-4">
+            <input
+              type="text"
+              value={template?.name || ''}
+              onChange={e => handleTemplateNameChange(e.target.value)}
+              className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded bg-white text-dark-gray outline-none focus:border-dark-gray/30"
+              placeholder="Nama Template"
+            />
           </div>
 
           <div className="space-y-1.5 max-h-[350px] overflow-y-auto">
@@ -359,7 +465,7 @@ export default function TemplateConfiguratorView({
         </div>
 
         {/* Right Side: Active Category Items List configurations */}
-        <div className="lg:col-span-8 space-y-4">
+        <div className="lg:col-span-6 space-y-4">
           {activeCategory ? (
             <div className="space-y-4">
               {/* Category Scope Title Bar */}

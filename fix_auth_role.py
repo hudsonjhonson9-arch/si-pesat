@@ -10,7 +10,7 @@ old_auth_change = """    const { data: { subscription } } = supabase.auth.onAuth
       setUser(session?.user || null);
       if (session) {
          setIsSessionActive(true);
-         localStorage.setItem('si_kka_session_active', 'true');
+         localStorage.setItem('si_pesat_session_active', 'true');
       } else {"""
 
 new_auth_change = """    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -18,7 +18,7 @@ new_auth_change = """    const { data: { subscription } } = supabase.auth.onAuth
       setUser(session?.user || null);
       if (session) {
          setIsSessionActive(true);
-         localStorage.setItem('si_kka_session_active', 'true');
+         localStorage.setItem('si_pesat_session_active', 'true');
          const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
          setCustomAuditorName(name);
          
@@ -26,7 +26,7 @@ new_auth_change = """    const { data: { subscription } } = supabase.auth.onAuth
            .then(({ data }) => {
               if (data?.role) {
                 setUserRole(data.role as any);
-                localStorage.setItem('si_kka_user_role', data.role);
+                localStorage.setItem('si_pesat_user_role', data.role);
               }
            });
       } else {"""

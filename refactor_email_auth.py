@@ -51,7 +51,7 @@ export default function LoginView({
               SI
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-dark-gray">SI-KKA Audit</h1>
+              <h1 className="text-2xl font-black tracking-tight text-dark-gray">SI-PESAT Audit</h1>
               <p className="text-xs uppercase tracking-widest text-dark-gray/70 font-bold block mt-0.5">Kertas Kerja Audit Daerah</p>
             </div>
           </div>
@@ -177,9 +177,9 @@ old_auth = """  // Login handlers via Supabase
     setUser(null);
     setSession(null);
     setIsSessionActive(false);
-    localStorage.removeItem('si_kka_session_active');
-    localStorage.removeItem('si_kka_custom_name');
-    showToast('Telah keluar dari sesi SI-KKA.', 'info');
+    localStorage.removeItem('si_pesat_session_active');
+    localStorage.removeItem('si_pesat_custom_name');
+    showToast('Telah keluar dari sesi SI-PESAT.', 'info');
   };
 
   const handleLogin = handleGoogleSignIn; // Alias"""
@@ -206,9 +206,9 @@ new_auth = """  // Login handlers via Supabase Email/Password
     setUser(null);
     setSession(null);
     setIsSessionActive(false);
-    localStorage.removeItem('si_kka_session_active');
-    localStorage.removeItem('si_kka_custom_name');
-    showToast('Telah keluar dari sesi SI-KKA.', 'info');
+    localStorage.removeItem('si_pesat_session_active');
+    localStorage.removeItem('si_pesat_custom_name');
+    showToast('Telah keluar dari sesi SI-PESAT.', 'info');
   };
 
   const handleLogin = () => {}; // Alias"""

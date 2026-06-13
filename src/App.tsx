@@ -42,21 +42,21 @@ export default function App() {
 
   // Core Applet States
   const [audits, setAudits] = useState<OpdAudit[]>([]);
-  const [template, setTemplate] = useState<KKATemplate>(EMPTY_KKA_TEMPLATE);
+  const [templates, setTemplates] = useState<KKATemplate[]>([EMPTY_KKA_TEMPLATE]);
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
 
   // Simulated internal account role ('Auditor' | 'Inspektur Pembantu' | 'Inspektur')
   const [userRole, setUserRole] = useState<'Auditor' | 'Inspektur Pembantu' | 'Inspektur'>(() => {
-    const cached = localStorage.getItem('si_kka_user_role');
+    const cached = localStorage.getItem('si_pesat_user_role');
     return (cached as 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') || 'Auditor';
   });
 
   // Session Login gate state
   const [isSessionActive, setIsSessionActive] = useState<boolean>(() => {
-    return localStorage.getItem('si_kka_session_active') === 'true';
+    return localStorage.getItem('si_pesat_session_active') === 'true';
   });
   const [customAuditorName, setCustomAuditorName] = useState<string>(() => {
-    return localStorage.getItem('si_kka_custom_name') || '';
+    return localStorage.getItem('si_pesat_custom_name') || '';
   });
 
   // Authentication & Cloud Sync
@@ -78,9 +78,9 @@ export default function App() {
 
   // 1. Load data from localStorage on component mount
   useEffect(() => {
-    const cachedAudits = localStorage.getItem('si_kka_audits');
-    const cachedTemplate = localStorage.getItem('si_kka_template');
-    const cachedLogs = localStorage.getItem('si_kka_logs');
+    const cachedAudits = localStorage.getItem('si_pesat_audits');
+    const cachedTemplate = localStorage.getItem('si_pesat_template');
+    const cachedLogs = localStorage.getItem('si_pesat_logs');
 
     if (cachedAudits) {
       try {
@@ -113,13 +113,18 @@ export default function App() {
 
     if (cachedTemplate) {
       try {
-        setTemplate(JSON.parse(cachedTemplate));
+        const parsed = JSON.parse(cachedTemplate);
+        if (Array.isArray(parsed)) {
+          setTemplates(parsed);
+        } else {
+          setTemplates([parsed]);
+        }
       } catch (e) {
         console.error('Error parsing cached KKA templates:', e);
-        setTemplate(EMPTY_KKA_TEMPLATE);
+        setTemplates([EMPTY_KKA_TEMPLATE]);
       }
     } else {
-      setTemplate(EMPTY_KKA_TEMPLATE);
+      setTemplates([EMPTY_KKA_TEMPLATE]);
     }
 
     if (cachedLogs) {
@@ -153,15 +158,15 @@ export default function App() {
         }
       });
 
-      supabase.from('templates').select('*').eq('id', 'master_template').single().then(({ data, error }) => {
-        if (!error && data) {
-          const fetchedTemplate = {
-            id: data.id,
-            name: data.name,
-            isDefault: data.is_default,
-            categories: data.categories || []
-          };
-          setTemplate(fetchedTemplate);
+      supabase.from('templates').select('*').then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          const fetchedTemplates = data.map(d => ({
+            id: d.id,
+            name: d.name,
+            isDefault: d.is_default,
+            categories: d.categories || []
+          }));
+          setTemplates(fetchedTemplates);
         }
       });
     }
@@ -170,20 +175,20 @@ export default function App() {
   // 2. Persist state changes in localStorage
   useEffect(() => {
     if (audits.length > 0) {
-      localStorage.setItem('si_kka_audits', JSON.stringify(audits));
+      localStorage.setItem('si_pesat_audits', JSON.stringify(audits));
     }
   }, [audits]);
 
   useEffect(() => {
-    localStorage.setItem('si_kka_template', JSON.stringify(template));
-  }, [template]);
+    localStorage.setItem('si_pesat_template', JSON.stringify(templates));
+  }, [templates]);
 
   useEffect(() => {
-    localStorage.setItem('si_kka_logs', JSON.stringify(syncLogs));
+    localStorage.setItem('si_pesat_logs', JSON.stringify(syncLogs));
   }, [syncLogs]);
 
   useEffect(() => {
-    localStorage.setItem('si_kka_user_role', userRole);
+    localStorage.setItem('si_pesat_user_role', userRole);
   }, [userRole]);
 
 
@@ -234,15 +239,15 @@ export default function App() {
           }
         }
 
-        if (template && template.categories && template.categories.length > 0) {
-          const templatePayload = {
-            id: 'master_template',
-            name: template.name,
-            is_default: template.isDefault,
-            categories: template.categories,
+        if (templates && templates.length > 0) {
+          const templatePayloads = templates.map(t => ({
+            id: t.id,
+            name: t.name,
+            is_default: t.isDefault,
+            categories: t.categories,
             updated_at: new Date().toISOString()
-          };
-          const { error: tError } = await supabase.from('templates').upsert(templatePayload, { onConflict: 'id' });
+          }));
+          const { error: tError } = await supabase.from('templates').upsert(templatePayloads, { onConflict: 'id' });
           if (tError) {
             console.error('Background sync templates failed:', tError);
             setSyncLogs(prev => [{
@@ -272,7 +277,7 @@ export default function App() {
       setUser(session?.user || null);
       if (session) {
         setIsSessionActive(true);
-        localStorage.setItem('si_kka_session_active', 'true');
+        localStorage.setItem('si_pesat_session_active', 'true');
         const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
         setCustomAuditorName(name);
         
@@ -288,7 +293,7 @@ export default function App() {
       setUser(session?.user || null);
       if (session) {
          setIsSessionActive(true);
-         localStorage.setItem('si_kka_session_active', 'true');
+         localStorage.setItem('si_pesat_session_active', 'true');
          const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
          setCustomAuditorName(name);
          
@@ -296,12 +301,12 @@ export default function App() {
            .then(({ data }) => {
               if (data?.role) {
                 setUserRole(data.role as any);
-                localStorage.setItem('si_kka_user_role', data.role);
+                localStorage.setItem('si_pesat_user_role', data.role);
               }
            });
       } else {
          setIsSessionActive(false);
-         localStorage.removeItem('si_kka_session_active');
+         localStorage.removeItem('si_pesat_session_active');
       }
     });
 
@@ -329,9 +334,9 @@ export default function App() {
     setCustomAuditorName(name);
     setUserRole(role);
     setIsSessionActive(true);
-    localStorage.setItem('si_kka_session_active', 'true');
-    localStorage.setItem('si_kka_custom_name', name);
-    localStorage.setItem('si_kka_user_role', role);
+    localStorage.setItem('si_pesat_session_active', 'true');
+    localStorage.setItem('si_pesat_custom_name', name);
+    localStorage.setItem('si_pesat_user_role', role);
     showToast(`Berhasil masuk offline sebagai ${name} (${role})`, 'success');
   };
 
@@ -340,9 +345,9 @@ export default function App() {
     setUser(null);
     setSession(null);
     setIsSessionActive(false);
-    localStorage.removeItem('si_kka_session_active');
-    localStorage.removeItem('si_kka_custom_name');
-    showToast('Telah keluar dari sesi SI-KKA.', 'info');
+    localStorage.removeItem('si_pesat_session_active');
+    localStorage.removeItem('si_pesat_custom_name');
+    showToast('Telah keluar dari sesi SI-PESAT.', 'info');
   };
 
   const handleLogin = () => {}; // Alias
@@ -396,10 +401,12 @@ export default function App() {
     fiscalYear: string, 
     auditorName: string, 
     budget: number,
-    teamMembers: string[]
+    teamMembers: string[],
+    templateId: string
   ) => {
     // Copy checklist structures from active configured template (Requirement A.2)
-    const initialCategories: AuditCategory[] = template.categories.map(tempCat => {
+    const selectedTemplate = templates.find(t => t.id === templateId) || templates[0];
+    const initialCategories: AuditCategory[] = selectedTemplate.categories.map(tempCat => {
       return {
         id: tempCat.id,
         name: tempCat.name,
@@ -509,6 +516,7 @@ export default function App() {
         return (
           <AuditListView
             audits={audits}
+            templates={templates}
             onSelectAudit={(aud) => setSelectedAuditId(aud.id)}
             onCreateAudit={handleCreateAudit}
             onDeleteAudit={handleDeleteAudit}
@@ -521,10 +529,10 @@ export default function App() {
       case 'template':
         return (
           <TemplateConfiguratorView
-            template={template}
-            onUpdateTemplate={setTemplate}
-            onResetTemplate={() => {
-              setTemplate(EMPTY_KKA_TEMPLATE);
+            templates={templates}
+            onUpdateTemplates={setTemplates}
+            onResetTemplates={() => {
+              setTemplates([EMPTY_KKA_TEMPLATE]);
               showToast('Template master diatur ulang ke standar juknis.', 'info');
             }}
           />
@@ -548,7 +556,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-cream-bg font-sans text-dark-gray flex flex-col pt-0 pb-16 md:pb-0" id="si-kka-app">
+    <div className="min-h-screen bg-cream-bg font-sans text-dark-gray flex flex-col pt-0 pb-16 md:pb-0" id="si-pesat-app">
       
       {/* Toast alert wrapper */}
       <AnimatePresence>
@@ -595,7 +603,7 @@ export default function App() {
                 I
               </div>
               <div>
-                <h1 className="font-extrabold text-sm text-dark-gray tracking-tight">SI-KKA Audit</h1>
+                <h1 className="font-extrabold text-sm text-dark-gray tracking-tight">SI-PESAT Audit</h1>
                 <span className="text-[9px] uppercase tracking-wider text-dark-gray/70 font-bold block leading-none">Inspektorat Daerah</span>
               </div>
             </div>
@@ -668,7 +676,7 @@ export default function App() {
                 onClick={handleSessionLogout}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-rose-700/80 hover:bg-rose-50/50 hover:text-rose-700 mt-6 pt-2 border-t border-dark-gray/10 cursor-pointer"
               >
-                <X className="w-4 h-4" /> Log out SI-KKA
+                <X className="w-4 h-4" /> Log out SI-PESAT
               </button>
             </nav>
 
@@ -700,7 +708,7 @@ export default function App() {
                   I
                 </div>
                 <div>
-                  <h1 className="text-xs font-bold text-dark-gray">SI-KKA Audit</h1>
+                  <h1 className="text-xs font-bold text-dark-gray">SI-PESAT Audit</h1>
                   <span className="text-[8px] uppercase tracking-wide text-dark-gray/60 font-bold block leading-none">Inspektorat Daerah</span>
                 </div>
               </div>
@@ -717,7 +725,7 @@ export default function App() {
                   className="p-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-md text-[10px] font-bold"
                   title="Keluar Sesi"
                 >
-                  Log out SI-KKA
+                  Log out SI-PESAT
                 </button>
               </div>
             </header>

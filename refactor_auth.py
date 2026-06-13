@@ -25,10 +25,10 @@ old_effect = """  // 3. Setup Firebase Auth state listener
         setUser(currentUser);
         setAccessToken(token);
         setIsSessionActive(true);
-        localStorage.setItem('si_kka_session_active', 'true');
+        localStorage.setItem('si_pesat_session_active', 'true');
         if (currentUser.displayName) {
           setCustomAuditorName(currentUser.displayName);
-          localStorage.setItem('si_kka_custom_name', currentUser.displayName);
+          localStorage.setItem('si_pesat_custom_name', currentUser.displayName);
         }
       },
       () => {
@@ -46,7 +46,7 @@ new_effect = """  // 3. Setup Supabase Auth state listener
       setUser(session?.user || null);
       if (session) {
         setIsSessionActive(true);
-        localStorage.setItem('si_kka_session_active', 'true');
+        localStorage.setItem('si_pesat_session_active', 'true');
         const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
         setCustomAuditorName(name);
         
@@ -62,10 +62,10 @@ new_effect = """  // 3. Setup Supabase Auth state listener
       setUser(session?.user || null);
       if (session) {
          setIsSessionActive(true);
-         localStorage.setItem('si_kka_session_active', 'true');
+         localStorage.setItem('si_pesat_session_active', 'true');
       } else {
          setIsSessionActive(false);
-         localStorage.removeItem('si_kka_session_active');
+         localStorage.removeItem('si_pesat_session_active');
       }
     });
 
@@ -83,10 +83,10 @@ old_handlers = """  // Login handler
         setUser(result.user);
         setAccessToken(result.accessToken);
         setIsSessionActive(true);
-        localStorage.setItem('si_kka_session_active', 'true');
+        localStorage.setItem('si_pesat_session_active', 'true');
         const name = result.user.displayName || 'Auditor Google';
         setCustomAuditorName(name);
-        localStorage.setItem('si_kka_custom_name', name);
+        localStorage.setItem('si_pesat_custom_name', name);
         showToast(`Berhasil masuk sebagai ${name}`, 'success');
         addSyncLog('UPLOAD', `Koneksi Google Drive diaktifkan oleh ${result.user.email}`);
       }
@@ -104,11 +104,11 @@ old_handlers = """  // Login handler
         setUser(result.user);
         setAccessToken(result.accessToken);
         setIsSessionActive(true);
-        localStorage.setItem('si_kka_session_active', 'true');
-        localStorage.setItem('si_kka_user_role', role);
+        localStorage.setItem('si_pesat_session_active', 'true');
+        localStorage.setItem('si_pesat_user_role', role);
         const name = result.user.displayName || 'Auditor Google';
         setCustomAuditorName(name);
-        localStorage.setItem('si_kka_custom_name', name);
+        localStorage.setItem('si_pesat_custom_name', name);
         showToast(`Berhasil masuk sebagai ${name} (${role})`, 'success');
         addSyncLog('UPLOAD', `Koneksi Google Drive diaktifkan oleh ${result.user.email}`);
       }
@@ -122,9 +122,9 @@ old_handlers = """  // Login handler
     setCustomAuditorName(name);
     setUserRole(role);
     setIsSessionActive(true);
-    localStorage.setItem('si_kka_session_active', 'true');
-    localStorage.setItem('si_kka_custom_name', name);
-    localStorage.setItem('si_kka_user_role', role);
+    localStorage.setItem('si_pesat_session_active', 'true');
+    localStorage.setItem('si_pesat_custom_name', name);
+    localStorage.setItem('si_pesat_user_role', role);
     showToast(`Berhasil masuk sebagai ${name} (${role})`, 'success');
   };
 
@@ -133,9 +133,9 @@ old_handlers = """  // Login handler
     setUser(null);
     setAccessToken(null);
     setIsSessionActive(false);
-    localStorage.removeItem('si_kka_session_active');
-    localStorage.removeItem('si_kka_custom_name');
-    showToast('Telah keluar dari sesi KKA SI-KKA Audit.', 'info');
+    localStorage.removeItem('si_pesat_session_active');
+    localStorage.removeItem('si_pesat_custom_name');
+    showToast('Telah keluar dari sesi KKA SI-PESAT Audit.', 'info');
   };
 
   // Logout handler
@@ -144,8 +144,8 @@ old_handlers = """  // Login handler
     setUser(null);
     setAccessToken(null);
     setIsSessionActive(false);
-    localStorage.removeItem('si_kka_session_active');
-    localStorage.removeItem('si_kka_custom_name');
+    localStorage.removeItem('si_pesat_session_active');
+    localStorage.removeItem('si_pesat_custom_name');
     showToast('Telah keluar dari sesi pemeriksaan Cloud.', 'info');
     addSyncLog('DOWNLOAD', 'Sesi pemeriksaan Cloud diputus.');
   };"""
@@ -154,7 +154,7 @@ new_handlers = """  // Login handlers via Supabase
   const handleGoogleSignInWithRole = async (role: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') => {
     try {
       setUserRole(role);
-      localStorage.setItem('si_kka_user_role', role);
+      localStorage.setItem('si_pesat_user_role', role);
       // Initiate Supabase OAuth
       await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -170,9 +170,9 @@ new_handlers = """  // Login handlers via Supabase
     setCustomAuditorName(name);
     setUserRole(role);
     setIsSessionActive(true);
-    localStorage.setItem('si_kka_session_active', 'true');
-    localStorage.setItem('si_kka_custom_name', name);
-    localStorage.setItem('si_kka_user_role', role);
+    localStorage.setItem('si_pesat_session_active', 'true');
+    localStorage.setItem('si_pesat_custom_name', name);
+    localStorage.setItem('si_pesat_user_role', role);
     showToast(`Berhasil masuk offline sebagai ${name} (${role})`, 'success');
   };
 
@@ -181,9 +181,9 @@ new_handlers = """  // Login handlers via Supabase
     setUser(null);
     setSession(null);
     setIsSessionActive(false);
-    localStorage.removeItem('si_kka_session_active');
-    localStorage.removeItem('si_kka_custom_name');
-    showToast('Telah keluar dari sesi SI-KKA.', 'info');
+    localStorage.removeItem('si_pesat_session_active');
+    localStorage.removeItem('si_pesat_custom_name');
+    showToast('Telah keluar dari sesi SI-PESAT.', 'info');
   };
 
   const handleLogin = handleGoogleSignInWithRole; // Alias

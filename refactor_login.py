@@ -44,7 +44,7 @@ export default function LoginView({
               SI
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-dark-gray">SI-KKA Audit</h1>
+              <h1 className="text-2xl font-black tracking-tight text-dark-gray">SI-PESAT Audit</h1>
               <p className="text-xs uppercase tracking-widest text-dark-gray/70 font-bold block mt-0.5">Kertas Kerja Audit Daerah</p>
             </div>
           </div>
@@ -116,7 +116,7 @@ with open(filepath_app, 'r', encoding='utf-8') as f:
 old_handler = """  const handleGoogleSignInWithRole = async (role: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') => {
     try {
       setUserRole(role);
-      localStorage.setItem('si_kka_user_role', role);
+      localStorage.setItem('si_pesat_user_role', role);
       // Initiate Supabase OAuth
       await supabase.auth.signInWithOAuth({
         provider: 'google',

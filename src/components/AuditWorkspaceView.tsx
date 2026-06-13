@@ -101,6 +101,11 @@ export default function AuditWorkspaceView({
     return audit.categories.find(c => c.id === selectedCategoryId);
   }, [audit.categories, selectedCategoryId]);
 
+  const isReadOnly = (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) || 
+                     ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Selesai');
+                     
+  const isReviewerPanelVisible = (userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Direview';
+
   // Handle saving general metadata updates
   const handleSaveMetadata = () => {
     onUpdates({
@@ -117,6 +122,7 @@ export default function AuditWorkspaceView({
 
   // Quick state toggling for individual criteria items
   const handleItemStatusChange = (itemId: string, status: FindingStatus) => {
+    if (isReadOnly) return;
     const updatedCategories = audit.categories.map(cat => {
       return {
         ...cat,
@@ -146,6 +152,7 @@ export default function AuditWorkspaceView({
 
   // Update specific values under a finding (Rupiah, classification, desc, rec)
   const handleFindingDetailChange = (itemId: string, field: keyof AuditItem, value: any) => {
+    if (isReadOnly && field !== 'catatanReview') return; // Reviewers can edit catatanReview when status is Direview
     const updatedCategories = audit.categories.map(cat => {
       return {
         ...cat,
@@ -318,6 +325,42 @@ export default function AuditWorkspaceView({
         </button>
 
         <div className="flex items-center gap-2">
+          {/* Action buttons based on Role and Status */}
+          {userRole === 'Auditor' && (audit.status === 'Draft' || audit.status === 'Sedang Berjalan') && (
+            <button
+              onClick={() => {
+                const confirmed = window.confirm('Apakah Anda yakin ingin mengajukan LHP ini untuk direview oleh pimpinan?');
+                if (confirmed) onUpdates({ ...audit, status: 'Direview' });
+              }}
+              className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-blue-500 text-white border-blue-600 hover:bg-blue-600 shadow-xs"
+            >
+              Ajukan Review
+            </button>
+          )}
+
+          {isReviewerPanelVisible && (
+             <>
+               <button
+                  onClick={() => {
+                    const confirmed = window.confirm('Apakah Anda menyetujui LHP ini menjadi Selesai?');
+                    if (confirmed) onUpdates({ ...audit, status: 'Selesai' });
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-xs"
+               >
+                 <CheckCircle className="w-4 h-4" /> Setujui LHP
+               </button>
+               <button
+                  onClick={() => {
+                    const confirmed = window.confirm('Apakah Anda ingin mengembalikan KKA ini ke Auditor untuk direvisi?');
+                    if (confirmed) onUpdates({ ...audit, status: 'Sedang Berjalan' });
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-rose-500 text-white border-rose-600 hover:bg-rose-600 shadow-xs"
+               >
+                 <AlertTriangle className="w-4 h-4" /> Revisi Lapangan
+               </button>
+             </>
+          )}
+
           {/* Real-time sync status button */}
           <button
             disabled={!isDriveConnected || isSyncing}
@@ -360,13 +403,15 @@ export default function AuditWorkspaceView({
                   <span className="text-[10px] bg-white/40 px-2 py-0.5 rounded font-extrabold text-dark-gray uppercase">
                     Profil Auditi
                   </span>
-                  <button 
-                    onClick={() => setIsEditingMetadata(true)}
-                    className="p-1 text-dark-gray hover:text-dark-gray/80 rounded transition cursor-pointer"
-                    title="Edit Profil"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
+                  {!isReadOnly && (
+                    <button 
+                      onClick={() => setIsEditingMetadata(true)}
+                      className="p-1 text-dark-gray hover:text-dark-gray/80 rounded transition cursor-pointer"
+                      title="Edit Profil"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
                 <div>
@@ -494,7 +539,7 @@ export default function AuditWorkspaceView({
           <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3 text-dark-gray">
             <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
               <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Kategori Pemeriksaan KKA</span>
-              {userRole === 'Auditor' && (
+              {userRole === 'Auditor' && !isReadOnly && (
                 <button 
                   onClick={() => setIsAddingCategory(true)}
                   className="text-xs text-dark-gray hover:text-dark-gray/70 inline-flex items-center gap-0.5 font-extrabold cursor-pointer"
@@ -545,7 +590,7 @@ export default function AuditWorkspaceView({
                       )}
                       
                       {/* Delete category button */}
-                      {userRole === 'Auditor' && (
+                      {userRole === 'Auditor' && !isReadOnly && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -605,7 +650,7 @@ export default function AuditWorkspaceView({
             {/* Header Checklist & Action to trigger ADD item */}
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
-              {userRole === 'Auditor' && (
+              {userRole === 'Auditor' && !isReadOnly && (
                 <button 
                   onClick={() => setIsAddingItem(true)}
                   className="bg-peach-accent hover:opacity-90 border border-dark-gray/10 text-dark-gray text-xs font-extrabold px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1 cursor-pointer"
@@ -645,32 +690,35 @@ export default function AuditWorkspaceView({
                     {/* Checkbox Status Row Selector (Highly Mobile-First responsive button group) */}
                     <div className="flex items-center gap-1 bg-white/30 p-1 rounded-lg self-start md:self-auto flex-shrink-0 border border-dark-gray/5">
                       <button
+                        disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'Sesuai')}
-                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all cursor-pointer ${
+                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
                           item.status === 'Sesuai' 
                             ? 'bg-emerald-700 text-white shadow-xs' 
-                            : 'text-dark-gray/60 hover:text-dark-gray hover:bg-white/35'
-                        }`}
+                            : `text-dark-gray/60 ${!isReadOnly && 'hover:text-dark-gray hover:bg-white/35'}`
+                        } ${isReadOnly && 'opacity-70'}`}
                       >
                         Sesuai
                       </button>
                       <button
+                        disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'Temuan')}
-                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all cursor-pointer ${
+                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
                           item.status === 'Temuan' 
                             ? 'bg-rose-700 text-white shadow-xs' 
-                            : 'text-dark-gray/60 hover:text-rose-700 hover:bg-white/35'
-                        }`}
+                            : `text-dark-gray/60 ${!isReadOnly && 'hover:text-rose-700 hover:bg-white/35'}`
+                        } ${isReadOnly && 'opacity-70'}`}
                       >
                         Temuan
                       </button>
                       <button
+                        disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'N/A')}
-                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all cursor-pointer ${
+                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
                           item.status === 'N/A' 
                             ? 'bg-dark-gray text-white shadow-xs' 
-                            : 'text-dark-gray/60 hover:text-dark-gray hover:bg-white/35'
-                        }`}
+                            : `text-dark-gray/60 ${!isReadOnly && 'hover:text-dark-gray hover:bg-white/35'}`
+                        } ${isReadOnly && 'opacity-70'}`}
                       >
                         N/A
                       </button>
@@ -686,7 +734,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide block">Klasifikasi Temuan</label>
                           <select
-                            disabled={userRole !== 'Auditor'}
+                            disabled={isReadOnly || userRole !== 'Auditor'}
                             value={item.jenisTemuan || 'Tidak Sesuai Juknis'}
                             onChange={e => handleFindingDetailChange(item.id, 'jenisTemuan', e.target.value)}
                             className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white shadow-xs disabled:bg-white/40 disabled:cursor-not-allowed select-none outline-none text-dark-gray"
@@ -707,7 +755,7 @@ export default function AuditWorkspaceView({
                               Rp
                             </span>
                             <input
-                              disabled={userRole !== 'Auditor'}
+                              disabled={isReadOnly || userRole !== 'Auditor'}
                               type="number"
                               placeholder="Misal: 1000000"
                               value={item.nilaiTemuan || ''}
@@ -723,7 +771,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide block">Uraian Penyimpangan / Detail Temuan</label>
                           <textarea
-                            disabled={userRole !== 'Auditor'}
+                            disabled={isReadOnly || userRole !== 'Auditor'}
                             placeholder="Uraikan temuan fisik secara detail, nominal, dan nomor berkas kuitansi terkait..."
                             value={item.uraianTemuan || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'uraianTemuan', e.target.value)}
@@ -735,7 +783,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide block">Rekomendasi Tindak Lanjut Inspektorat</label>
                           <textarea
-                            disabled={userRole !== 'Auditor'}
+                            disabled={isReadOnly || userRole !== 'Auditor'}
                             placeholder="Rekomendasi tindakan hukum/administratif, pengembalian kas, atau peneguran tertulis..."
                             value={item.rekomendasi || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'rekomendasi', e.target.value)}
@@ -746,7 +794,7 @@ export default function AuditWorkspaceView({
                       </div>
 
                       {/* Delete action button for custom item */}
-                      {item.id.startsWith('item_custom_') && userRole === 'Auditor' && (
+                      {item.id.startsWith('item_custom_') && userRole === 'Auditor' && !isReadOnly && (
                         <div className="md:col-span-2 pt-1.5 flex justify-end">
                           <button
                             type="button"
@@ -786,7 +834,7 @@ export default function AuditWorkspaceView({
                     </div>
 
                     {/* Links pasting and direct upload tools (Only for Auditor role) */}
-                    {userRole === 'Auditor' && (
+                    {userRole === 'Auditor' && !isReadOnly && (
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 pt-1.5 border-t border-dark-gray/10">
                         <div className="md:col-span-6">
                           <input 
@@ -851,7 +899,7 @@ export default function AuditWorkspaceView({
                       )}
                     </div>
 
-                    {userRole === 'Auditor' ? (
+                    {userRole === 'Auditor' || (isReadOnly && audit.status === 'Selesai') ? (
                       <p className="text-[11px] text-amber-900 bg-white/20 p-2 border border-amber-200/40 rounded italic font-bold leading-relaxed">
                         {item.catatanReview || 'Belum ada catatan pembinaan/evaluasi dari pimpinan (Inspektur atau Irban).'}
                       </p>
@@ -870,7 +918,7 @@ export default function AuditWorkspaceView({
                   </div>
                   
                   {/* Fallback delete button if NOT currently expanded */}
-                  {!hasFinding && item.id.startsWith('item_custom_') && userRole === 'Auditor' && (
+                  {!hasFinding && item.id.startsWith('item_custom_') && userRole === 'Auditor' && !isReadOnly && (
                     <div className="mt-2.5 pt-2 border-t border-dark-gray/10 flex justify-end">
                       <button
                         type="button"

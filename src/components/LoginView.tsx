@@ -48,7 +48,7 @@ export default function LoginView({
               SI
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-dark-gray">SI-KKA Audit</h1>
+              <h1 className="text-2xl font-black tracking-tight text-dark-gray">SI-PESAT Audit</h1>
               <p className="text-xs uppercase tracking-widest text-dark-gray/70 font-bold block mt-0.5">Kertas Kerja Audit Daerah</p>
             </div>
           </div>

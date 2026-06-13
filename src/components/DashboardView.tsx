@@ -215,7 +215,7 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
               <ShieldCheck className="w-3.5 h-3.5" /> Pengawasan Internal Inspektorat
             </span>
             <h1 className="text-xl md:text-2xl font-black tracking-tight mt-2 text-dark-gray">
-              SI-KKA Audit
+              SI-PESAT Audit
             </h1>
             <p className="text-dark-gray/70 text-[11px] mt-1 max-w-xl leading-relaxed">
               Sistem Informasi Kertas Kerja Audit (KKA) Google Drive. Pantau kesesuaian administrasi keuangan, unggah bukti fisik langsung, dan validasi temuan kas secara real-time.

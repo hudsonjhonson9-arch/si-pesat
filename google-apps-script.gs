@@ -1,5 +1,5 @@
 /**
- * Google Apps Script Web App for Centralized SI-KKA Drive Storage
+ * Google Apps Script Web App for Centralized SI-PESAT Drive Storage
  * 
  * Instructions:
  * 1. Go to script.google.com and create a new project.
@@ -10,7 +10,7 @@
  * 6. Execute as 'Me' (your account).
  * 7. Who has access: 'Anyone'.
  * 8. Click 'Deploy' and authorize the app.
- * 9. Copy the "Web app URL" and paste it into your SI-KKA `.env.local` as VITE_GOOGLE_SCRIPT_URL.
+ * 9. Copy the "Web app URL" and paste it into your SI-PESAT `.env.local` as VITE_GOOGLE_SCRIPT_URL.
  */
 
 const UPLOAD_FOLDER_ID = 'YOUR_FOLDER_ID'; // Ganti dengan ID Folder Drive Anda

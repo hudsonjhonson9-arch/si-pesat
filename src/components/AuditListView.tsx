@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditStatus } from '../types';
+import { OpdAudit, AuditStatus, KKATemplate } from '../types';
 import { 
   Plus, 
   Search, 
@@ -25,6 +25,7 @@ import {
 
 interface AuditListViewProps {
   audits: OpdAudit[];
+  templates: KKATemplate[];
   onSelectAudit: (audit: OpdAudit) => void;
   onCreateAudit: (
     opdName: string, 
@@ -32,7 +33,8 @@ interface AuditListViewProps {
     fiscalYear: string, 
     auditorName: string, 
     budget: number,
-    teamMembers: string[]
+    teamMembers: string[],
+    templateId: string
   ) => void;
   onDeleteAudit: (auditId: string) => void;
   onSyncToDrive: (audit: OpdAudit) => void;
@@ -43,6 +45,7 @@ interface AuditListViewProps {
 
 export default function AuditListView({
   audits,
+  templates,
   onSelectAudit,
   onCreateAudit,
   onDeleteAudit,
@@ -65,6 +68,7 @@ export default function AuditListView({
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
   const [newBosBudget, setNewBosBudget] = useState('150000000');
   const [newTeamMembers, setNewTeamMembers] = useState('');
+  const [newTemplateId, setNewTemplateId] = useState(templates.length > 0 ? templates[0].id : '');
 
   // Prefill auditor name when context is ready or modal is launched
   React.useEffect(() => {
@@ -137,7 +141,7 @@ export default function AuditListView({
 
   const handleSubmitNewAudit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSchoolName || !newAuditorName) return;
+    if (!newSchoolName || !newAuditorName || !newTemplateId) return;
     
     onCreateAudit(
       newSchoolName,
@@ -145,7 +149,8 @@ export default function AuditListView({
       newFiscalYear,
       newAuditorName,
       parseFloat(newBosBudget) || 0,
-      newTeamMembers.split(',').map(s => s.trim()).filter(Boolean)
+      newTeamMembers.split(',').map(s => s.trim()).filter(Boolean),
+      newTemplateId
     );
 
     // Reset and close
@@ -438,6 +443,20 @@ export default function AuditListView({
                     <option value="2024">2024</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Template KKA */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Template KKA</label>
+                <select
+                  value={newTemplateId}
+                  onChange={e => setNewTemplateId(e.target.value)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
+                >
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Pagu Kemendikbud */}
