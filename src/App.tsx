@@ -198,6 +198,15 @@ export default function App() {
       });
     };
 
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'si_pesat_audits' && e.newValue) {
+        try {
+          setAudits(JSON.parse(e.newValue));
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
     if (navigator.onLine) {
       fetchAudits();
 
@@ -229,6 +238,10 @@ export default function App() {
         }
       });
     }
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   // 2. Persist state changes in localStorage
