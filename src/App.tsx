@@ -554,7 +554,7 @@ export default function App() {
   const renderContent = () => {
     if (selectedAuditId && activeAudit) {
       return (
-        <AuditWorkspaceView
+        <AuditWorkspaceView templates={templates}
           audit={activeAudit}
           onBack={() => navigateTo('audits')}
           onUpdates={handleUpdateAudit}

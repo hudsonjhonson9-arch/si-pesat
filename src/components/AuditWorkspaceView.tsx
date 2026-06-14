@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile } from '../types';
+import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile, KKATemplate } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
 import EvidencePanel from './EvidencePanel';
 import { 
@@ -40,6 +40,7 @@ interface AuditWorkspaceViewProps {
   userRole?: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur';
   accessToken?: string | null;
   userProfiles: UserProfile[];
+  templates: KKATemplate[];
 }
 
 export default function AuditWorkspaceView({
@@ -102,8 +103,7 @@ export default function AuditWorkspaceView({
   };
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [newCatName, setNewCatName] = useState('');
-  const [newCatDesc, setNewCatDesc] = useState('');
+  const [selectedMasterCatId, setSelectedMasterCatId] = useState('');
 
   // Editing School General Information
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
@@ -120,6 +120,15 @@ export default function AuditWorkspaceView({
     return audit.categories.find(c => c.id === selectedCategoryId);
   }, [audit.categories, selectedCategoryId]);
 
+  const currentTemplate = useMemo(() => {
+    return templates?.find(t => t.name === audit.auditType);
+  }, [templates, audit.auditType]);
+
+  const availableMasterCategories = useMemo(() => {
+    if (!currentTemplate) return [];
+    return currentTemplate.categories.filter(tc => !audit.categories.find(ac => ac.name === tc.name));
+  }, [currentTemplate, audit.categories]);
+
   const isReadOnly = (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) || 
                      ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Selesai');
                      
@@ -133,7 +142,6 @@ export default function AuditWorkspaceView({
       auditorName: metaAuditorName,
       status: metaStatus,
       fiscalYear: metaFiscalYear,
-      auditType: metaAuditType,
       teamMembers: metaTeamMembers
     });
     setIsEditingMetadata(false);
@@ -273,23 +281,23 @@ export default function AuditWorkspaceView({
   // Adding a whole new category dynamically (Requirement A.1)
   const handleAddCategory = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCatName) return;
+    if (!selectedMasterCatId) return;
+
+    const masterCat = availableMasterCategories.find(c => c.id === selectedMasterCatId);
+    if (!masterCat) return;
 
     const newCategory: AuditCategory = {
       id: `cat_custom_${Date.now()}`,
-      name: `${audit.categories.length + 1}. ${newCatName}`,
-      description: newCatDesc,
-      items: [
-        {
-          id: `item_cat_init_${Date.now()}`,
-          title: 'Uji Prosedur Kepatuhan Dasar',
-          description: 'Pemeriksaan kepatuhan formal awal untuk kategori baru ini.',
-          status: 'N/A',
-          nilaiTemuan: 0,
-          uraianTemuan: '',
-          rekomendasi: ''
-        }
-      ]
+      name: masterCat.name,
+      description: masterCat.description,
+      items: masterCat.items.map(item => ({
+        ...item,
+        id: `item_custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        status: 'N/A',
+        nilaiTemuan: 0,
+        uraianTemuan: '',
+        rekomendasi: ''
+      }))
     };
 
     const updatedCategories = [...audit.categories, newCategory];
@@ -299,12 +307,8 @@ export default function AuditWorkspaceView({
       categories: updatedCategories
     });
 
-    // Select the new category right away
-    setSelectedCategoryId(newCategory.id);
-
     // Reset components form
-    setNewCatName('');
-    setNewCatDesc('');
+    setSelectedMasterCatId('');
     setIsAddingCategory(false);
   };
 
@@ -501,7 +505,7 @@ export default function AuditWorkspaceView({
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
+                  <div className="space-y-1 col-span-2">
                     <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Tahun Anggaran</label>
                     <select
                       value={metaFiscalYear}
@@ -511,17 +515,6 @@ export default function AuditWorkspaceView({
                       <option value="2026">2026</option>
                       <option value="2025">2025</option>
                     </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Jenis Audit</label>
-                    <input
-                      type="text"
-                      value={metaAuditType}
-                      readOnly
-                      disabled
-                      className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-dark-gray/5 text-dark-gray/60 font-bold outline-none cursor-not-allowed"
-                      title="Jenis Audit ditentukan otomatis dari Template yang dipilih saat inisiasi."
-                    />
                   </div>
                 </div>
                   <div className="space-y-1 mt-2">
@@ -982,31 +975,29 @@ export default function AuditWorkspaceView({
             </div>
             <form onSubmit={handleAddCategory} className="p-4 space-y-3.5 text-xs">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Kategori KKA</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Misal: VI. Pertanggungjawaban Pajak Parkir & Konsumsi"
-                  value={newCatName}
-                  onChange={e => setNewCatName(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 focus:bg-white text-dark-gray outline-none"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Deskripsi / Ruang Lingkup Pengujian</label>
-                <textarea
-                  placeholder="Definisikan batasan pemeriksaan KKA baru ini..."
-                  value={newCatDesc}
-                  onChange={e => setNewCatDesc(e.target.value)}
-                  rows={2}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 focus:bg-white resize-none outline-none text-dark-gray"
-                />
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Pilih Kategori KKA</label>
+                {availableMasterCategories.length > 0 ? (
+                  <select
+                    value={selectedMasterCatId}
+                    onChange={e => setSelectedMasterCatId(e.target.value)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-none focus:border-peach-accent"
+                    required
+                  >
+                    <option value="" disabled>-- Pilih Kategori --</option>
+                    {availableMasterCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 font-semibold">
+                    Semua kategori dari {audit.auditType || 'Jenis Audit ini'} sudah ditambahkan ke dalam pemeriksaan ini.
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-dark-gray/10">
                 <button type="button" onClick={() => setIsAddingCategory(false)} className="flex-1 bg-white py-2 border border-dark-gray/15 rounded-lg font-bold text-dark-gray cursor-pointer">Batal</button>
-                <button type="submit" className="flex-1 bg-peach-accent border border-dark-gray/10 py-2 rounded-lg font-black text-dark-gray hover:opacity-90 cursor-pointer">Simpan</button>
+                <button type="submit" disabled={!selectedMasterCatId} className="flex-1 bg-peach-accent border border-dark-gray/10 py-2 rounded-lg font-black text-dark-gray hover:opacity-90 cursor-pointer disabled:opacity-50">Simpan</button>
               </div>
             </form>
           </div>
