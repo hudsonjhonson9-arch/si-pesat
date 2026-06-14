@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { SyncLog, OpdAudit } from '../types';
-import { User } from 'firebase/auth';
+import { User } from '@supabase/supabase-js';
 import { 
   Cloud, 
   CloudOff, 
@@ -36,7 +36,6 @@ interface SyncManagerViewProps {
 
 export default function SyncManagerView({
   user,
-  accessToken,
   logs,
   audits,
   onLogin,
@@ -110,7 +109,7 @@ export default function SyncManagerView({
         )}
       </div>
 
-      {user && accessToken && (
+      {user && (
         <>
           {/* Cloud Database Tool Panel */}
           <div className="bg-baby-blue rounded-xl p-5 border border-dark-gray/10 shadow-xs flex items-center gap-4">
@@ -130,7 +129,7 @@ export default function SyncManagerView({
             <div className="flex items-center justify-between pb-3 border-b border-dark-gray/10 mb-4">
               <div>
                 <h4 className="font-extrabold text-dark-gray text-sm">Monitor Log Sinkronisasi Real-Time</h4>
-                <p className="text-xs text-dark-gray/70 font-semibold">Arus aktivitas unggah/unduh API Google Drive v3.</p>
+                <p className="text-xs text-dark-gray/70 font-semibold">Arus aktivitas baca/tulis ke database Supabase.</p>
               </div>
               {logs.length > 0 && (
                 <button
