@@ -7,18 +7,18 @@ import React, { useState, useMemo } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile, KKATemplate } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
 import EvidencePanel from './EvidencePanel';
-import { 
-  ArrowLeft, 
-  Save, 
-  Cloud, 
-  Plus, 
-  Trash2, 
-  AlertTriangle, 
-  Check, 
-  Eye, 
-  Layers, 
-  PlusCircle, 
-  Briefcase, 
+import {
+  ArrowLeft,
+  Save,
+  Cloud,
+  Plus,
+  Trash2,
+  AlertTriangle,
+  Check,
+  Eye,
+  Layers,
+  PlusCircle,
+  Briefcase,
   FolderPlus,
   Compass,
   FileCheck,
@@ -27,8 +27,7 @@ import {
   CheckCircle,
   HelpCircle,
   Edit2,
-  ChevronDown,
-  User
+  ChevronDown
 } from 'lucide-react';
 
 interface AuditWorkspaceViewProps {
@@ -56,11 +55,11 @@ export default function AuditWorkspaceView({
   userProfiles = [],
   templates = []
 }: AuditWorkspaceViewProps) {
-  
+
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
     audit.categories.length > 0 ? audit.categories[0].id : ''
   );
-  
+
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemDesc, setNewItemDesc] = useState('');
@@ -105,8 +104,13 @@ export default function AuditWorkspaceView({
   };
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [selectedAddModalTemplateId, setSelectedAddModalTemplateId] = useState<string>('');
   const [selectedMasterCatId, setSelectedMasterCatId] = useState('');
+  const [newCatAuditorName, setNewCatAuditorName] = useState(audit.auditorName || '');
+  const [newCatTeamMembers, setNewCatTeamMembers] = useState<string[]>([]);
+  const [isNewCatAuditorDropdownOpen, setIsNewCatAuditorDropdownOpen] = useState(false);
+  const [newCatAuditorSearchQuery, setNewCatAuditorSearchQuery] = useState('');
+  const [isNewCatTeamDropdownOpen, setIsNewCatTeamDropdownOpen] = useState(false);
+  const [newCatTeamSearchQuery, setNewCatTeamSearchQuery] = useState('');
 
   // Editing School General Information
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
@@ -117,9 +121,6 @@ export default function AuditWorkspaceView({
   const [metaAuditType, setMetaAuditType] = useState<AuditType>(audit.auditType || 'Belum Diatur');
   const [metaTeamMembers, setMetaTeamMembers] = useState<string[]>(audit.teamMembers || []);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
-  const [teamSearchQuery, setTeamSearchQuery] = useState('');
-  const [isAuditorDropdownOpen, setIsAuditorDropdownOpen] = useState(false);
-  const [auditorSearchQuery, setAuditorSearchQuery] = useState('');
 
   // Find the currently selected category
   const activeCategory = useMemo(() => {
@@ -130,67 +131,25 @@ export default function AuditWorkspaceView({
     return templates?.find(t => t.name === audit.auditType);
   }, [templates, audit.auditType]);
 
-  // Set default selected template id when opening modal
-  React.useEffect(() => {
-    if (isAddingCategory && !selectedAddModalTemplateId) {
-      setSelectedAddModalTemplateId(currentTemplate?.id || (templates.length > 0 ? templates[0].id : ''));
-    }
-  }, [isAddingCategory, currentTemplate, templates, selectedAddModalTemplateId]);
-
   const availableMasterCategories = useMemo(() => {
-    const templateToUse = templates?.find(t => t.id === selectedAddModalTemplateId) || currentTemplate;
-    if (!templateToUse) return [];
-    return templateToUse.categories.filter(tc => !audit.categories.find(ac => ac.name === tc.name));
-  }, [templates, selectedAddModalTemplateId, currentTemplate, audit.categories]);
+    if (!currentTemplate) return [];
+    return currentTemplate.categories.filter(tc => !audit.categories.find(ac => ac.name === tc.name));
+  }, [currentTemplate, audit.categories]);
 
-  // Sync form state with active category
-  React.useEffect(() => {
-    if (!isEditingMetadata) {
-      setMetaSchoolName(audit.opdName);
-      setMetaStatus(audit.status);
-      if (activeCategory) {
-        setMetaAuditorName(activeCategory.auditorName || audit.auditorName);
-        setMetaTeamMembers(activeCategory.teamMembers || audit.teamMembers || []);
-        setMetaFiscalYear(activeCategory.fiscalYear || audit.fiscalYear);
-      } else {
-        setMetaAuditorName(audit.auditorName);
-        setMetaTeamMembers(audit.teamMembers || []);
-        setMetaFiscalYear(audit.fiscalYear);
-      }
-    }
-  }, [isEditingMetadata, activeCategory, audit]);
+  const isReadOnly = (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) ||
+    ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Selesai');
 
-  const isReadOnly = (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) || 
-                     ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Selesai');
-                     
   const isReviewerPanelVisible = (userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Direview';
 
   // Handle saving general metadata updates
   const handleSaveMetadata = () => {
-    let updatedCategories = audit.categories;
-    
-    if (activeCategory) {
-      updatedCategories = audit.categories.map(c => 
-        c.id === activeCategory.id 
-          ? {
-              ...c,
-              auditorName: metaAuditorName,
-              teamMembers: metaTeamMembers,
-              fiscalYear: metaFiscalYear
-            }
-          : c
-      );
-    }
-
     onUpdates({
       ...audit,
       opdName: metaSchoolName,
-      status: metaStatus,
-      // Always update global as fallback, so if there are no categories, it's saved.
       auditorName: metaAuditorName,
+      status: metaStatus,
       fiscalYear: metaFiscalYear,
-      teamMembers: metaTeamMembers,
-      categories: updatedCategories
+      teamMembers: metaTeamMembers
     });
     setIsEditingMetadata(false);
   };
@@ -338,6 +297,9 @@ export default function AuditWorkspaceView({
       id: `cat_custom_${Date.now()}`,
       name: masterCat.name,
       description: masterCat.description,
+      auditorName: newCatAuditorName,
+      teamMembers: newCatTeamMembers,
+      fiscalYear: audit.fiscalYear,
       items: masterCat.items.map(item => ({
         ...item,
         id: `item_custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -354,11 +316,12 @@ export default function AuditWorkspaceView({
       ...audit,
       categories: updatedCategories
     });
-
-    // Reset components form
-    setSelectedMasterCatId('');
+    
     setIsAddingCategory(false);
+    setSelectedMasterCatId('');
+    setNewCatTeamMembers([]);
   };
+
 
   // Remove a whole category dynamically (Requirement A.1)
   const handleDeleteCategory = (catId: string) => {
@@ -372,7 +335,7 @@ export default function AuditWorkspaceView({
     if (!confirmed) return;
 
     const updatedCategories = audit.categories.filter(c => c.id !== catId);
-    
+
     onUpdates({
       ...audit,
       categories: updatedCategories
@@ -433,37 +396,36 @@ export default function AuditWorkspaceView({
           )}
 
           {isReviewerPanelVisible && (
-             <>
-               <button
-                  onClick={() => {
-                    const confirmed = window.confirm('Apakah Anda menyetujui LHP ini menjadi Selesai?');
-                    if (confirmed) onUpdates({ ...audit, status: 'Selesai' });
-                  }}
-                  className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-xs"
-               >
-                 <CheckCircle className="w-4 h-4" /> Setujui LHP
-               </button>
-               <button
-                  onClick={() => {
-                    const confirmed = window.confirm('Apakah Anda ingin mengembalikan KKA ini ke Auditor untuk direvisi?');
-                    if (confirmed) onUpdates({ ...audit, status: 'Sedang Berjalan' });
-                  }}
-                  className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-rose-500 text-white border-rose-600 hover:bg-rose-600 shadow-xs"
-               >
-                 <AlertTriangle className="w-4 h-4" /> Revisi Lapangan
-               </button>
-             </>
+            <>
+              <button
+                onClick={() => {
+                  const confirmed = window.confirm('Apakah Anda menyetujui LHP ini menjadi Selesai?');
+                  if (confirmed) onUpdates({ ...audit, status: 'Selesai' });
+                }}
+                className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-xs"
+              >
+                <CheckCircle className="w-4 h-4" /> Setujui LHP
+              </button>
+              <button
+                onClick={() => {
+                  const confirmed = window.confirm('Apakah Anda ingin mengembalikan KKA ini ke Auditor untuk direvisi?');
+                  if (confirmed) onUpdates({ ...audit, status: 'Sedang Berjalan' });
+                }}
+                className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-rose-500 text-white border-rose-600 hover:bg-rose-600 shadow-xs"
+              >
+                <AlertTriangle className="w-4 h-4" /> Revisi Lapangan
+              </button>
+            </>
           )}
 
           {/* Real-time sync status button */}
           <button
             disabled={!isDriveConnected || isSyncing}
             onClick={() => onSync(audit)}
-            className={`text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border ${
-              isDriveConnected 
-                ? 'bg-peach-accent text-dark-gray hover:opacity-90 border-dark-gray/10 shadow-xs' 
+            className={`text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border ${isDriveConnected
+                ? 'bg-peach-accent text-dark-gray hover:opacity-90 border-dark-gray/10 shadow-xs'
                 : 'bg-white/20 border-dark-gray/5 text-dark-gray/40 cursor-not-allowed'
-            }`}
+              }`}
           >
             {isSyncing ? (
               <>
@@ -485,10 +447,10 @@ export default function AuditWorkspaceView({
 
       {/* Main Container - Responsive Layout (Category Selector on top/left, items on scroll) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left Side: General Profile Card & Category Navigation Menu */}
         <div className="lg:col-span-4 space-y-5">
-          
+
           {/* General Profile Card */}
           <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs relative text-dark-gray">
             {!isEditingMetadata ? (
@@ -498,7 +460,7 @@ export default function AuditWorkspaceView({
                     Profil Auditi
                   </span>
                   {!isReadOnly && (
-                    <button 
+                    <button
                       onClick={() => setIsEditingMetadata(true)}
                       className="p-1 text-dark-gray hover:text-dark-gray/80 rounded transition cursor-pointer"
                       title="Edit Profil"
@@ -511,32 +473,20 @@ export default function AuditWorkspaceView({
                 <div>
                   <h2 className="text-lg font-black text-dark-gray flex flex-wrap items-center gap-2">
                     {audit.opdName}
-                    <div className="flex flex-wrap gap-1 items-center">
-                      <span className="text-[9px] bg-dark-gray/10 border border-dark-gray/20 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" title="Master Kertas Kerja">Master: {audit.auditType || 'Tanpa Master'}</span>
-                      {audit.categories.map(c => (
-                        <span key={c.id} className="text-[9px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" title="Jenis Audit">{c.name}</span>
-                      ))}
-                    </div>
+                    <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{audit.auditType || 'Belum Diatur'}</span>
                   </h2>
-                  <p className="text-xs text-dark-gray/70 mt-0.5">
-                    Jenjang {audit.opdType} &bull; Tahun Anggaran {activeCategory?.fiscalYear || audit.fiscalYear}
-                  </p>
+                  <p className="text-xs text-dark-gray/70 mt-0.5">Jenjang {audit.opdType} • Tahun Anggaran {audit.fiscalYear}</p>
                 </div>
 
                 <div className="pt-2 border-t border-dark-gray/10 space-y-1.5 text-xs font-semibold">
-                  {activeCategory && (
-                    <div className="mb-2 pb-2 border-b border-dark-gray/5 text-peach-accent font-bold text-[10px] uppercase tracking-wider">
-                      Menampilkan Profil untuk: {activeCategory.name}
-                    </div>
-                  )}
                   <div className="flex justify-between">
                     <span className="text-dark-gray/60 font-bold">Ketua Pemeriksa:</span>
-                    <span className="font-extrabold text-dark-gray truncate max-w-[150px]">{activeCategory?.auditorName || audit.auditorName}</span>
+                    <span className="font-extrabold text-dark-gray truncate max-w-[150px]">{audit.auditorName}</span>
                   </div>
-                  {((activeCategory?.teamMembers && activeCategory.teamMembers.length > 0) || (!activeCategory && audit.teamMembers && audit.teamMembers.length > 0)) && (
+                  {audit.teamMembers && audit.teamMembers.length > 0 && (
                     <div className="flex flex-col">
                       <span className="text-dark-gray/60 font-bold">Anggota Tim:</span>
-                      <span className="font-extrabold text-dark-gray">{activeCategory?.teamMembers?.join(', ') || audit.teamMembers?.join(', ')}</span>
+                      <span className="font-extrabold text-dark-gray">{audit.teamMembers.join(', ')}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -553,7 +503,7 @@ export default function AuditWorkspaceView({
             ) : (
               <div className="space-y-3 text-xs text-dark-gray font-semibold">
                 <h3 className="font-bold text-dark-gray border-b border-dark-gray/10 pb-1">Edit Profil OPD & Pemeriksa</h3>
-                
+
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama OPD / Auditi</label>
                   <input
@@ -577,117 +527,60 @@ export default function AuditWorkspaceView({
                     </select>
                   </div>
                 </div>
-                  <div className="space-y-1 mt-2">
-                    <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Status</label>
-                    <select
-                      value={metaStatus}
-                      onChange={e => setMetaStatus(e.target.value as any)}
-                      className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray font-bold"
-                    >
-                      <option value="Draft">Draft KKA</option>
-                      <option value="Sedang Berjalan">Audit Lapangan</option>
-                      <option value="Direview">Review Pengendali</option>
-                      <option value="Selesai">LHP Selesai</option>
-                    </select>
-                  </div>
-
-                <div className="space-y-1 relative">
-                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama</label>
-                  <div 
-                    onClick={() => setIsAuditorDropdownOpen(!isAuditorDropdownOpen)}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray cursor-pointer flex justify-between items-center"
+                <div className="space-y-1 mt-2">
+                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Status</label>
+                  <select
+                    value={metaStatus}
+                    onChange={e => setMetaStatus(e.target.value as any)}
+                    className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray font-bold"
                   >
-                    <span className="truncate">
-                      {metaAuditorName || 'Pilih Ketua Tim'}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-dark-gray/60" />
-                  </div>
-                  
-                  {isAuditorDropdownOpen && (
-                    <div className="absolute z-20 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg">
-                      <div className="p-2 border-b border-dark-gray/10">
-                        <input
-                          type="text"
-                          placeholder="Cari ketua tim..."
-                          value={auditorSearchQuery}
-                          onChange={(e) => setAuditorSearchQuery(e.target.value)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-full text-[10px] p-1.5 border border-dark-gray/20 rounded focus:outline-none focus:border-peach-accent bg-white text-dark-gray"
-                        />
-                      </div>
-                      <div className="max-h-48 overflow-y-auto">
-                        {userProfiles
-                          .filter(p => (p.full_name || p.email).toLowerCase().includes(auditorSearchQuery.toLowerCase()))
-                          .map(p => {
-                            const label = p.pangkat && p.golongan
-                              ? `${p.full_name || p.email} - ${p.pangkat} (${p.golongan})`
-                              : `${p.full_name || p.email} (${p.role})`;
-                            return (
-                              <div
-                                key={p.id}
-                                onClick={() => {
-                                  setMetaAuditorName(p.full_name || p.email);
-                                  setIsAuditorDropdownOpen(false);
-                                  setAuditorSearchQuery('');
-                                }}
-                                className={`px-3 py-2 text-xs cursor-pointer hover:bg-peach-accent/20 ${metaAuditorName === (p.full_name || p.email) ? 'bg-peach-accent/30 font-bold' : ''}`}
-                              >
-                                {label}
-                              </div>
-                            );
-                          })}
-                        {/* Fallback if user is not in profiles */}
-                        {!userProfiles.some(p => (p.full_name || p.email) === metaAuditorName) && metaAuditorName && metaAuditorName.toLowerCase().includes(auditorSearchQuery.toLowerCase()) && (
-                          <div
-                            onClick={() => {
-                              setIsAuditorDropdownOpen(false);
-                            }}
-                            className="px-3 py-2 text-xs cursor-pointer hover:bg-peach-accent/20 bg-peach-accent/30 font-bold"
-                          >
-                            {metaAuditorName}
-                          </div>
-                        )}
-                        {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(auditorSearchQuery.toLowerCase())).length === 0 && (
-                          <div className="px-3 py-2 text-xs text-dark-gray/50 italic text-center">Tidak ditemukan</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                    <option value="Draft">Draft KKA</option>
+                    <option value="Sedang Berjalan">Audit Lapangan</option>
+                    <option value="Direview">Review Pengendali</option>
+                    <option value="Selesai">LHP Selesai</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama</label>
+                  <select
+                    value={metaAuditorName}
+                    onChange={e => setMetaAuditorName(e.target.value)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none focus:border-peach-accent"
+                  >
+                    <option value="" disabled>Pilih Ketua Tim</option>
+                    {userProfiles.map(p => {
+                      const label = p.pangkat && p.golongan
+                        ? `${p.full_name || p.email} — ${p.pangkat} (${p.golongan})`
+                        : `${p.full_name || p.email} (${p.role})`;
+                      return (
+                        <option key={p.id} value={p.full_name || p.email}>{label}</option>
+                      );
+                    })}
+                    {/* Fallback if user is not in profiles */}
+                    {!userProfiles.some(p => (p.full_name || p.email) === metaAuditorName) && metaAuditorName && (
+                      <option value={metaAuditorName}>{metaAuditorName}</option>
+                    )}
+                  </select>
                 </div>
 
                 <div className="space-y-1 relative">
                   <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Anggota Tim (Pilih Beberapa)</label>
-                  <div 
+                  <div
                     onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
                     className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded bg-white text-dark-gray cursor-pointer flex justify-between items-center"
                   >
                     <span className="truncate">
-                      {metaTeamMembers.length > 0 
+                      {metaTeamMembers.length > 0
                         ? metaTeamMembers.join(', ')
                         : 'Pilih Anggota Tim...'}
                     </span>
                     <ChevronDown className="w-4 h-4 text-dark-gray/60" />
                   </div>
-                  
+
                   {isTeamDropdownOpen && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg">
-                      <div className="p-2 border-b border-dark-gray/10">
-                        <input
-                          type="text"
-                          placeholder="Cari anggota tim..."
-                          value={teamSearchQuery}
-                          onChange={(e) => setTeamSearchQuery(e.target.value)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-full text-[10px] p-1.5 border border-dark-gray/20 rounded focus:outline-none focus:border-peach-accent bg-white text-dark-gray"
-                        />
-                      </div>
-                      <div className="max-h-48 overflow-y-auto">
-                        {userProfiles
-                          .filter(p => {
-                            const term = teamSearchQuery.toLowerCase();
-                            return (p.full_name?.toLowerCase().includes(term) || p.email?.toLowerCase().includes(term));
-                          })
-                          .map(p => {
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {userProfiles.map(p => {
                         const val = p.full_name || p.email;
                         const isChecked = metaTeamMembers.includes(val);
                         const sublabel = p.pangkat && p.golongan
@@ -695,8 +588,8 @@ export default function AuditWorkspaceView({
                           : p.role;
                         return (
                           <label key={p.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer border-b border-dark-gray/5 last:border-b-0">
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               checked={isChecked}
                               onChange={(e) => {
                                 if (e.target.checked) {
@@ -714,27 +607,21 @@ export default function AuditWorkspaceView({
                           </label>
                         );
                       })}
-                      {userProfiles.filter(p => {
-                        const term = teamSearchQuery.toLowerCase();
-                        return (p.full_name?.toLowerCase().includes(term) || p.email?.toLowerCase().includes(term));
-                      }).length === 0 && (
-                        <div className="p-3 text-xs text-center text-dark-gray/50 italic">
-                          {userProfiles.length === 0 ? 'Tidak ada profil tersedia' : 'Tidak ditemukan'}
-                        </div>
+                      {userProfiles.length === 0 && (
+                        <div className="p-3 text-xs text-center text-dark-gray/50 italic">Tidak ada profil tersedia</div>
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
                 <div className="flex gap-2 pt-2 border-t border-dark-gray/10">
-                  <button 
+                  <button
                     onClick={() => setIsEditingMetadata(false)}
                     className="flex-1 text-[11px] bg-white py-1.5 rounded font-extrabold text-dark-gray border border-dark-gray/15 cursor-pointer"
                   >
                     Batal
                   </button>
-                  <button 
+                  <button
                     onClick={handleSaveMetadata}
                     className="flex-1 text-[11px] bg-peach-accent py-1.5 rounded font-extrabold text-dark-gray border border-dark-gray/10 shadow-xs cursor-pointer"
                   >
@@ -750,7 +637,7 @@ export default function AuditWorkspaceView({
             <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
               <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Jenis Audit Pemeriksaan</span>
               {userRole === 'Auditor' && !isReadOnly && (
-                <button 
+                <button
                   onClick={() => setIsAddingCategory(true)}
                   className="text-xs text-dark-gray hover:text-dark-gray/70 inline-flex items-center gap-0.5 font-extrabold cursor-pointer"
                 >
@@ -768,7 +655,7 @@ export default function AuditWorkspaceView({
               >
                 {audit.categories.map(cat => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.name} {cat.auditorName ? `- ${cat.auditorName}` : ''}
+                    {cat.name}
                   </option>
                 ))}
               </select>
@@ -780,42 +667,23 @@ export default function AuditWorkspaceView({
                 const isActive = cat.id === selectedCategoryId;
                 const temuanCount = cat.items.filter(item => item.status === 'Temuan').length;
                 return (
-                  <div 
+                  <div
                     key={cat.id}
                     onClick={() => setSelectedCategoryId(cat.id)}
-                    className={`group flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition-all border ${
-                      isActive 
-                        ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold' 
+                    className={`group flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition-all border ${isActive
+                        ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold'
                         : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/70 hover:text-dark-gray font-semibold'
-                    }`}
+                      }`}
                   >
-                    <div className="flex flex-col min-w-0 flex-1 pr-1">
-                      <span className="truncate">{cat.name}</span>
-                      {(cat.auditorName || cat.fiscalYear) && (
-                        <div className={`flex items-center gap-1 mt-0.5 text-[9px] font-medium ${isActive ? 'text-white/80' : 'text-dark-gray/60'}`}>
-                          {cat.auditorName && (
-                            <>
-                              <User className="w-2.5 h-2.5 shrink-0" />
-                              <span className="truncate">{cat.auditorName}</span>
-                            </>
-                          )}
-                          {cat.fiscalYear && (
-                            <span className={`shrink-0 ${cat.auditorName ? 'border-l pl-1 border-current opacity-70' : ''}`}>
-                              TA {cat.fiscalYear}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <span className="truncate pr-1">{cat.name}</span>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {temuanCount > 0 && (
-                        <span className={`px-1.5 py-0.5 text-[9px] rounded-full font-mono ${
-                          isActive ? 'bg-peach-accent text-dark-gray font-black' : 'bg-rose-100 text-rose-700 border border-rose-200'
-                        }`}>
+                        <span className={`px-1.5 py-0.5 text-[9px] rounded-full font-mono ${isActive ? 'bg-peach-accent text-dark-gray font-black' : 'bg-rose-100 text-rose-700 border border-rose-200'
+                          }`}>
                           {temuanCount}!
                         </span>
                       )}
-                      
+
                       {/* Delete category button */}
                       {userRole === 'Auditor' && !isReadOnly && (
                         <button
@@ -823,9 +691,8 @@ export default function AuditWorkspaceView({
                             e.stopPropagation();
                             handleDeleteCategory(cat.id);
                           }}
-                          className={`opacity-0 group-hover:opacity-100 transition p-0.5 rounded hover:bg-red-50 hover:text-red-600 border border-transparent ${
-                            isActive ? 'text-white/60 hover:bg-dark-gray/50 hover:text-white' : 'text-dark-gray/40'
-                          }`}
+                          className={`opacity-0 group-hover:opacity-100 transition p-0.5 rounded hover:bg-red-50 hover:text-red-600 border border-transparent ${isActive ? 'text-white/60 hover:bg-dark-gray/50 hover:text-white' : 'text-dark-gray/40'
+                            }`}
                           title="Hapus Jenis Audit Pemeriksaan"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -841,7 +708,7 @@ export default function AuditWorkspaceView({
 
         {/* Right Side: Active Category Items List */}
         <div className="lg:col-span-8 space-y-4">
-          
+
           {/* Active Category Header Card */}
           {activeCategory && (
             <div className="bg-dark-gray text-white rounded-xl p-5 border border-white/5 shadow-md">
@@ -854,7 +721,7 @@ export default function AuditWorkspaceView({
                     {activeCategory.description}
                   </p>
                 </div>
-                
+
                 {/* Category stats badges (Mobile friendly flex block) */}
                 <span className="text-[10px] bg-white/10 border border-white/10 px-2 py-1 rounded font-mono text-white/90 flex-shrink-0 font-bold uppercase">
                   {categoryStats.totItems} Kriteria Uji
@@ -873,46 +740,31 @@ export default function AuditWorkspaceView({
 
           {/* Dynamic Criteria checklist stream */}
           <div className="space-y-4">
-            
-            {!activeCategory ? (
-              <div className="bg-white rounded-xl border border-dark-gray/10 p-12 text-center text-dark-gray/60 flex flex-col items-center justify-center">
-                <Layers className="w-12 h-12 mb-3 opacity-20" />
-                <h3 className="text-lg font-bold text-dark-gray/80">Belum Ada Jenis Audit Aktif</h3>
-                <p className="text-sm max-w-md mt-2">Pilih Jenis Audit dari daftar di sebelah kiri, atau klik tombol <strong>+ Tambah</strong> untuk memasukkan Jenis Audit baru ke dalam pemeriksaan ini.</p>
-              </div>
-            ) : (
-              <>
-                {/* Header Checklist & Action to trigger ADD item */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
-                  {userRole === 'Auditor' && !isReadOnly && (
-                    <button 
-                      onClick={() => setIsAddingItem(true)}
-                      className="bg-peach-accent hover:opacity-90 border border-dark-gray/10 text-dark-gray text-xs font-extrabold px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" /> Tambah Kriteria
-                    </button>
-                  )}
-                </div>
 
-                {/* Checklists items */}
-                {activeCategory.items.map((item, idx) => {
-                  const hasFinding = item.status === 'Temuan';
-                  const isNA = item.status === 'N/A';
-                  const isSesuai = item.status === 'Sesuai';
-                  
-                  return (
-                    <div 
-                      key={item.id} 
-                      className={`rounded-xl border border-dark-gray/10 p-4 transition-all shadow-xs text-dark-gray ${
-                        hasFinding ? 'border-l-4 border-l-rose-500 bg-rose-400/10' : 
-                        isNA ? 'bg-slate-200/80 grayscale-[20%]' :
-                        isSesuai ? 'bg-emerald-100/60 border-l-4 border-l-emerald-500' :
-                        'bg-baby-blue'
-                      }`}
-                    >
+            {/* Header Checklist & Action to trigger ADD item */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
+              {userRole === 'Auditor' && !isReadOnly && (
+                <button
+                  onClick={() => setIsAddingItem(true)}
+                  className="bg-peach-accent hover:opacity-90 border border-dark-gray/10 text-dark-gray text-xs font-extrabold px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Tambah Kriteria
+                </button>
+              )}
+            </div>
+
+            {/* Checklists items */}
+            {activeCategory && activeCategory.items.map((item, idx) => {
+              const hasFinding = item.status === 'Temuan';
+              return (
+                <div
+                  key={item.id}
+                  className={`bg-baby-blue rounded-xl border border-dark-gray/10 p-4 transition-all shadow-xs text-dark-gray ${hasFinding ? 'border-l-4 border-l-rose-500 bg-rose-400/10' : ''
+                    }`}
+                >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                    
+
                     {/* Title and Descriptions */}
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
@@ -933,33 +785,30 @@ export default function AuditWorkspaceView({
                       <button
                         disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'Sesuai')}
-                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
-                          item.status === 'Sesuai' 
-                            ? 'bg-emerald-600 text-white shadow-md scale-105' 
+                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${item.status === 'Sesuai'
+                            ? 'bg-emerald-600 text-white shadow-md scale-105'
                             : `bg-emerald-50 text-emerald-700/70 border border-emerald-200/50 ${!isReadOnly && 'hover:bg-emerald-100 hover:text-emerald-800'}`
-                        } ${isReadOnly && 'opacity-70'}`}
+                          } ${isReadOnly && 'opacity-70'}`}
                       >
                         Sesuai
                       </button>
                       <button
                         disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'Temuan')}
-                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
-                          item.status === 'Temuan' 
-                            ? 'bg-rose-600 text-white shadow-md scale-105' 
+                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${item.status === 'Temuan'
+                            ? 'bg-rose-600 text-white shadow-md scale-105'
                             : `bg-rose-50 text-rose-700/70 border border-rose-200/50 ${!isReadOnly && 'hover:bg-rose-100 hover:text-rose-800'}`
-                        } ${isReadOnly && 'opacity-70'}`}
+                          } ${isReadOnly && 'opacity-70'}`}
                       >
                         Temuan
                       </button>
                       <button
                         disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'N/A')}
-                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
-                          item.status === 'N/A' 
-                            ? 'bg-slate-700 text-white shadow-md scale-105' 
+                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${item.status === 'N/A'
+                            ? 'bg-slate-700 text-white shadow-md scale-105'
                             : `bg-slate-100 text-slate-600/70 border border-slate-200/50 ${!isReadOnly && 'hover:bg-slate-200 hover:text-slate-800'}`
-                        } ${isReadOnly && 'opacity-70'}`}
+                          } ${isReadOnly && 'opacity-70'}`}
                       >
                         N/A
                       </button>
@@ -969,7 +818,7 @@ export default function AuditWorkspaceView({
                   {/* Dropdown collapsible detail form IF 'Temuan Keuangan' is ticked */}
                   {hasFinding && (
                     <div className="mt-4 pt-4 border-t border-dashed border-rose-500/25 grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-up text-xs text-dark-gray">
-                      
+
                       {/* Left Block: Classification and Rupiah */}
                       <div className="space-y-3 font-semibold">
                         <div className="space-y-1">
@@ -1099,7 +948,7 @@ export default function AuditWorkspaceView({
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Fallback delete button if NOT currently expanded */}
                   {!hasFinding && userRole === 'Auditor' && !isReadOnly && (
                     <div className="mt-2.5 pt-2 border-t border-dark-gray/10 flex justify-end">
@@ -1115,8 +964,6 @@ export default function AuditWorkspaceView({
                 </div>
               );
             })}
-              </>
-            )}
           </div>
         </div>
       </div>
@@ -1124,29 +971,12 @@ export default function AuditWorkspaceView({
       {/* Add Custom Category Popup Form */}
       {isAddingCategory && (
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray">
-            <div className="bg-dark-gray rounded-t-2xl text-white px-4 py-3 flex items-center justify-between">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
+            <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
               <span className="font-extrabold text-xs tracking-wide">Tambah Jenis Audit Pemeriksaan Baru (A.1)</span>
               <button onClick={() => setIsAddingCategory(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleAddCategory} className="p-4 space-y-3.5 text-xs">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Pilih Master Kertas Kerja</label>
-                <select
-                  value={selectedAddModalTemplateId}
-                  onChange={e => {
-                    setSelectedAddModalTemplateId(e.target.value);
-                    setSelectedMasterCatId('');
-                  }}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-none focus:border-peach-accent"
-                  required
-                >
-                  {templates.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
-
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Pilih Jenis Audit Pemeriksaan</label>
                 {availableMasterCategories.length > 0 ? (
@@ -1163,7 +993,121 @@ export default function AuditWorkspaceView({
                   </select>
                 ) : (
                   <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 font-semibold">
-                    Semua Jenis Audit Pemeriksaan dari Master ini sudah ditambahkan ke dalam pemeriksaan ini.
+                    Semua Jenis Audit Pemeriksaan dari {audit.auditType || 'Jenis Audit ini'} sudah ditambahkan ke dalam pemeriksaan ini.
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-1 relative">
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama (Ketua Tim)</label>
+                <div 
+                  onClick={() => setIsNewCatAuditorDropdownOpen(!isNewCatAuditorDropdownOpen)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent cursor-pointer flex justify-between items-center"
+                >
+                  <span>{newCatAuditorName || '-- Pilih Ketua Tim --'}</span>
+                  <ChevronDown className="w-4 h-4 text-dark-gray/50" />
+                </div>
+
+                {isNewCatAuditorDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg overflow-hidden max-h-48 flex flex-col">
+                    <div className="p-2 border-b border-dark-gray/10 bg-slate-50 sticky top-0">
+                      <input
+                        type="text"
+                        placeholder="Cari nama..."
+                        value={newCatAuditorSearchQuery}
+                        onChange={(e) => setNewCatAuditorSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-hidden focus:border-peach-accent"
+                      />
+                    </div>
+                    <div className="overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
+                      {userProfiles
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase()))
+                        .map(p => {
+                          const isSelected = newCatAuditorName === (p.full_name || p.email);
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                setNewCatAuditorName(p.full_name || p.email);
+                                setIsNewCatAuditorDropdownOpen(false);
+                                setNewCatAuditorSearchQuery('');
+                              }}
+                              className={`text-[10px] p-2 rounded cursor-pointer font-medium flex items-center justify-between ${
+                                isSelected ? 'bg-peach-accent/20 text-dark-gray font-bold' : 'hover:bg-dark-gray/5 text-dark-gray/80'
+                              }`}
+                            >
+                              <span>{p.full_name || p.email}</span>
+                              {isSelected && <Check className="w-3 h-3 text-dark-gray" />}
+                            </div>
+                          );
+                        })
+                      }
+                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase())).length === 0 && (
+                        <div className="px-3 py-2 text-[10px] text-dark-gray/50 italic text-center">Tidak ditemukan</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1 relative">
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Anggota Tim (Pilih Beberapa)</label>
+                <div 
+                  onClick={() => setIsNewCatTeamDropdownOpen(!isNewCatTeamDropdownOpen)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent cursor-pointer flex justify-between items-center"
+                >
+                  <span className="truncate">
+                    {newCatTeamMembers.length > 0 
+                      ? `${newCatTeamMembers.length} anggota dipilih`
+                      : '-- Pilih Anggota --'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-dark-gray/50" />
+                </div>
+                
+                {isNewCatTeamDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg overflow-hidden max-h-48 flex flex-col">
+                    <div className="p-2 border-b border-dark-gray/10 bg-slate-50 sticky top-0">
+                      <input
+                        type="text"
+                        placeholder="Cari anggota..."
+                        value={newCatTeamSearchQuery}
+                        onChange={(e) => setNewCatTeamSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-hidden focus:border-peach-accent"
+                      />
+                    </div>
+                    <div className="overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
+                      {userProfiles
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase()))
+                        .map(p => {
+                          const name = p.full_name || p.email;
+                          const isSelected = newCatTeamMembers.includes(name);
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isSelected) {
+                                  setNewCatTeamMembers(prev => prev.filter(n => n !== name));
+                                } else {
+                                  setNewCatTeamMembers(prev => [...prev, name]);
+                                }
+                              }}
+                              className={`text-[10px] p-2 rounded cursor-pointer font-medium flex items-center justify-between ${
+                                isSelected ? 'bg-peach-accent/20 text-dark-gray font-bold' : 'hover:bg-dark-gray/5 text-dark-gray/80'
+                              }`}
+                            >
+                              <span>{name}</span>
+                              {isSelected && <Check className="w-3 h-3 text-dark-gray" />}
+                            </div>
+                          );
+                        })
+                      }
+                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase())).length === 0 && (
+                        <div className="px-3 py-2 text-[10px] text-dark-gray/50 italic text-center">Tidak ditemukan</div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

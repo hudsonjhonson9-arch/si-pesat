@@ -5,11 +5,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { OpdAudit, AuditStatus, KKATemplate, UserProfile, AuditType, TargetEntity } from '../types';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Filter,
+  Trash2,
   CloudCheck, // Wait, Lucide check for cloud check - we'll import Cloud, CloudOff, RefreshCw
   Cloud,
   CloudOff,
@@ -30,14 +30,13 @@ interface AuditListViewProps {
   targetEntities: TargetEntity[];
   onSelectAudit: (audit: OpdAudit) => void;
   onCreateAudit: (
-    opdName: string, 
-    opdType: OpdAudit['opdType'], 
+    opdName: string,
+    opdType: OpdAudit['opdType'],
     auditType: AuditType,
-    fiscalYear: string, 
-    auditorName: string, 
+    fiscalYear: string,
+    auditorName: string,
     teamMembers: string[],
-    templateId: string,
-    initialCategoryId?: string
+    templateId: string
   ) => void;
   onDeleteAudit: (auditId: string) => void;
   onSyncToDrive: (audit: OpdAudit) => void;
@@ -60,14 +59,13 @@ export default function AuditListView({
   defaultAuditorName = '',
   userProfiles = []
 }: AuditListViewProps) {
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
-  const [newTeamSearchQuery, setNewTeamSearchQuery] = useState('');
 
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
@@ -76,7 +74,6 @@ export default function AuditListView({
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
   const [newTeamMembers, setNewTeamMembers] = useState<string[]>([]);
   const [newTemplateId, setNewTemplateId] = useState<string>(templates.length > 0 ? templates[0].id : '');
-  const [newInitialCategoryId, setNewInitialCategoryId] = useState<string>('');
 
   // Prefill auditor name when context is ready or modal is launched
   React.useEffect(() => {
@@ -145,7 +142,7 @@ export default function AuditListView({
   const filteredAudits = useMemo(() => {
     return audits.filter(audit => {
       const matchSearch = audit.opdName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          audit.auditorName.toLowerCase().includes(searchQuery.toLowerCase());
+        audit.auditorName.toLowerCase().includes(searchQuery.toLowerCase());
       const matchStatus = statusFilter === 'all' || audit.status === statusFilter;
       const matchType = typeFilter === 'all' || audit.opdType === typeFilter;
       const matchYear = yearFilter === 'all' || audit.fiscalYear === yearFilter;
@@ -163,7 +160,7 @@ export default function AuditListView({
   const handleSubmitNewAudit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSchoolName || !newAuditorName || !newTemplateId) return;
-    
+
     onCreateAudit(
       newSchoolName,
       newSchoolType,
@@ -171,8 +168,7 @@ export default function AuditListView({
       newFiscalYear,
       newAuditorName,
       newTeamMembers,
-      newTemplateId,
-      newInitialCategoryId
+      newTemplateId
     );
 
     // Reset and close
@@ -210,8 +206,8 @@ export default function AuditListView({
               <Plus className="w-4 h-4" /> Mulai Audit Baru
             </button>
           ) : (
-            <div 
-              className="bg-white/40 border border-dark-gray/10 text-dark-gray/60 rounded-lg py-2 px-3.5 text-xs font-bold flex items-center justify-center gap-1.5 h-[38px] select-none cursor-not-allowed" 
+            <div
+              className="bg-white/40 border border-dark-gray/10 text-dark-gray/60 rounded-lg py-2 px-3.5 text-xs font-bold flex items-center justify-center gap-1.5 h-[38px] select-none cursor-not-allowed"
               title="Khusus Auditor yang berwenang memulai instrumen KKA baru"
             >
               🔒 Pengisian KKA (Khusus Auditor)
@@ -317,9 +313,9 @@ export default function AuditListView({
                 {group.audits.map((audit) => {
                   const itemsCount = calculateFindingCount(audit);
                   const progress = calculateProgress(audit);
-                  
+
                   return (
-                    <div 
+                    <div
                       key={audit.id}
                       onClick={() => onSelectAudit(audit)}
                       className="px-5 py-3.5 hover:bg-baby-blue/40 transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group"
@@ -327,19 +323,9 @@ export default function AuditListView({
                       {/* Left side info */}
                       <div className="flex-1 min-w-0 flex items-center gap-4">
                         <div className="w-[140px] shrink-0">
-                          <div className="flex flex-col gap-1 items-center">
-                            {audit.categories.length > 0 ? (
-                              audit.categories.map(c => (
-                                <span key={c.id} className="text-[9px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block text-center truncate w-full" title={c.name}>
-                                  {c.name}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-[9px] bg-slate-100 border border-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block text-center truncate w-full">
-                                Belum Ada Jenis Audit
-                              </span>
-                            )}
-                          </div>
+                          <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate">
+                            {audit.auditType || 'Belum Diatur'}
+                          </span>
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
                           <div className="flex items-center gap-2 text-xs text-dark-gray">
@@ -361,7 +347,7 @@ export default function AuditListView({
                             {statusConfig[audit.status]?.label || audit.status}
                           </span>
                           <div className="flex-1 h-1.5 bg-dark-gray/10 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className="h-full bg-peach-accent rounded-full transition-all duration-500"
                               style={{ width: `${progress}%` }}
                             />
@@ -410,7 +396,7 @@ export default function AuditListView({
                 <h3 className="font-bold text-base">Inisiasi KKA Audit Baru</h3>
                 <p className="text-peach-accent text-[10px] uppercase tracking-wider font-extrabold leading-none mt-1">Tingkatan Inspektorat Pengawas Daerah</p>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
                 className="text-white/80 hover:text-white p-1 hover:bg-white/10 rounded-lg transition"
@@ -424,24 +410,14 @@ export default function AuditListView({
               {/* Nama OPD */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Nama Instansi / OPD / OPD</label>
-                <select
+                <input
+                  type="text"
+                  required
+                  placeholder="Misal: Dinas Kesehatan, SDN 04 Palmerah, Kecamatan Palmerah"
                   value={newSchoolName}
-                  onChange={e => {
-                    const selectedName = e.target.value;
-                    setNewSchoolName(selectedName);
-                    // Optionally auto-fill opdType if targetEntity matches
-                    const entity = targetEntities.find(t => t.name === selectedName);
-                    if (entity && entity.type) {
-                      setNewSchoolType(entity.type as any);
-                    }
-                  }}
+                  onChange={e => setNewSchoolName(e.target.value)}
                   className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
-                >
-                  <option value="" disabled>-- Pilih Objek Audit (Dari Database) --</option>
-                  {targetEntities.map(entity => (
-                    <option key={entity.id} value={entity.name}>{entity.name} ({entity.type})</option>
-                  ))}
-                </select>
+                />
               </div>
 
               {/* Jenjang Dan TA */}
@@ -482,31 +458,14 @@ export default function AuditListView({
               {/* Template dan Tipe KKA */}
               <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Kertas Kerja Master</label>
+                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Jenis Audit Pemeriksaan</label>
                   <select
                     value={newTemplateId}
-                    onChange={e => {
-                      setNewTemplateId(e.target.value);
-                      setNewInitialCategoryId('');
-                    }}
+                    onChange={e => setNewTemplateId(e.target.value)}
                     className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
                   >
                     {templates.map(t => (
                       <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Jenis Audit Awal (Opsional)</label>
-                  <select
-                    value={newInitialCategoryId}
-                    onChange={e => setNewInitialCategoryId(e.target.value)}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
-                  >
-                    <option value="">-- Pilih Jenis Audit --</option>
-                    {templates.find(t => t.id === newTemplateId)?.categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
@@ -535,7 +494,7 @@ export default function AuditListView({
               {/* Anggota Tim */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Anggota Tim (Pilih Beberapa)</label>
-                <div 
+                <div
                   className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray flex justify-between items-center cursor-pointer"
                   onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
                 >
@@ -546,30 +505,14 @@ export default function AuditListView({
                 </div>
 
                 {isTeamDropdownOpen && (
-                  <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
-                    <div className="p-2 border-b border-slate-100">
-                      <input
-                        type="text"
-                        placeholder="Cari anggota tim..."
-                        value={newTeamSearchQuery}
-                        onChange={(e) => setNewTeamSearchQuery(e.target.value)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-full text-xs p-1.5 border border-slate-200 rounded focus:outline-none focus:border-blue-500 bg-white text-slate-700"
-                      />
-                    </div>
-                    <div className="max-h-48 overflow-y-auto">
-                      {userProfiles
-                        .filter(p => {
-                          const term = newTeamSearchQuery.toLowerCase();
-                          return (p.full_name?.toLowerCase().includes(term) || p.email?.toLowerCase().includes(term));
-                        })
-                        .map(p => {
+                  <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-h-48 overflow-y-auto">
+                    {userProfiles.map(p => {
                       const val = p.full_name || p.email;
                       const isChecked = newTeamMembers.includes(val);
                       return (
                         <label key={p.id} className="flex items-center gap-3 p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={isChecked}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -584,15 +527,9 @@ export default function AuditListView({
                         </label>
                       );
                     })}
-                    {userProfiles.filter(p => {
-                      const term = newTeamSearchQuery.toLowerCase();
-                      return (p.full_name?.toLowerCase().includes(term) || p.email?.toLowerCase().includes(term));
-                    }).length === 0 && (
-                      <div className="p-3 text-xs text-center text-slate-500 italic">
-                        {userProfiles.length === 0 ? 'Tidak ada profil tersedia' : 'Tidak ditemukan'}
-                      </div>
+                    {userProfiles.length === 0 && (
+                      <div className="p-3 text-xs text-center text-dark-gray/50 italic">Tidak ada profil tersedia</div>
                     )}
-                    </div>
                   </div>
                 )}
               </div>

@@ -5,16 +5,16 @@
 
 import React, { useState } from 'react';
 import { KKATemplate, TemplateCategory, TemplateItem } from '../types';
-import { 
-  Plus, 
-  Trash2, 
-  RotateCcw, 
-  Edit3, 
-  Save, 
-  Check, 
-  ListOrdered, 
-  Layers, 
-  PlusCircle, 
+import {
+  Plus,
+  Trash2,
+  RotateCcw,
+  Edit3,
+  Save,
+  Check,
+  ListOrdered,
+  Layers,
+  PlusCircle,
   AlertCircle,
   HelpCircle
 } from 'lucide-react';
@@ -32,7 +32,7 @@ export default function TemplateConfiguratorView({
   onDeleteTemplate,
   onResetTemplates
 }: TemplateConfiguratorViewProps) {
-  
+
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
     templates.length > 0 ? templates[0].id : ''
   );
@@ -205,7 +205,7 @@ export default function TemplateConfiguratorView({
   const handleDeleteItem = (itemId: string) => {
     if (!selectedCatId || !activeCategory) return;
     if (activeCategory.items.length <= 1) {
-      alert('Jenis Audit Pemeriksaan harus menyimpan minimal satu kriteria pemeriksaan.');
+      alert('Kategori Jenis Audit harus menyimpan minimal satu kriteria pemeriksaan.');
       return;
     }
     const confirmed = window.confirm('Apakah Anda yakin ingin menghapus kriteria pemeriksaan default ini dari template master?');
@@ -297,7 +297,7 @@ export default function TemplateConfiguratorView({
       <div className="bg-amber-100/45 border border-amber-200/50 text-dark-gray p-4 rounded-xl text-xs space-y-1.5 shadow-xs">
         <div className="flex items-center gap-1.5 font-bold text-amber-900">
           <AlertCircle className="w-4 h-4 text-amber-800 flex-shrink-0" />
-          <span className="font-extrabold text-dark-gray">Konfigurasi Master Kertas Kerja Pemeriksaan Dinamis (A.2)</span>
+          <span className="font-extrabold text-dark-gray">Konfigurasi Jenis Audit Pemeriksaan Dinamis (A.2)</span>
         </div>
         <p className="leading-relaxed font-semibold text-dark-gray/90">
           Kriteria dan Kategori di halaman ini adalah <strong>master jenis audit default</strong>. Setiap kali Anda menekan tombol <strong>"Mulai Audit Baru"</strong> di beranda, struktur daftar periksa akan disalin langsung dari apa yang Anda atur di bawah ini. Audit yang sudah berjalan tidak akan terpengaruh.
@@ -310,7 +310,7 @@ export default function TemplateConfiguratorView({
           <h3 className="font-extrabold text-dark-gray text-sm truncate max-w-[250px] md:max-w-md">
             {template.name}
           </h3>
-          <span className="text-[10px] text-dark-gray/70 font-semibold block mt-0.5">Template Master Auditor</span>
+          <span className="text-[10px] text-dark-gray/70 font-semibold block mt-0.5">Template Konfigurasi Auditor</span>
         </div>
 
         <button
@@ -332,7 +332,7 @@ export default function TemplateConfiguratorView({
         {/* Template Sidebar column */}
         <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Kertas Kerja Master</span>
+            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Jenis Audit</span>
             <button
               onClick={handleAddTemplate}
               className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
@@ -347,11 +347,10 @@ export default function TemplateConfiguratorView({
                 <div
                   key={t.id}
                   onClick={() => setSelectedTemplateId(t.id)}
-                  className={`group relative flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition border ${
-                    isActive 
-                      ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold' 
+                  className={`group relative flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition border ${isActive
+                      ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold'
                       : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/60 font-semibold'
-                  }`}
+                    }`}
                 >
                   <span className="truncate pr-8">{t.name}</span>
                   {!t.isDefault && (
@@ -362,7 +361,7 @@ export default function TemplateConfiguratorView({
                           handleDeleteTemplate(t.id);
                         }}
                         className={`p-1 rounded text-xs ${isActive ? 'text-white/80 hover:bg-white/20 hover:text-white' : 'text-dark-gray/60 hover:text-rose-700'}`}
-                        title="Hapus Kertas Kerja Master"
+                        title="Hapus Jenis Audit"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -372,29 +371,28 @@ export default function TemplateConfiguratorView({
               );
             })}
           </div>
-          
-          <div className="mt-4 pt-4 border-t border-dark-gray/10 space-y-2">
-            <label className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Nama Master Kertas Kerja</label>
+        </div>
+
+        {/* Category config column */}
+        <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
+            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Kategori Jenis Audit</span>
+            <button
+              onClick={() => setIsAddingCategory(true)}
+              className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5" /> Tambah Seksi
+            </button>
+          </div>
+
+          <div className="space-y-2 mb-4">
             <input
               type="text"
               value={template?.name || ''}
               onChange={e => handleTemplateNameChange(e.target.value)}
               className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded bg-white text-dark-gray outline-none focus:border-dark-gray/30"
-              placeholder="Nama Kertas Kerja Master (mis. Standar 2026)"
+              placeholder="Nama Jenis Audit"
             />
-          </div>
-        </div>
-        
-        {/* Category config column */}
-        <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Jenis Audit</span>
-            <button
-              onClick={() => setIsAddingCategory(true)}
-              className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
-            >
-              <PlusCircle className="w-3.5 h-3.5" /> Tambah Jenis Audit
-            </button>
           </div>
 
           <div className="space-y-1.5 max-h-[350px] overflow-y-auto">
@@ -410,23 +408,23 @@ export default function TemplateConfiguratorView({
                       value={editCatName}
                       onChange={e => setEditCatName(e.target.value)}
                       className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded bg-white text-dark-gray outline-none focus:border-dark-gray/30"
-                      placeholder="Nama Jenis Audit"
+                      placeholder="Nama Kategori"
                     />
                     <textarea
                       value={editCatDesc}
                       onChange={e => setEditCatDesc(e.target.value)}
                       className="w-full text-[11px] font-medium p-1.5 border border-dark-gray/15 rounded bg-white resize-none text-dark-gray outline-none focus:border-dark-gray/30"
                       rows={2}
-                      placeholder="Deskripsi Jenis Audit"
+                      placeholder="Deskripsi Seksi"
                     />
                     <div className="flex justify-end gap-1.5 pt-1">
-                      <button 
+                      <button
                         onClick={() => setEditingCatId(null)}
                         className="p-1 px-2 bg-white text-dark-gray border border-dark-gray/15 rounded-lg cursor-pointer font-bold"
                       >
                         Batal
                       </button>
-                      <button 
+                      <button
                         onClick={saveCategoryEdit}
                         className="p-1 px-3 bg-peach-accent text-dark-gray border border-dark-gray/10 rounded-lg font-black cursor-pointer shadow-xs"
                       >
@@ -441,20 +439,15 @@ export default function TemplateConfiguratorView({
                 <div
                   key={cat.id}
                   onClick={() => setSelectedCatId(cat.id)}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    startEditingCat(cat);
-                  }}
-                  className={`group relative flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition border ${
-                    isActive 
-                      ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold' 
+                  className={`group relative flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition border ${isActive
+                      ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold'
                       : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/60 font-semibold'
-                  }`}
+                    }`}
                 >
                   <span className="truncate pr-8">{cat.name}</span>
-                  
+
                   {/* Actions buttons */}
-                  <div className="absolute right-2 flex items-center gap-1.5">
+                  <div className="absolute right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex items-center gap-1.5">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -487,16 +480,18 @@ export default function TemplateConfiguratorView({
           {activeCategory ? (
             <div className="space-y-4">
               {/* Category Scope Title Bar */}
-              <div className="bg-dark-gray text-white p-3 rounded-t-xl flex items-center gap-2">
-                <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Jenis Audit Aktif</span>
-                <span className="font-extrabold text-sm truncate">{activeCategory.name}</span>
+              <div className="bg-dark-gray border border-white/5 shadow-md p-4 rounded-xl text-white">
+                <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded font-mono font-bold tracking-wide">
+                  Seksi Pengujian Aktif
+                </span>
+                <h4 className="text-sm font-extrabold text-white mt-2 leading-tight">{activeCategory.name}</h4>
+                <p className="text-xs text-white/80 leading-relaxed max-w-2xl mt-1 font-medium">{activeCategory.description}</p>
               </div>
-              <p className="text-xs text-dark-gray/80 leading-relaxed max-w-2xl mt-1 font-medium">{activeCategory.description}</p>
 
               {/* Items config list wrapper */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Daftar Kriteria Pemeriksaan</span>
+                  <span className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Kriteria Default di Dalam Seksi Ini</span>
                   <button
                     onClick={() => setIsAddingItem(true)}
                     className="bg-baby-blue hover:opacity-95 border border-dark-gray/10 text-xs font-bold text-dark-gray px-2.5 rounded-lg py-1.5 inline-flex items-center gap-1 cursor-pointer"
@@ -530,14 +525,14 @@ export default function TemplateConfiguratorView({
                             />
                           </div>
                           <div className="flex justify-end gap-1.5 pt-1 border-t border-dark-gray/10">
-                            <button 
+                            <button
                               type="button"
                               onClick={() => setEditingItemId(null)}
                               className="p-1.5 px-2 bg-white border border-dark-gray/15 text-dark-gray rounded-lg font-bold cursor-pointer"
                             >
                               Batal
                             </button>
-                            <button 
+                            <button
                               type="button"
                               onClick={saveItemEdit}
                               className="p-1.5 px-3.5 bg-peach-accent text-dark-gray border border-dark-gray/10 rounded-lg font-black cursor-pointer shadow-xs"
@@ -570,7 +565,7 @@ export default function TemplateConfiguratorView({
                           <button
                             onClick={() => handleDeleteItem(item.id)}
                             className="p-1 text-dark-gray/60 hover:text-rose-700 rounded transition cursor-pointer"
-                            title="Hapus Kriteria Pemeriksaan"
+                            title="Hapus Kriteria"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -583,7 +578,7 @@ export default function TemplateConfiguratorView({
             </div>
           ) : (
             <div className="text-center p-12 select-none bg-baby-blue/30 rounded-xl border border-dashed border-dark-gray/15 text-dark-gray">
-              <span className="text-xs font-bold text-dark-gray/60">Silakan pilih Jenis Audit di sebelah kiri untuk melihat kriteria.</span>
+              <span className="text-xs font-bold text-dark-gray/60">Silakan pilih kategori di sebelah kiri untuk melihat kriteria.</span>
             </div>
           )}
         </div>
@@ -594,12 +589,12 @@ export default function TemplateConfiguratorView({
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
             <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Tambah Jenis Audit Baru</span>
+              <span className="font-extrabold text-xs tracking-wide">Tambah Kategori Jenis Audit Baru (A.1)</span>
               <button onClick={() => setIsAddingCategory(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleAddCategory} className="p-4 space-y-3.5 text-xs">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Jenis Audit Baru</label>
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Seksi KKA Baru</label>
                 <input
                   type="text"
                   required
@@ -613,7 +608,7 @@ export default function TemplateConfiguratorView({
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Ruang Lingkup Deskripsi</label>
                 <textarea
-                  placeholder="Deskripsikan pengujian kriteria pada Jenis Audit Baru..."
+                  placeholder="Deskripsikan pengujian kriteria pada seksi Jenis Audit Baru..."
                   value={newCatDesc}
                   onChange={e => setNewCatDesc(e.target.value)}
                   rows={2}
@@ -635,7 +630,7 @@ export default function TemplateConfiguratorView({
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
             <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Tambah Kriteria Pemeriksaan Baru</span>
+              <span className="font-extrabold text-xs tracking-wide">Tambah Kriteria Default Baru</span>
               <button onClick={() => setIsAddingItem(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleAddItem} className="p-4 space-y-3.5 text-xs">
@@ -644,7 +639,7 @@ export default function TemplateConfiguratorView({
                 <input
                   type="text"
                   required
-                  placeholder="Misal: Audit Kinerja, Audit Keuangan"
+                  placeholder="Misal: Pembayaran Pajak Bumi Bangunan OPD"
                   value={newItemTitle}
                   onChange={e => setNewItemTitle(e.target.value)}
                   className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 focus:bg-white text-dark-gray outline-none"
