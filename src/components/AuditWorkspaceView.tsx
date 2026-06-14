@@ -503,9 +503,14 @@ export default function AuditWorkspaceView({
                     className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none focus:border-peach-accent"
                   >
                     <option value="" disabled>Pilih Ketua Tim</option>
-                    {userProfiles.map(p => (
-                      <option key={p.id} value={p.full_name || p.email}>{p.full_name || p.email} ({p.role})</option>
-                    ))}
+                    {userProfiles.map(p => {
+                      const label = p.pangkat && p.golongan
+                        ? `${p.full_name || p.email} — ${p.pangkat} (${p.golongan})`
+                        : `${p.full_name || p.email} (${p.role})`;
+                      return (
+                        <option key={p.id} value={p.full_name || p.email}>{label}</option>
+                      );
+                    })}
                     {/* Fallback if user is not in profiles */}
                     {!userProfiles.some(p => (p.full_name || p.email) === metaAuditorName) && metaAuditorName && (
                       <option value={metaAuditorName}>{metaAuditorName}</option>
@@ -532,8 +537,11 @@ export default function AuditWorkspaceView({
                       {userProfiles.map(p => {
                         const val = p.full_name || p.email;
                         const isChecked = metaTeamMembers.includes(val);
+                        const sublabel = p.pangkat && p.golongan
+                          ? `${p.pangkat} · ${p.golongan}`
+                          : p.role;
                         return (
-                          <label key={p.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer border-b border-dark-gray/5 last:border-b-0 text-xs font-semibold text-dark-gray">
+                          <label key={p.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer border-b border-dark-gray/5 last:border-b-0">
                             <input 
                               type="checkbox" 
                               checked={isChecked}
@@ -546,7 +554,10 @@ export default function AuditWorkspaceView({
                               }}
                               className="rounded border-dark-gray/20 text-peach-accent focus:ring-peach-accent/30"
                             />
-                            <span>{val} ({p.role})</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-bold text-dark-gray truncate">{val}</div>
+                              <div className="text-[10px] text-dark-gray/55 font-semibold">{sublabel}</div>
+                            </div>
                           </label>
                         );
                       })}
