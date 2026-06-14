@@ -27,7 +27,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
   }, [audits]);
 
   return (
-    <div className="space-y-6 animate-fade-in" id="home-view">
+    <div className="flex flex-col flex-1 space-y-6 animate-fade-in h-full min-h-0" id="home-view">
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 -mr-10 -mt-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
@@ -47,7 +47,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-0">
         {/* Map Section */}
         <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm relative overflow-hidden flex flex-col">
           <div className="flex items-center justify-between mb-4">
@@ -62,7 +62,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
             </div>
           </div>
           
-          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] z-10 rounded-sm">
+          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] lg:min-h-0 z-10 rounded-sm">
             <iframe 
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126130.65487777717!2d119.34005886470355!3d-9.610667794353723!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c4cac4b998cfb27%3A0x6b30f73f278d65de!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1714545000000!5m2!1sid!2sid" 
               className="absolute inset-0 w-full h-full border-0" 
@@ -87,7 +87,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
             </span>
           </div>
 
-          <div className="overflow-y-auto flex-1 border border-slate-150 rounded-xl bg-white max-h-[450px]">
+          <div className="overflow-y-auto flex-1 border border-slate-150 rounded-xl bg-white lg:max-h-none min-h-0">
             <table className="w-full text-left border-collapse text-xs">
               <thead className="sticky top-0 bg-slate-50 z-10 shadow-xs">
                 <tr className="border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
