@@ -370,7 +370,7 @@ export default function EvidencePanel({
                   className="flex items-center gap-1.5 text-[10px] font-extrabold bg-white/10 hover:bg-white/20 text-white border border-white/20 px-2.5 py-1.5 rounded-lg transition-all"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Unduh</span>
+                  <span>Unduh</span>
                 </a>
               )}
               {/* Open full in Drive */}
@@ -381,7 +381,7 @@ export default function EvidencePanel({
                 className="flex items-center gap-1.5 text-[10px] font-extrabold bg-white/10 hover:bg-white/20 text-white border border-white/20 px-2.5 py-1.5 rounded-lg transition-all"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Buka Drive</span>
+                <span>Buka Drive</span>
               </a>
               {/* Close */}
               <button

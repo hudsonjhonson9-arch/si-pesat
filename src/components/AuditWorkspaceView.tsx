@@ -68,8 +68,10 @@ export default function AuditWorkspaceView({
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const res = await uploadEvidenceFile(file, audit.fiscalYear, audit.opdName, audit.auditType);
-      handleFindingDetailChange(itemId, 'evidenceLink', res.webViewLink);
-      handleFindingDetailChange(itemId, 'evidenceName', res.name);
+      handleFindingDetailsUpdate(itemId, {
+        evidenceLink: res.webViewLink,
+        evidenceName: res.name
+      });
       alert(`Sukses! Berkas bukti "${res.name}" berhasil diunggah langsung ke Google Drive dan tautan dokumen tersemat.`);
     } catch (err: any) {
       console.error(err);
@@ -86,8 +88,10 @@ export default function AuditWorkspaceView({
     setCopyingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const res = await copyEvidenceFileFromUrl(sourceUrl, currentName || `Copy_of_${itemId}`, audit.fiscalYear, audit.opdName, audit.auditType);
-      handleFindingDetailChange(itemId, 'evidenceLink', res.webViewLink);
-      handleFindingDetailChange(itemId, 'evidenceName', res.name);
+      handleFindingDetailsUpdate(itemId, {
+        evidenceLink: res.webViewLink,
+        evidenceName: res.name
+      });
       alert(`Sukses! Berkas dari tautan berhasil disalin ke Drive Pusat sebagai "${res.name}".`);
     } catch (err: any) {
       console.error(err);
@@ -176,6 +180,29 @@ export default function AuditWorkspaceView({
             return {
               ...item,
               [field]: value
+            };
+          }
+          return item;
+        })
+      };
+    });
+
+    onUpdates({
+      ...audit,
+      categories: updatedCategories
+    });
+  };
+
+  const handleFindingDetailsUpdate = (itemId: string, updates: Partial<AuditItem>) => {
+    if (isReadOnly && !('catatanReview' in updates)) return;
+    const updatedCategories = audit.categories.map(cat => {
+      return {
+        ...cat,
+        items: cat.items.map(item => {
+          if (item.id === itemId) {
+            return {
+              ...item,
+              ...updates
             };
           }
           return item;
@@ -892,8 +919,10 @@ export default function AuditWorkspaceView({
                     onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
                     onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
                     onClear={() => {
-                      handleFindingDetailChange(item.id, 'evidenceLink', '');
-                      handleFindingDetailChange(item.id, 'evidenceName', '');
+                      handleFindingDetailsUpdate(item.id, {
+                        evidenceLink: '',
+                        evidenceName: ''
+                      });
                     }}
                   />
 
@@ -920,8 +949,8 @@ export default function AuditWorkspaceView({
                           placeholder="Tulis ulasan review, koreksi bukti SPESIFIKASI, arahan revisi angka temuan, atau persetujuan di sini..."
                           value={item.catatanReview || ''}
                           onChange={(e) => handleFindingDetailChange(item.id, 'catatanReview', e.target.value)}
-                          rows={2}
-                          className="w-full text-xs font-bold border border-amber-200/60 p-2 rounded bg-white text-dark-gray focus:outline-hidden"
+                          rows={3}
+                          className="w-full min-h-[70px] text-xs font-bold border border-amber-200/50 p-2.5 rounded-lg bg-white/80 focus:bg-white outline-none text-dark-gray shadow-xs"
                         />
                         <p className="text-[9.5px] text-amber-900/80 italic font-mono font-bold">Tersimpan otomatis sebagai rancangan ulasan review pimpinan ({userRole}).</p>
                       </div>
