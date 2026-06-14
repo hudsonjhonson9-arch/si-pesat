@@ -132,7 +132,7 @@ export default function AuditListView({
 
   // Dynamic status configurations
   const statusConfig: Record<AuditStatus, { bg: string; text: string; label: string }> = {
-    'Draft': { bg: 'bg-slate-50 border-slate-200 text-slate-700', text: 'slate', label: 'Draft KKA' },
+    'Draft': { bg: 'bg-slate-50 border-slate-200 text-slate-700', text: 'slate', label: 'Draft' },
     'Sedang Berjalan': { bg: 'bg-amber-50 border-amber-200 text-amber-700', text: 'amber', label: 'Audit Lapangan' },
     'Direview': { bg: 'bg-sky-50 border-sky-200 text-sky-700', text: 'sky', label: 'Review Pengendali' },
     'Selesai': { bg: 'bg-emerald-50 border-emerald-200 text-emerald-700', text: 'emerald', label: 'LHP Diterbitkan' }
@@ -225,7 +225,7 @@ export default function AuditListView({
               className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded-md bg-white/70 text-dark-gray focus:bg-white focus:outline-hidden focus:border-peach-accent"
             >
               <option value="all">Semua Status</option>
-              <option value="Draft">Draft KKA</option>
+              <option value="Draft">Draft</option>
               <option value="Sedang Berjalan">Audit Lapangan</option>
               <option value="Direview">Review Pengendali</option>
               <option value="Selesai">LHP Selesai</option>
