@@ -458,8 +458,6 @@ export default function AuditListView({
                 </select>
               </div>
 
-              </div>
-
               {/* Nama Pemeriksa / Ketua Tim */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Nama Auditor / Ketua Tim Pemeriksa</label>
