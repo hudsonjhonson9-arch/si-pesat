@@ -24,7 +24,7 @@ export interface AuditItem {
   description: string;
   status: FindingStatus;
   nilaiTemuan: number; // Nilai temuan keuangan dalam Rupiah
-  jenisTemuan?: 'Kelebihan Pembayaran' | 'Belanja Fiktif' | 'Pemborosan' | 'Pajak Belum Disetor' | 'Tidak Sesuai Juknis' | 'Lainnya';
+  jenisTemuan?: string;
   uraianTemuan: string;
   rekomendasi: string;
   evidenceLink?: string; // Tautan dokumen Google Drive (pdf, excel, docx)

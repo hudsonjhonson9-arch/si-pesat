@@ -197,22 +197,13 @@ export default function AuditListView({
             />
           </div>
 
-          {/* New Audit Trigger Button (Restricted to Auditor Only) */}
-          {userRole === 'Auditor' ? (
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-peach-accent hover:opacity-90 text-dark-gray text-sm font-extrabold px-4 py-2 rounded-lg inline-flex items-center justify-center gap-1.5 shadow-sm transition-all h-[38px] cursor-pointer border border-dark-gray/10"
-            >
-              <Plus className="w-4 h-4" /> Mulai Audit Baru
-            </button>
-          ) : (
-            <div
-              className="bg-white/40 border border-dark-gray/10 text-dark-gray/60 rounded-lg py-2 px-3.5 text-xs font-bold flex items-center justify-center gap-1.5 h-[38px] select-none cursor-not-allowed"
-              title="Khusus Auditor yang berwenang memulai instrumen KKA baru"
-            >
-              🔒 Pengisian KKA (Khusus Auditor)
-            </div>
-          )}
+          {/* New Audit Trigger Button */}
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-peach-accent hover:opacity-90 text-dark-gray text-sm font-extrabold px-4 py-2 rounded-lg inline-flex items-center justify-center gap-1.5 shadow-sm transition-all h-[38px] cursor-pointer border border-dark-gray/10"
+          >
+            <Plus className="w-4 h-4" /> Mulai Audit Baru
+          </button>
         </div>
 
         {/* Extended drop-downs for filtering */}
@@ -390,7 +381,7 @@ export default function AuditListView({
 
                       {/* Right side: Actions */}
                       <div className="flex items-center md:flex-col justify-end md:justify-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-dark-gray/10 pt-3 md:pt-0 md:pl-6">
-                        {userRole === 'Auditor' && (
+                        {['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) && (
                           <button
                             type="button"
                             onClick={(e) => {

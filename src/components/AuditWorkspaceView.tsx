@@ -489,7 +489,7 @@ export default function AuditWorkspaceView({
                   <span className="text-[10px] bg-white/40 px-2 py-0.5 rounded font-extrabold text-dark-gray uppercase">
                     Profil Auditi
                   </span>
-                  {!isReadOnly && (
+                  {userRole === 'Inspektur Pembantu' && (
                     <button
                       onClick={() => setIsEditingMetadata(true)}
                       className="p-1 text-dark-gray hover:text-dark-gray/80 rounded transition cursor-pointer"
@@ -657,7 +657,7 @@ export default function AuditWorkspaceView({
                 <div className="space-y-1.5">
                   <h3 className="text-base font-extrabold tracking-tight text-white leading-tight flex items-center gap-2">
                     {activeCategory.name}
-                    {!isReadOnly && userRole === 'Auditor' && (
+                    {currentUserName === activeCategory.auditorName && (
                       <button onClick={openEditCategoryTeam} className="p-1 hover:bg-white/10 rounded cursor-pointer transition-colors" title="Edit Tim & Tahun Kategori">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -777,19 +777,23 @@ export default function AuditWorkspaceView({
                       <div className="space-y-3 font-semibold">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide block">Klasifikasi Temuan</label>
-                          <select
+                          <input
+                            type="text"
+                            list={`klasifikasi-options-${item.id}`}
                             disabled={isReadOnly || userRole !== 'Auditor'}
-                            value={item.jenisTemuan || 'Tidak Sesuai Juknis'}
+                            value={item.jenisTemuan || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'jenisTemuan', e.target.value)}
-                            className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white shadow-xs disabled:bg-white/40 disabled:cursor-not-allowed select-none outline-none text-dark-gray"
-                          >
-                            <option value="Kelebihan Pembayaran">Kelebihan Pembayaran (Overpayment)</option>
-                            <option value="Belanja Fiktif">Belanja Fiktif (Manipulasi / Kwitansi Palsu)</option>
-                            <option value="Pemborosan">Pemborosan (Inefisiensi Anggaran)</option>
-                            <option value="Pajak Belum Disetor">Pajak Belum Disetor ke Kas Negara</option>
-                            <option value="Tidak Sesuai Juknis">Penggunaan Dana Tidak Sesuai Juknis BOS</option>
-                            <option value="Lainnya">Lain-lain / Administrasi Kurang Lengkap</option>
-                          </select>
+                            placeholder="Ketik klasifikasi temuan..."
+                            className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white shadow-xs disabled:bg-white/40 disabled:cursor-not-allowed outline-none text-dark-gray"
+                          />
+                          <datalist id={`klasifikasi-options-${item.id}`}>
+                            <option value="Kelebihan Pembayaran (Overpayment)" />
+                            <option value="Belanja Fiktif (Manipulasi / Kwitansi Palsu)" />
+                            <option value="Pemborosan (Inefisiensi Anggaran)" />
+                            <option value="Pajak Belum Disetor ke Kas Negara" />
+                            <option value="Penggunaan Dana Tidak Sesuai Juknis BOS" />
+                            <option value="Lain-lain / Administrasi Kurang Lengkap" />
+                          </datalist>
                         </div>
 
                         <div className="space-y-1">
