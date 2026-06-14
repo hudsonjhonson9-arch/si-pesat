@@ -48,84 +48,82 @@ export default function HomeView({ targetEntities }: HomeViewProps) {
         </div>
       </div>
 
-      {/* Map Section */}
-      <div className="bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm relative overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="font-bold text-dark-gray text-lg flex items-center gap-2">
-              <Map className="w-5 h-5 text-peach-accent" />
-              Peta Wilayah Pengawasan
-            </h3>
-            <p className="text-xs text-dark-gray/60 mt-0.5">
-              Cakupan wilayah Kecamatan Loli, Kabupaten Sumba Barat
-            </p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Map Section */}
+        <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm relative overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-bold text-dark-gray text-lg flex items-center gap-2">
+                <Map className="w-5 h-5 text-peach-accent" />
+                Peta Wilayah Pengawasan
+              </h3>
+              <p className="text-xs text-dark-gray/60 mt-0.5">
+                Cakupan wilayah Kecamatan Loli, Kabupaten Sumba Barat
+              </p>
+            </div>
+          </div>
+          
+          <div className="w-full bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden flex-1 relative min-h-[400px]">
+            <iframe 
+              width="100%" 
+              height="100%" 
+              style={{ border: 0 }}
+              loading="lazy" 
+              allowFullScreen 
+              referrerPolicy="no-referrer-when-downgrade" 
+              src="https://maps.google.com/maps?q=Kecamatan%20Loli,%20Sumba%20Barat&t=&z=11&ie=UTF8&iwloc=&output=embed"
+              className="absolute inset-0 w-full h-full"
+            ></iframe>
           </div>
         </div>
-        
-        <div className="w-full bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden flex items-center justify-center p-4 relative min-h-[300px]">
-          <img 
-            src="/kecamatan_loli_map.png" 
-            alt="Peta Kecamatan Loli" 
-            className="w-full max-w-2xl object-contain drop-shadow-md z-10"
-            onError={(e) => {
-               (e.target as HTMLImageElement).src = 'https://placehold.co/800x400/f8fafc/64748b?text=Peta+Kecamatan+Loli+Tidak+Ditemukan';
-            }}
-          />
-          {/* Decorative map dots */}
-          <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-        </div>
-      </div>
 
-      {/* Target Entities Table */}
-      <div className="bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h3 className="font-bold text-dark-gray text-base">Daftar Entitas Pengawasan (OPD)</h3>
-            <p className="text-xs text-dark-gray/60 mt-0.5">
-              Daftar instansi, sekolah, dan puskesmas yang berada di bawah pengawasan Irban IV.
-            </p>
+        {/* Target Entities Table */}
+        <div className="lg:col-span-1 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="font-bold text-dark-gray text-base">Daftar Entitas</h3>
+              <p className="text-xs text-dark-gray/60 mt-0.5">
+                Wilayah pengawasan Irban IV.
+              </p>
+            </div>
+            <span className="text-[10px] bg-peach-accent text-dark-gray border border-dark-gray/10 px-2.5 py-1 rounded font-bold font-mono uppercase">
+              {targetEntities.length} Entitas
+            </span>
           </div>
-          <span className="text-[10px] bg-peach-accent text-dark-gray border border-dark-gray/10 px-2.5 py-1 rounded font-bold font-mono uppercase">
-            {targetEntities.length} Entitas
-          </span>
-        </div>
 
-        <div className="overflow-x-auto border border-slate-150 rounded-xl bg-white">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
-                <th className="p-3.5 w-10 text-center">No</th>
-                <th className="p-3.5">Nama Entitas</th>
-                <th className="p-3.5">Kategori</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {targetEntities.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="p-8 text-center text-slate-400">
-                    <Building className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    Belum ada data entitas.
-                  </td>
+          <div className="overflow-y-auto flex-1 border border-slate-150 rounded-xl bg-white max-h-[450px]">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead className="sticky top-0 bg-slate-50 z-10 shadow-xs">
+                <tr className="border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                  <th className="p-3.5">Nama Entitas</th>
+                  <th className="p-3.5 w-24">Kategori</th>
                 </tr>
-              ) : (
-                targetEntities.map((entity, idx) => (
-                  <tr key={entity.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="p-3.5 text-center font-mono text-slate-400 font-medium">
-                      {idx + 1}
-                    </td>
-                    <td className="p-3.5 font-bold text-slate-800">
-                      {entity.name}
-                    </td>
-                    <td className="p-3.5">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${getBadgeColor(entity.type)}`}>
-                        {getIconForType(entity.type)} {entity.type}
-                      </span>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {targetEntities.length === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="p-8 text-center text-slate-400">
+                      <Building className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      Belum ada data entitas.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  targetEntities.map((entity, idx) => (
+                    <tr key={entity.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-3.5 font-bold text-slate-800">
+                        {entity.name}
+                      </td>
+                      <td className="p-3.5">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${getBadgeColor(entity.type)}`}>
+                          {getIconForType(entity.type)} {entity.type}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
