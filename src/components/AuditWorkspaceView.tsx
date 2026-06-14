@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, UserProfile } from '../types';
-import { uploadEvidenceFile } from '../lib/googleDrive';
+import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
 import { 
   ArrowLeft, 
   Save, 
@@ -75,6 +75,24 @@ export default function AuditWorkspaceView({
       alert(`Gagal mengunggah file bukti ke Google Drive: ${err.message || err}`);
     } finally {
       setUploadingIds(prev => ({ ...prev, [itemId]: false }));
+    }
+  };
+
+  const [copyingIds, setCopyingIds] = useState<Record<string, boolean>>({});
+
+  const handleDirectCopy = async (itemId: string, sourceUrl: string, currentName: string) => {
+    if (!sourceUrl || !sourceUrl.includes('drive.google.com')) return;
+    setCopyingIds(prev => ({ ...prev, [itemId]: true }));
+    try {
+      const res = await copyEvidenceFileFromUrl(sourceUrl, currentName || `Copy_of_${itemId}`, audit.fiscalYear, audit.opdName);
+      handleFindingDetailChange(itemId, 'evidenceLink', res.webViewLink);
+      handleFindingDetailChange(itemId, 'evidenceName', res.name);
+      alert(`Sukses! Berkas dari tautan berhasil disalin ke Drive Pusat sebagai "${res.name}".`);
+    } catch (err: any) {
+      console.error(err);
+      alert(`Gagal menyalin tautan ke Drive Pusat: ${err.message || err}`);
+    } finally {
+      setCopyingIds(prev => ({ ...prev, [itemId]: false }));
     }
   };
 
@@ -177,7 +195,7 @@ export default function AuditWorkspaceView({
       id: `item_custom_${Date.now()}`,
       title: newItemTitle,
       description: newItemDesc,
-      status: 'Sesuai',
+      status: 'N/A',
       nilaiTemuan: 0,
       uraianTemuan: '',
       rekomendasi: ''
@@ -236,7 +254,7 @@ export default function AuditWorkspaceView({
           id: `item_cat_init_${Date.now()}`,
           title: 'Uji Prosedur Kepatuhan Dasar',
           description: 'Pemeriksaan kepatuhan formal awal untuk kategori baru ini.',
-          status: 'Sesuai',
+          status: 'N/A',
           nilaiTemuan: 0,
           uraianTemuan: '',
           rekomendasi: ''
@@ -859,13 +877,35 @@ export default function AuditWorkspaceView({
                     {userRole === 'Auditor' && !isReadOnly && (
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 pt-1.5 border-t border-dark-gray/10">
                         <div className="md:col-span-6">
-                          <input 
-                            type="text"
-                            placeholder="Tempel tautan Google Drive disini..."
-                            value={item.evidenceLink || ''}
-                            onChange={(e) => handleFindingDetailChange(item.id, 'evidenceLink', e.target.value)}
-                            className="w-full text-[10px] font-bold border border-dark-gray/15 p-2 rounded bg-white/70 focus:bg-white text-dark-gray outline-none"
-                          />
+                          <div className="flex gap-2">
+                            <input 
+                              type="text"
+                              placeholder="Tempel tautan Google Drive disini..."
+                              value={item.evidenceLink || ''}
+                              onChange={(e) => handleFindingDetailChange(item.id, 'evidenceLink', e.target.value)}
+                              className="w-full text-[10px] font-bold border border-dark-gray/15 p-2 rounded bg-white/70 focus:bg-white text-dark-gray outline-none"
+                            />
+                            {item.evidenceLink && item.evidenceLink.includes('drive.google.com') && (
+                              <button
+                                onClick={() => handleDirectCopy(item.id, item.evidenceLink as string, item.evidenceName || '')}
+                                disabled={!isDriveConnected || !audit.googleDriveFolderId || copyingIds[item.id]}
+                                className={`text-[9px] font-extrabold whitespace-nowrap px-2 rounded border ${
+                                  isDriveConnected && audit.googleDriveFolderId
+                                    ? 'bg-baby-blue border-dark-gray/20 text-dark-gray hover:bg-peach-accent cursor-pointer'
+                                    : 'bg-white/20 border-dark-gray/5 text-dark-gray/40 cursor-not-allowed'
+                                }`}
+                                title={
+                                  !isDriveConnected 
+                                    ? 'Koneksikan Google Drive di dashboard terlebih dahulu' 
+                                    : !audit.googleDriveFolderId 
+                                      ? 'Folder Drive belum ada. Klik "Kirim Ke Drive"' 
+                                      : 'Tarik dan salin file dari link ini ke Drive Pusat'
+                                }
+                              >
+                                {copyingIds[item.id] ? 'Menarik...' : '⬇️ Salin ke Pusat'}
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <div className="md:col-span-3">
                           <input 

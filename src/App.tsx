@@ -441,7 +441,7 @@ export default function App() {
             id: tempItem.id,
             title: tempItem.title,
             description: tempItem.description,
-            status: 'Sesuai',
+            status: 'N/A',
             nilaiTemuan: 0,
             uraianTemuan: '',
             rekomendasi: ''

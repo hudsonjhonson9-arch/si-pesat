@@ -26,13 +26,15 @@ function doPost(e) {
     const mimeType = payload.mimeType;
     const base64Data = payload.base64;
 
-    if (!fileName || !base64Data) {
-      return responseError('Missing name or base64 data');
+    if (payload.action !== 'copy') {
+      if (!fileName || !base64Data) {
+        return responseError('Missing name or base64 data for upload');
+      }
+    } else {
+      if (!payload.sourceId) {
+        return responseError('Missing sourceId for copy action');
+      }
     }
-
-    // Decode base64 to blob
-    const decodedBytes = Utilities.base64Decode(base64Data);
-    const blob = Utilities.newBlob(decodedBytes, mimeType || 'application/octet-stream', fileName);
 
     // Get Folder
     // Get Root Folder
@@ -65,8 +67,19 @@ function doPost(e) {
       currentFolder = getOrCreateFolder(currentFolder, payload.opd);
     }
 
-    // Create File in the final folder
-    const file = currentFolder.createFile(blob);
+    let file;
+    if (payload.action === 'copy') {
+      // Logic for copying existing file
+      const sourceFile = DriveApp.getFileById(payload.sourceId);
+      const newName = fileName || sourceFile.getName();
+      file = sourceFile.makeCopy(newName, currentFolder);
+    } else {
+      // Decode base64 to blob
+      const decodedBytes = Utilities.base64Decode(base64Data);
+      const blob = Utilities.newBlob(decodedBytes, mimeType || 'application/octet-stream', fileName);
+      // Create File in the final folder
+      file = currentFolder.createFile(blob);
+    }
     
     // Set permission to anyone with link can view (optional, but recommended for inspectorate viewing)
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
