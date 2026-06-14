@@ -224,7 +224,7 @@ export default function App() {
     if (audits.length > 0) {
       localStorage.setItem('si_pesat_audits', JSON.stringify(audits));
     }
-  }, [audits]);
+  }, [audits, templates]);
 
   useEffect(() => {
     localStorage.setItem('si_pesat_template', JSON.stringify(templates));
@@ -315,7 +315,7 @@ export default function App() {
     }, 5000); // Debounce 5 seconds
 
     return () => clearTimeout(timer);
-  }, [audits]);
+  }, [audits, templates]);
 
   // 3. Setup Supabase Auth state listener
   useEffect(() => {
