@@ -224,11 +224,13 @@ export default function AuditListView({
               className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded-md bg-white/70 text-dark-gray focus:bg-white focus:outline-hidden focus:border-peach-accent"
             >
               <option value="all">Semua Tipe</option>
-              <option value="SD">SD (OPD Dasar)</option>
-              <option value="SMP">SMP (OPD Menengah)</option>
-              <option value="Dinas">Dinas (OPD)</option>
-              <option value="Badan">Badan / Kantor</option>
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+              <option value="Dinas">Dinas</option>
+              <option value="Badan">Badan</option>
               <option value="Kecamatan">Kecamatan</option>
+              <option value="Desa">Desa</option>
+              <option value="Kelurahan">Kelurahan</option>
               <option value="Puskesmas">Puskesmas</option>
               <option value="Lainnya">Lainnya</option>
             </select>
@@ -390,11 +392,13 @@ export default function AuditListView({
                     onChange={e => setNewSchoolType(e.target.value as any)}
                     className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
                   >
-                    <option value="SD">SD (OPD Dasar)</option>
-                    <option value="SMP">SMP (OPD Menengah)</option>
-                    <option value="Dinas">Dinas (OPD)</option>
-                    <option value="Badan">Badan / Kantor</option>
+                    <option value="SD">SD</option>
+                    <option value="SMP">SMP</option>
+                    <option value="Dinas">Dinas</option>
+                    <option value="Badan">Badan</option>
                     <option value="Kecamatan">Kecamatan</option>
+                    <option value="Desa">Desa</option>
+                    <option value="Kelurahan">Kelurahan</option>
                     <option value="Puskesmas">Puskesmas</option>
                     <option value="Lainnya">Lainnya</option>
                   </select>
