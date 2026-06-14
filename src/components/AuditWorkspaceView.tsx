@@ -27,7 +27,8 @@ import {
   CheckCircle,
   HelpCircle,
   Edit2,
-  ChevronDown
+  ChevronDown,
+  User
 } from 'lucide-react';
 
 interface AuditWorkspaceViewProps {
@@ -117,6 +118,8 @@ export default function AuditWorkspaceView({
   const [metaTeamMembers, setMetaTeamMembers] = useState<string[]>(audit.teamMembers || []);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
   const [teamSearchQuery, setTeamSearchQuery] = useState('');
+  const [isAuditorDropdownOpen, setIsAuditorDropdownOpen] = useState(false);
+  const [auditorSearchQuery, setAuditorSearchQuery] = useState('');
 
   // Find the currently selected category
   const activeCategory = useMemo(() => {
@@ -140,6 +143,23 @@ export default function AuditWorkspaceView({
     return templateToUse.categories.filter(tc => !audit.categories.find(ac => ac.name === tc.name));
   }, [templates, selectedAddModalTemplateId, currentTemplate, audit.categories]);
 
+  // Sync form state with active category
+  React.useEffect(() => {
+    if (!isEditingMetadata) {
+      setMetaSchoolName(audit.opdName);
+      setMetaStatus(audit.status);
+      if (activeCategory) {
+        setMetaAuditorName(activeCategory.auditorName || audit.auditorName);
+        setMetaTeamMembers(activeCategory.teamMembers || audit.teamMembers || []);
+        setMetaFiscalYear(activeCategory.fiscalYear || audit.fiscalYear);
+      } else {
+        setMetaAuditorName(audit.auditorName);
+        setMetaTeamMembers(audit.teamMembers || []);
+        setMetaFiscalYear(audit.fiscalYear);
+      }
+    }
+  }, [isEditingMetadata, activeCategory, audit]);
+
   const isReadOnly = (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) || 
                      ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Selesai');
                      
@@ -147,13 +167,30 @@ export default function AuditWorkspaceView({
 
   // Handle saving general metadata updates
   const handleSaveMetadata = () => {
+    let updatedCategories = audit.categories;
+    
+    if (activeCategory) {
+      updatedCategories = audit.categories.map(c => 
+        c.id === activeCategory.id 
+          ? {
+              ...c,
+              auditorName: metaAuditorName,
+              teamMembers: metaTeamMembers,
+              fiscalYear: metaFiscalYear
+            }
+          : c
+      );
+    }
+
     onUpdates({
       ...audit,
       opdName: metaSchoolName,
-      auditorName: metaAuditorName,
       status: metaStatus,
+      // Always update global as fallback, so if there are no categories, it's saved.
+      auditorName: metaAuditorName,
       fiscalYear: metaFiscalYear,
-      teamMembers: metaTeamMembers
+      teamMembers: metaTeamMembers,
+      categories: updatedCategories
     });
     setIsEditingMetadata(false);
   };
@@ -481,18 +518,25 @@ export default function AuditWorkspaceView({
                       ))}
                     </div>
                   </h2>
-                  <p className="text-xs text-dark-gray/70 mt-0.5">Jenjang {audit.opdType} • Tahun Anggaran {audit.fiscalYear}</p>
+                  <p className="text-xs text-dark-gray/70 mt-0.5">
+                    Jenjang {audit.opdType} &bull; Tahun Anggaran {activeCategory?.fiscalYear || audit.fiscalYear}
+                  </p>
                 </div>
 
                 <div className="pt-2 border-t border-dark-gray/10 space-y-1.5 text-xs font-semibold">
+                  {activeCategory && (
+                    <div className="mb-2 pb-2 border-b border-dark-gray/5 text-peach-accent font-bold text-[10px] uppercase tracking-wider">
+                      Menampilkan Profil untuk: {activeCategory.name}
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-dark-gray/60 font-bold">Ketua Pemeriksa:</span>
-                    <span className="font-extrabold text-dark-gray truncate max-w-[150px]">{audit.auditorName}</span>
+                    <span className="font-extrabold text-dark-gray truncate max-w-[150px]">{activeCategory?.auditorName || audit.auditorName}</span>
                   </div>
-                  {audit.teamMembers && audit.teamMembers.length > 0 && (
+                  {((activeCategory?.teamMembers && activeCategory.teamMembers.length > 0) || (!activeCategory && audit.teamMembers && audit.teamMembers.length > 0)) && (
                     <div className="flex flex-col">
                       <span className="text-dark-gray/60 font-bold">Anggota Tim:</span>
-                      <span className="font-extrabold text-dark-gray">{audit.teamMembers.join(', ')}</span>
+                      <span className="font-extrabold text-dark-gray">{activeCategory?.teamMembers?.join(', ') || audit.teamMembers?.join(', ')}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -547,27 +591,68 @@ export default function AuditWorkspaceView({
                     </select>
                   </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 relative">
                   <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama</label>
-                  <select
-                    value={metaAuditorName}
-                    onChange={e => setMetaAuditorName(e.target.value)}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none focus:border-peach-accent"
+                  <div 
+                    onClick={() => setIsAuditorDropdownOpen(!isAuditorDropdownOpen)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray cursor-pointer flex justify-between items-center"
                   >
-                    <option value="" disabled>Pilih Ketua Tim</option>
-                    {userProfiles.map(p => {
-                      const label = p.pangkat && p.golongan
-                        ? `${p.full_name || p.email} — ${p.pangkat} (${p.golongan})`
-                        : `${p.full_name || p.email} (${p.role})`;
-                      return (
-                        <option key={p.id} value={p.full_name || p.email}>{label}</option>
-                      );
-                    })}
-                    {/* Fallback if user is not in profiles */}
-                    {!userProfiles.some(p => (p.full_name || p.email) === metaAuditorName) && metaAuditorName && (
-                      <option value={metaAuditorName}>{metaAuditorName}</option>
-                    )}
-                  </select>
+                    <span className="truncate">
+                      {metaAuditorName || 'Pilih Ketua Tim'}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-dark-gray/60" />
+                  </div>
+                  
+                  {isAuditorDropdownOpen && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg">
+                      <div className="p-2 border-b border-dark-gray/10">
+                        <input
+                          type="text"
+                          placeholder="Cari ketua tim..."
+                          value={auditorSearchQuery}
+                          onChange={(e) => setAuditorSearchQuery(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full text-[10px] p-1.5 border border-dark-gray/20 rounded focus:outline-none focus:border-peach-accent bg-white text-dark-gray"
+                        />
+                      </div>
+                      <div className="max-h-48 overflow-y-auto">
+                        {userProfiles
+                          .filter(p => (p.full_name || p.email).toLowerCase().includes(auditorSearchQuery.toLowerCase()))
+                          .map(p => {
+                            const label = p.pangkat && p.golongan
+                              ? `${p.full_name || p.email} - ${p.pangkat} (${p.golongan})`
+                              : `${p.full_name || p.email} (${p.role})`;
+                            return (
+                              <div
+                                key={p.id}
+                                onClick={() => {
+                                  setMetaAuditorName(p.full_name || p.email);
+                                  setIsAuditorDropdownOpen(false);
+                                  setAuditorSearchQuery('');
+                                }}
+                                className={`px-3 py-2 text-xs cursor-pointer hover:bg-peach-accent/20 ${metaAuditorName === (p.full_name || p.email) ? 'bg-peach-accent/30 font-bold' : ''}`}
+                              >
+                                {label}
+                              </div>
+                            );
+                          })}
+                        {/* Fallback if user is not in profiles */}
+                        {!userProfiles.some(p => (p.full_name || p.email) === metaAuditorName) && metaAuditorName && metaAuditorName.toLowerCase().includes(auditorSearchQuery.toLowerCase()) && (
+                          <div
+                            onClick={() => {
+                              setIsAuditorDropdownOpen(false);
+                            }}
+                            className="px-3 py-2 text-xs cursor-pointer hover:bg-peach-accent/20 bg-peach-accent/30 font-bold"
+                          >
+                            {metaAuditorName}
+                          </div>
+                        )}
+                        {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(auditorSearchQuery.toLowerCase())).length === 0 && (
+                          <div className="px-3 py-2 text-xs text-dark-gray/50 italic text-center">Tidak ditemukan</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1 relative">
@@ -683,7 +768,7 @@ export default function AuditWorkspaceView({
               >
                 {audit.categories.map(cat => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.name}
+                    {cat.name} {cat.auditorName ? `- ${cat.auditorName}` : ''}
                   </option>
                 ))}
               </select>
@@ -704,7 +789,24 @@ export default function AuditWorkspaceView({
                         : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/70 hover:text-dark-gray font-semibold'
                     }`}
                   >
-                    <span className="truncate pr-1">{cat.name}</span>
+                    <div className="flex flex-col min-w-0 flex-1 pr-1">
+                      <span className="truncate">{cat.name}</span>
+                      {(cat.auditorName || cat.fiscalYear) && (
+                        <div className={`flex items-center gap-1 mt-0.5 text-[9px] font-medium ${isActive ? 'text-white/80' : 'text-dark-gray/60'}`}>
+                          {cat.auditorName && (
+                            <>
+                              <User className="w-2.5 h-2.5 shrink-0" />
+                              <span className="truncate">{cat.auditorName}</span>
+                            </>
+                          )}
+                          {cat.fiscalYear && (
+                            <span className={`shrink-0 ${cat.auditorName ? 'border-l pl-1 border-current opacity-70' : ''}`}>
+                              TA {cat.fiscalYear}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {temuanCount > 0 && (
                         <span className={`px-1.5 py-0.5 text-[9px] rounded-full font-mono ${

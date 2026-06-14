@@ -326,9 +326,17 @@ export default function AuditListView({
                       <div className="flex-1 min-w-0 flex items-center gap-4">
                         <div className="w-[140px] shrink-0">
                           <div className="flex flex-col gap-1 items-center">
-                            <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-3 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate w-full" title={audit.auditType}>
-                              {audit.auditType || 'Audit Keuangan'}
-                            </span>
+                            {audit.categories.length > 0 ? (
+                              audit.categories.map(c => (
+                                <span key={c.id} className="text-[9px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block text-center truncate w-full" title={c.name}>
+                                  {c.name}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-[9px] bg-slate-100 border border-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block text-center truncate w-full">
+                                Belum Ada Jenis Audit
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">

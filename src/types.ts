@@ -37,6 +37,10 @@ export interface AuditCategory {
   name: string;
   description: string;
   items: AuditItem[];
+  auditorName?: string;
+  teamMembers?: string[];
+  fiscalYear?: string;
+  auditDate?: string;
 }
 
 export interface OpdAudit {
