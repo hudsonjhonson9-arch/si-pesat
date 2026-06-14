@@ -164,9 +164,18 @@ export default function AuditWorkspaceView({
   }, [templates, audit.auditType]);
 
   const availableMasterCategories = useMemo(() => {
-    if (!currentTemplate) return [];
-    return currentTemplate.categories.filter(tc => !audit.categories.find(ac => ac.name === tc.name));
-  }, [currentTemplate, audit.categories]);
+    if (!templates) return [];
+    const allMasterCategories = templates.flatMap(t => t.categories);
+    const unique = [];
+    const seen = new Set();
+    for (const tc of allMasterCategories) {
+      if (!seen.has(tc.name) && !audit.categories.find(ac => ac.name === tc.name)) {
+        unique.push(tc);
+        seen.add(tc.name);
+      }
+    }
+    return unique;
+  }, [templates, audit.categories]);
 
   // Check if current user is a member of any category team (Auditor access control)
   const isTeamMember = userRole !== 'Auditor' || !currentUserName || audit.categories.some(cat =>
@@ -542,7 +551,7 @@ export default function AuditWorkspaceView({
           <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3 text-dark-gray">
             <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
               <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Jenis Audit Pemeriksaan</span>
-              {userRole === 'Auditor' && !isReadOnly && (
+              {(!isReadOnly || userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (
                 <button
                   onClick={() => setIsAddingCategory(true)}
                   className="text-xs text-dark-gray hover:text-dark-gray/70 inline-flex items-center gap-0.5 font-extrabold cursor-pointer"
@@ -591,7 +600,7 @@ export default function AuditWorkspaceView({
                       )}
 
                       {/* Delete category button */}
-                      {userRole === 'Auditor' && !isReadOnly && (
+                      {(!isReadOnly || userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -622,7 +631,7 @@ export default function AuditWorkspaceView({
                 <div className="space-y-1.5">
                   <h3 className="text-base font-extrabold tracking-tight text-white leading-tight flex items-center gap-2">
                     {activeCategory.name}
-                    {currentUserName === activeCategory.auditorName && (
+                    {(currentUserName === activeCategory.auditorName || userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (
                       <button onClick={openEditCategoryTeam} className="p-1 hover:bg-white/10 rounded cursor-pointer transition-colors" title="Edit Tim & Tahun Jenis Audit">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -967,7 +976,7 @@ export default function AuditWorkspaceView({
                   </select>
                 ) : (
                   <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 font-semibold">
-                    Semua Jenis Audit Pemeriksaan dari {audit.auditType || 'Jenis Audit ini'} sudah ditambahkan ke dalam pemeriksaan ini.
+                    Semua opsi Jenis Audit Pemeriksaan dari sistem sudah ditambahkan ke dalam pemeriksaan ini.
                   </div>
                 )}
               </div>
