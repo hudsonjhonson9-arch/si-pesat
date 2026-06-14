@@ -476,6 +476,9 @@ export default function App() {
         name: tempCat.name,
         description: tempCat.description,
         status: 'Draft',
+        auditorName: auditorName,
+        teamMembers: teamMembers,
+        fiscalYear: fiscalYear,
         items: tempCat.items.map(tempItem => {
           return {
             id: tempItem.id,
