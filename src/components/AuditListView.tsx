@@ -505,7 +505,7 @@ export default function AuditListView({
                   </div>
                 )}
               </div>
-              </div>
+
 
               {/* Action buttons */}
               <div className="flex items-center gap-3 pt-3 border-t border-dark-gray/10">
