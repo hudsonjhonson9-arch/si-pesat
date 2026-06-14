@@ -13,8 +13,9 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
   const stats = useMemo(() => {
     const totalAudits = audits.length;
     const completedAudits = audits.filter(a => a.status === 'Selesai').length;
+    const inProgressAudits = totalAudits - completedAudits;
     let totalTemuan = 0;
-    
+
     audits.forEach(audit => {
       audit.categories.forEach(cat => {
         cat.items.forEach(item => {
@@ -23,7 +24,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
       });
     });
 
-    return { totalAudits, completedAudits, totalTemuan };
+    return { totalAudits, completedAudits, inProgressAudits, totalTemuan };
   }, [audits]);
 
   return (
@@ -32,7 +33,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 -mr-10 -mt-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute left-1/4 bottom-0 -mb-10 w-40 h-40 bg-peach-accent/20 rounded-full blur-2xl pointer-events-none" />
-        
+
         <div className="relative z-10">
           <span className="bg-white/20 backdrop-blur-md border border-white/10 text-[10px] px-3 py-1 rounded-full font-bold inline-flex items-center gap-1.5 uppercase tracking-wider mb-3">
             <Building className="w-3.5 h-3.5" /> Inspektorat Daerah
@@ -41,7 +42,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
             Inspektur Pembantu Wilayah IV
           </h1>
           <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            Mempunyai tugas pokok melaksanakan pengawasan internal terhadap kinerja dan keuangan 
+            Mempunyai tugas pokok melaksanakan pengawasan internal terhadap kinerja dan keuangan
             pada OPD, Kecamatan, Desa, Sekolah, dan Puskesmas di wilayah kerja Irban 4.
           </p>
         </div>
@@ -61,11 +62,11 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
               </p>
             </div>
           </div>
-          
+
           <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] z-10 rounded-sm">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126130.65487777717!2d119.34005886470355!3d-9.610667794353723!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c4cac4b998cfb27%3A0x6b30f73f278d65de!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1714545000000!5m2!1sid!2sid" 
-              className="absolute inset-0 w-full h-full border-0" 
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126130.65487777717!2d119.34005886470355!3d-9.610667794353723!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c4cac4b998cfb27%3A0x6b30f73f278d65de!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1714545000000!5m2!1sid!2sid"
+              className="absolute inset-0 w-full h-full border-0"
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
             ></iframe>
@@ -105,8 +106,8 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                   </tr>
                 ) : (
                   audits.map((audit) => (
-                    <tr 
-                      key={audit.id} 
+                    <tr
+                      key={audit.id}
                       className="hover:bg-slate-50/50 transition-colors cursor-pointer"
                       onClick={() => onSelectAudit && onSelectAudit(audit)}
                     >
@@ -114,12 +115,11 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                         {audit.opdName}
                       </td>
                       <td className="p-3.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${
-                          audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                          audit.status === 'Direview' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                          audit.status === 'Sedang Berjalan' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                          'bg-slate-100 text-slate-800 border-slate-200'
-                        }`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                            audit.status === 'Direview' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                              audit.status === 'Sedang Berjalan' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                                'bg-slate-100 text-slate-800 border-slate-200'
+                          }`}>
                           {audit.status}
                         </span>
                       </td>
@@ -166,7 +166,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                 <CheckCircle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Selesai (Final)</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">KKA Final</p>
                 <p className="text-2xl font-black text-slate-800">{stats.completedAudits}</p>
               </div>
             </div>
@@ -176,11 +176,11 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Total Temuan</p>
-                <p className="text-2xl font-black text-slate-800">{stats.totalTemuan}</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">KKA dalam proses</p>
+                <p className="text-2xl font-black text-slate-800">{stats.inProgressAudits}</p>
               </div>
             </div>
-            
+
             {stats.totalAudits > 0 && (
               <div className="mt-auto bg-peach-accent/10 rounded-xl p-4 border border-peach-accent/20">
                 <p className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider mb-2">Progres Keseluruhan</p>

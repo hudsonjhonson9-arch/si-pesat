@@ -508,7 +508,7 @@ export default function AuditListView({
               </div>
 
               {/* Anggota Tim */}
-              <div className="space-y-1 relative">
+              <div className="space-y-1">
                 <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Anggota Tim (Pilih Beberapa)</label>
                 <div 
                   className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray flex justify-between items-center cursor-pointer"
@@ -517,11 +517,11 @@ export default function AuditListView({
                   <span className={newTeamMembers.length === 0 ? "text-dark-gray/50" : ""}>
                     {newTeamMembers.length === 0 ? "Pilih Anggota Tim" : `${newTeamMembers.length} Anggota Terpilih`}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-dark-gray/50" />
+                  <ChevronDown className={`w-4 h-4 text-dark-gray/50 transition-transform ${isTeamDropdownOpen ? 'rotate-180' : ''}`} />
                 </div>
 
                 {isTeamDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto">
+                  <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-h-48 overflow-y-auto">
                     {userProfiles.map(p => {
                       const val = p.full_name || p.email;
                       const isChecked = newTeamMembers.includes(val);
@@ -543,6 +543,9 @@ export default function AuditListView({
                         </label>
                       );
                     })}
+                    {userProfiles.length === 0 && (
+                      <div className="p-3 text-xs text-center text-dark-gray/50 italic">Tidak ada profil tersedia</div>
+                    )}
                   </div>
                 )}
               </div>
