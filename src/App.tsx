@@ -534,7 +534,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <HomeView targetEntities={targetEntities} audits={audits} />;
+        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud) => setSelectedAuditId(aud.id)} />;
       case 'audits':
         return (
           <AuditListView
