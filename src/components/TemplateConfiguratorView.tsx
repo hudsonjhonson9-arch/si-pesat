@@ -496,7 +496,7 @@ export default function TemplateConfiguratorView({
                     onClick={() => setIsAddingItem(true)}
                     className="bg-baby-blue hover:opacity-95 border border-dark-gray/10 text-xs font-bold text-dark-gray px-2.5 rounded-lg py-1.5 inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 font-bold" /> Sisipkan Kriteria Baru
+                    <Plus className="w-3.5 h-3.5 font-bold" /> Sisipkan Dokumen Baru
                   </button>
                 </div>
 
@@ -507,21 +507,21 @@ export default function TemplateConfiguratorView({
                     if (isEditingThisItem) {
                       return (
                         <div key={item.id} className="bg-white border border-dark-gray/10 rounded-xl p-4 space-y-3 text-xs animate-slide-up">
-                          <label className="text-[10px] font-bold text-dark-gray/70 uppercase block">Kriteria Uji {idx + 1}</label>
+                          <label className="text-[10px] font-bold text-dark-gray/70 uppercase block">Dokumen Uji {idx + 1}</label>
                           <div className="space-y-1.5">
                             <input
                               type="text"
                               value={editItemTitle}
                               onChange={e => setEditItemTitle(e.target.value)}
                               className="w-full text-xs font-bold p-2 border border-dark-gray/15 rounded-lg bg-white text-dark-gray outline-none focus:border-dark-gray/30"
-                              placeholder="Judul Kriteria"
+                              placeholder="Judul Dokumen"
                             />
                             <textarea
                               value={editItemDesc}
                               onChange={e => setEditItemDesc(e.target.value)}
                               className="w-full text-xs font-medium p-2 border border-dark-gray/15 rounded-lg bg-white resize-none text-dark-gray outline-none focus:border-dark-gray/30"
                               rows={3}
-                              placeholder="Uraian detail kriteria pembuktian SPJ / administrasi..."
+                              placeholder="Uraian detail dokumen pembuktian SPJ / administrasi..."
                             />
                           </div>
                           <div className="flex justify-end gap-1.5 pt-1 border-t border-dark-gray/10">
@@ -558,14 +558,14 @@ export default function TemplateConfiguratorView({
                           <button
                             onClick={() => startEditingItem(item)}
                             className="p-1 text-dark-gray/60 hover:text-dark-gray rounded transition cursor-pointer"
-                            title="Ubah Kriteria"
+                            title="Ubah Dokumen"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteItem(item.id)}
                             className="p-1 text-dark-gray/60 hover:text-rose-700 rounded transition cursor-pointer"
-                            title="Hapus Kriteria"
+                            title="Hapus Dokumen"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -578,7 +578,7 @@ export default function TemplateConfiguratorView({
             </div>
           ) : (
             <div className="text-center p-12 select-none bg-baby-blue/30 rounded-xl border border-dashed border-dark-gray/15 text-dark-gray">
-              <span className="text-xs font-bold text-dark-gray/60">Silakan pilih kategori di sebelah kiri untuk melihat kriteria.</span>
+              <span className="text-xs font-bold text-dark-gray/60">Silakan pilih kategori di sebelah kiri untuk melihat dokumen.</span>
             </div>
           )}
         </div>
@@ -608,7 +608,7 @@ export default function TemplateConfiguratorView({
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Ruang Lingkup Deskripsi</label>
                 <textarea
-                  placeholder="Deskripsikan pengujian kriteria pada seksi Jenis Audit Baru..."
+                  placeholder="Deskripsikan pengujian dokumen pada seksi Jenis Audit Baru..."
                   value={newCatDesc}
                   onChange={e => setNewCatDesc(e.target.value)}
                   rows={2}
@@ -630,12 +630,12 @@ export default function TemplateConfiguratorView({
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
             <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Tambah Kriteria Default Baru</span>
+              <span className="font-extrabold text-xs tracking-wide">Tambah Dokumen Default Baru</span>
               <button onClick={() => setIsAddingItem(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleAddItem} className="p-4 space-y-3.5 text-xs">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Kriteria Pemeriksaan</label>
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Dokumen Pemeriksaan</label>
                 <input
                   type="text"
                   required

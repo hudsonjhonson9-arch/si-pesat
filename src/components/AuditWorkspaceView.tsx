@@ -240,7 +240,7 @@ export default function AuditWorkspaceView({
 
   // Delete checklist item
   const handleDeleteItem = (itemId: string) => {
-    const confirmed = window.confirm('Apakah Anda yakin ingin menghapus kriteria pemeriksaan ini dari berkas KKA?');
+    const confirmed = window.confirm('Apakah Anda yakin ingin menghapus dokumen pemeriksaan ini dari berkas KKA?');
     if (!confirmed) return;
 
     const updatedCategories = audit.categories.map(cat => {
@@ -336,7 +336,7 @@ export default function AuditWorkspaceView({
     }
 
     const name = audit.categories.find(c => c.id === catId)?.name || '';
-    const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus Jenis Audit Pemeriksaan "${name}" beserta seluruh kriteria di dalamnya?`);
+    const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus Jenis Audit Pemeriksaan "${name}" beserta seluruh dokumen di dalamnya?`);
     if (!confirmed) return;
 
     const updatedCategories = audit.categories.filter(c => c.id !== catId);
@@ -459,11 +459,6 @@ export default function AuditWorkspaceView({
                 </div>
 
                 <div className="pt-2 border-t border-dark-gray/10 space-y-1.5 text-xs font-semibold">
-
-                  <div className="flex justify-between">
-                    <span className="text-dark-gray/60 font-bold">Status Berkas:</span>
-                    <span className="font-extrabold text-green-850">{audit.status}</span>
-                  </div>
                   {audit.lastSyncedAt && (
                     <div className="pt-1.5 text-[9px] text-emerald-800 block text-center font-extrabold bg-white/40 rounded p-1 border border-emerald-800/10">
                       Disinkronisasi: {new Date(audit.lastSyncedAt).toLocaleString('id-ID')}
@@ -629,7 +624,7 @@ export default function AuditWorkspaceView({
 
                 {/* Category stats badges (Mobile friendly flex block) */}
                 <span className="text-[10px] bg-white/10 border border-white/10 px-2 py-1 rounded font-mono text-white/90 flex-shrink-0 font-bold uppercase">
-                  {categoryStats.totItems} Kriteria Uji
+                  {categoryStats.totItems} Dokumen
                 </span>
               </div>
 
@@ -667,7 +662,7 @@ export default function AuditWorkspaceView({
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono select-none px-2 py-0.5 rounded bg-white/40 text-dark-gray/70 font-bold">
-                          Kriteria {idx + 1}
+                          Dokumen {idx + 1}
                         </span>
                         <h4 className="text-xs md:text-sm font-bold text-dark-gray leading-tight">
                           {item.title}
@@ -855,7 +850,7 @@ export default function AuditWorkspaceView({
                         onClick={() => handleDeleteItem(item.id)}
                         className="text-[10px] text-rose-700 hover:text-rose-950 font-bold inline-flex items-center gap-0.5 cursor-pointer bg-white/40 border border-dark-gray/10 px-2 py-0.5 rounded"
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Hapus Kriteria
+                        <Trash2 className="w-3.5 h-3.5" /> Hapus Dokumen
                       </button>
                     </div>
                   )}
