@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { TargetEntity, OpdAudit } from '../types';
-import { Map as MapIcon, MapPin, Building, Landmark, Activity, User, BookOpen, BarChart3, CheckCircle, FileText, AlertTriangle, ArrowUpRight, FolderOpen } from 'lucide-react';
+import { Map as MapIcon, Building, Activity, BarChart3, CheckCircle, FileText, AlertTriangle, FolderOpen } from 'lucide-react';
 
 interface HomeViewProps {
   targetEntities: TargetEntity[];
@@ -8,7 +8,26 @@ interface HomeViewProps {
   onSelectAudit?: (audit: OpdAudit) => void;
 }
 
+const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Puskesmas', 'Lainnya'] as const;
+
+const OPD_TYPE_COLORS: Record<string, string> = {
+  Dinas: 'bg-blue-100 text-blue-800 border-blue-200',
+  Badan: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  Kecamatan: 'bg-purple-100 text-purple-800 border-purple-200',
+  Desa: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  Kelurahan: 'bg-teal-100 text-teal-800 border-teal-200',
+  SD: 'bg-amber-100 text-amber-800 border-amber-200',
+  SMP: 'bg-orange-100 text-orange-800 border-orange-200',
+  SMA: 'bg-rose-100 text-rose-800 border-rose-200',
+  SMK: 'bg-pink-100 text-pink-800 border-pink-200',
+  SLB: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
+  Puskesmas: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  Lainnya: 'bg-slate-100 text-slate-800 border-slate-200',
+};
+
 export default function HomeView({ targetEntities, audits = [], onSelectAudit }: HomeViewProps) {
+  const [typeFilter, setTypeFilter] = useState<string>('Semua');
+
   // Simple analytics computation
   const stats = useMemo(() => {
     const totalAudits = audits.length;
@@ -25,6 +44,20 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
     });
 
     return { totalAudits, completedAudits, inProgressAudits, totalTemuan };
+  }, [audits]);
+
+  const filteredAudits = useMemo(() => {
+    if (typeFilter === 'Semua') return audits;
+    return audits.filter(a => a.opdType === typeFilter);
+  }, [audits, typeFilter]);
+
+  // Count per type for filter badges
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = { Semua: audits.length };
+    OPD_TYPE_FILTERS.slice(1).forEach(t => {
+      counts[t] = audits.filter(a => a.opdType === t).length;
+    });
+    return counts;
   }, [audits]);
 
   return (
@@ -75,7 +108,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
 
         {/* Audit Objects Table - wider */}
         <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-dark-gray text-base">Daftar Objek Audit</h3>
               <p className="text-xs text-dark-gray/60 mt-0.5">
@@ -83,11 +116,37 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
               </p>
             </div>
             <span className="text-[10px] bg-peach-accent text-dark-gray border border-dark-gray/10 px-2.5 py-1 rounded font-bold font-mono uppercase">
-              {audits.length} Objek
+              {filteredAudits.length} Objek
             </span>
           </div>
 
-          <div className="overflow-y-auto flex-1 border border-slate-150 rounded-xl bg-white max-h-[450px]">
+          {/* Type Filter Chips */}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {OPD_TYPE_FILTERS.map(type => {
+              const count = typeCounts[type] ?? 0;
+              if (type !== 'Semua' && count === 0) return null;
+              return (
+                <button
+                  key={type}
+                  onClick={() => setTypeFilter(type)}
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                    typeFilter === type
+                      ? 'bg-dark-gray text-white border-dark-gray shadow-sm'
+                      : 'bg-white text-dark-gray/60 border-dark-gray/15 hover:border-dark-gray/30 hover:text-dark-gray'
+                  }`}
+                >
+                  {type}
+                  {type !== 'Semua' && count > 0 && (
+                    <span className={`ml-1 ${typeFilter === type ? 'text-white/70' : 'text-dark-gray/40'}`}>
+                      ({count})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="overflow-y-auto flex-1 border border-slate-150 rounded-xl bg-white max-h-[400px]">
             <table className="w-full text-left border-collapse text-xs">
               <thead className="sticky top-0 bg-slate-50 z-10 shadow-xs">
                 <tr className="border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
@@ -97,15 +156,15 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {audits.length === 0 ? (
+                {filteredAudits.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="p-8 text-center text-slate-400">
                       <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      Belum ada KKA.
+                      {typeFilter === 'Semua' ? 'Belum ada KKA.' : `Tidak ada KKA untuk tipe "${typeFilter}".`}
                     </td>
                   </tr>
                 ) : (
-                  audits.map((audit) => (
+                  filteredAudits.map((audit) => (
                     <tr
                       key={audit.id}
                       className="hover:bg-slate-50/50 transition-colors cursor-pointer"
@@ -113,7 +172,14 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                     >
                       <td className="p-3.5">
                         <div className="font-bold text-slate-800">{audit.opdName}</div>
-                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">TA. {audit.fiscalYear}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] text-slate-500 font-medium">TA. {audit.fiscalYear}</span>
+                          {audit.opdType && (
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold uppercase tracking-wider ${OPD_TYPE_COLORS[audit.opdType] || 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                              {audit.opdType}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-3.5">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :

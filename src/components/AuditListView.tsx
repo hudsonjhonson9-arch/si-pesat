@@ -242,6 +242,9 @@ export default function AuditListView({
               <option value="all">Semua Tipe</option>
               <option value="SD">SD</option>
               <option value="SMP">SMP</option>
+              <option value="SMA">SMA</option>
+              <option value="SMK">SMK</option>
+              <option value="SLB">SLB</option>
               <option value="Dinas">Dinas</option>
               <option value="Badan">Badan</option>
               <option value="Kecamatan">Kecamatan</option>

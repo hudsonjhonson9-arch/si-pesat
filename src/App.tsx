@@ -19,7 +19,8 @@ import {
   X,
   User as UserIcon,
   ShieldAlert,
-  Info
+  Info,
+  PlusCircle
 } from 'lucide-react';
 
 import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity } from './types';
@@ -33,10 +34,11 @@ import AuditListView from './components/AuditListView';
 import AuditWorkspaceView from './components/AuditWorkspaceView';
 import TemplateConfiguratorView from './components/TemplateConfiguratorView';
 import LoginView from './components/LoginView';
+import NewAuditView from './components/NewAuditView';
 
 export default function App() {
   // Navigation & General Tabs based on URL Hash
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit'>('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
 
   // Router logic for hash changes (browser back/forward support)
@@ -47,7 +49,7 @@ export default function App() {
         const id = hash.split('/')[1];
         setActiveTab('audits');
         setSelectedAuditId(id);
-      } else if (hash === 'jenis-audit' || hash === 'audits' || hash === 'dashboard') {
+      } else if (hash === 'jenis-audit' || hash === 'audits' || hash === 'dashboard' || hash === 'new-audit') {
         setActiveTab(hash as any);
         setSelectedAuditId(null);
       } else {
@@ -590,6 +592,19 @@ export default function App() {
             userProfiles={userProfiles}
           />
         );
+      case 'new-audit':
+        return (
+          <NewAuditView
+            templates={templates}
+            userProfiles={userProfiles}
+            defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
+            onBack={() => navigateTo('audits')}
+            onCreateAudit={(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId) => {
+              handleCreateAudit(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId);
+              navigateTo('audits');
+            }}
+          />
+        );
       case 'jenis-audit':
         return (
           <TemplateConfiguratorView
@@ -695,6 +710,18 @@ export default function App() {
                 <Settings className="w-4 h-4" /> Jenis Audit
               </button>
             </nav>
+
+            {/* Mulai Audit Baru CTA */}
+            <button
+              onClick={() => navigateTo('new-audit')}
+              className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-black text-xs border shadow-sm ${
+                activeTab === 'new-audit'
+                  ? 'bg-dark-gray text-white border-dark-gray'
+                  : 'bg-dark-gray text-white border-dark-gray/80 hover:bg-dark-gray/85'
+              }`}
+            >
+              <PlusCircle className="w-4 h-4" /> Mulai Audit Baru
+            </button>
 
             {/* Right Profile & Role */}
             <div className="flex items-center gap-3">
