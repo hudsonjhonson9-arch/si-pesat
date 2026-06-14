@@ -35,16 +35,38 @@ function doPost(e) {
     const blob = Utilities.newBlob(decodedBytes, mimeType || 'application/octet-stream', fileName);
 
     // Get Folder
-    let folder;
+    // Get Root Folder
+    let rootFolder;
     try {
-      folder = DriveApp.getFolderById(UPLOAD_FOLDER_ID);
+      rootFolder = DriveApp.getFolderById(UPLOAD_FOLDER_ID);
     } catch (err) {
       // If folder not found, use root folder
-      folder = DriveApp.getRootFolder();
+      rootFolder = DriveApp.getRootFolder();
     }
 
-    // Create File
-    const file = folder.createFile(blob);
+    // Helper function to get or create folder
+    function getOrCreateFolder(parent, folderName) {
+      if (!folderName) return parent;
+      
+      const folders = parent.getFoldersByName(folderName);
+      if (folders.hasNext()) {
+        return folders.next();
+      } else {
+        return parent.createFolder(folderName);
+      }
+    }
+
+    // Navigate or create nested folders: root -> year -> opd
+    let currentFolder = rootFolder;
+    if (payload.year) {
+      currentFolder = getOrCreateFolder(currentFolder, "TA " + payload.year);
+    }
+    if (payload.opd) {
+      currentFolder = getOrCreateFolder(currentFolder, payload.opd);
+    }
+
+    // Create File in the final folder
+    const file = currentFolder.createFile(blob);
     
     // Set permission to anyone with link can view (optional, but recommended for inspectorate viewing)
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);

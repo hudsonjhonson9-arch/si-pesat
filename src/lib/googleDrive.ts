@@ -10,7 +10,9 @@ import { OpdAudit } from '../types';
  * via Google Apps Script Web App.
  */
 export async function uploadEvidenceFile(
-  file: File
+  file: File,
+  year?: string,
+  opdName?: string
 ): Promise<{ id: string; name: string; webViewLink: string }> {
   const SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
 
@@ -29,7 +31,9 @@ export async function uploadEvidenceFile(
         const payload = {
           name: file.name,
           mimeType: file.type || 'application/octet-stream',
-          base64: base64Data
+          base64: base64Data,
+          year: year,
+          opd: opdName
         };
 
         const response = await fetch(SCRIPT_URL, {

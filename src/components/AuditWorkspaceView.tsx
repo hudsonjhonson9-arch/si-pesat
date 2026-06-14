@@ -66,7 +66,7 @@ export default function AuditWorkspaceView({
   const handleDirectUpload = async (itemId: string, file: File) => {
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
-      const res = await uploadEvidenceFile(file);
+      const res = await uploadEvidenceFile(file, audit.fiscalYear, audit.opdName);
       handleFindingDetailChange(itemId, 'evidenceLink', res.webViewLink);
       handleFindingDetailChange(itemId, 'evidenceName', res.name);
       alert(`Sukses! Berkas bukti "${res.name}" berhasil diunggah langsung ke Google Drive dan tautan dokumen tersemat.`);
