@@ -503,7 +503,7 @@ export default function AuditWorkspaceView({
                   >
                     <span className="truncate">
                       {metaTeamMembers.length > 0 
-                        ? `${metaTeamMembers.length} anggota terpilih` 
+                        ? metaTeamMembers.join(', ')
                         : 'Pilih Anggota Tim...'}
                     </span>
                     <ChevronDown className="w-4 h-4 text-dark-gray/60" />
