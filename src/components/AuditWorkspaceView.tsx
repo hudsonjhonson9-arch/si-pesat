@@ -127,8 +127,8 @@ export default function AuditWorkspaceView({
               // Clean finding attributes if not marked as Temuan
               nilaiTemuan: isNowTemuan ? (item.nilaiTemuan || 0) : 0,
               jenisTemuan: isNowTemuan ? (item.jenisTemuan || 'Tidak Sesuai Juknis') : undefined,
-              uraianTemuan: isNowTemuan ? item.uraianTemuan : '',
-              rekomendasi: isNowTemuan ? item.rekomendasi : ''
+              uraianTemuan: isNowTemuan ? (item.uraianTemuan || '') : '',
+              rekomendasi: isNowTemuan ? (item.rekomendasi || '') : ''
             };
           }
           return item;

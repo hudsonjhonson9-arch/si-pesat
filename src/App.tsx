@@ -32,12 +32,11 @@ import HomeView from './components/HomeView';
 import AuditListView from './components/AuditListView';
 import AuditWorkspaceView from './components/AuditWorkspaceView';
 import TemplateConfiguratorView from './components/TemplateConfiguratorView';
-import SyncManagerView from './components/SyncManagerView';
 import LoginView from './components/LoginView';
 
 export default function App() {
   // Navigation & General Tabs
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'template' | 'sync'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'template'>('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
 
   // Core Applet States
@@ -402,7 +401,7 @@ export default function App() {
         totalItems++;
         // Asumsi: Jika ada uraian temuan, atau statusnya bukan Sesuai (karena default Sesuai), atau ada nilai temuan, berarti sudah dievaluasi.
         // Jika kita ingin lebih presisi, kita bisa tambahkan status 'Draft' di item, tapi untuk sekarang kita anggap dievaluasi jika ada perubahan
-        if (item.status === 'Temuan' || item.status === 'N/A' || item.uraianTemuan.length > 0 || item.nilaiTemuan > 0) {
+        if (item.status === 'Temuan' || item.status === 'N/A' || (item.uraianTemuan && item.uraianTemuan.length > 0) || (item.nilaiTemuan && item.nilaiTemuan > 0)) {
           evaluatedItems++;
         }
       });
@@ -566,21 +565,6 @@ export default function App() {
             }}
           />
         );
-      case 'sync':
-        return (
-          <SyncManagerView
-            user={user}
-            
-            logs={syncLogs}
-            audits={audits}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
-            onBatchSyncToDrive={batchSyncAllToDrive}
-            onFetchFromDrive={fetchAllFromDrive}
-            isSyncing={isSyncing}
-            onClearLogs={() => setSyncLogs([])}
-          />
-        );
     }
   };
 
@@ -669,16 +653,6 @@ export default function App() {
               >
                 <Settings className="w-4 h-4" /> Template
               </button>
-              <button
-                onClick={() => { setActiveTab('sync'); setSelectedAuditId(null); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                  activeTab === 'sync' && !selectedAuditId
-                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
-                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
-                }`}
-              >
-                <Cloud className="w-4 h-4" /> Drive
-              </button>
             </nav>
 
             {/* Right Profile & Role */}
@@ -724,7 +698,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16">
-          <div className="grid grid-cols-4 h-full">
+          <div className="grid grid-cols-3 h-full">
             <button
               onClick={() => { setActiveTab('dashboard'); setSelectedAuditId(null); }}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -753,16 +727,6 @@ export default function App() {
             >
               <Settings className="w-5 h-5" />
               <span className="text-[9px] tracking-wide">Template</span>
-            </button>
-
-            <button
-              onClick={() => { setActiveTab('sync'); setSelectedAuditId(null); }}
-              className={`flex flex-col items-center justify-center gap-1 transition ${
-                activeTab === 'sync' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <Cloud className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Google Sync</span>
             </button>
           </div>
         </footer>
