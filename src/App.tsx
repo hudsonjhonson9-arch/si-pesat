@@ -40,21 +40,27 @@ export default function App() {
   // Navigation & General Tabs based on URL Hash
   const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit'>('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   // Router logic for hash changes (browser back/forward support)
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
       if (hash.startsWith('workspace/')) {
-        const id = hash.split('/')[1];
+        const parts = hash.split('/');
+        const id = parts[1];
+        const catId = parts[2] || null;
         setActiveTab('audits');
         setSelectedAuditId(id);
+        setSelectedCategoryId(catId);
       } else if (hash === 'jenis-audit' || hash === 'audits' || hash === 'dashboard' || hash === 'new-audit') {
         setActiveTab(hash as any);
         setSelectedAuditId(null);
+        setSelectedCategoryId(null);
       } else {
         setActiveTab('dashboard');
         setSelectedAuditId(null);
+        setSelectedCategoryId(null);
       }
     };
 
@@ -606,13 +612,14 @@ export default function App() {
           userRole={userRole}
           userProfiles={userProfiles}
           currentUserName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
+          initialCategoryId={selectedCategoryId}
         />
       );
     }
 
     switch (activeTab) {
       case 'dashboard':
-        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud) => navigateTo(`workspace/${aud.id}`)} userRole={userRole} />;
+        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)} userRole={userRole} />;
       case 'audits':
         return (
           <AuditListView

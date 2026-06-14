@@ -5,7 +5,7 @@ import { Map as MapIcon, Building, Activity, BarChart3, CheckCircle, FileText, A
 interface HomeViewProps {
   targetEntities: TargetEntity[];
   audits?: OpdAudit[];
-  onSelectAudit?: (audit: OpdAudit) => void;
+  onSelectAudit?: (audit: OpdAudit, categoryId?: string) => void;
   userRole?: string;
 }
 
@@ -73,23 +73,44 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
     return counts;
   }, [audits]);
 
-  const auditsToReview = useMemo(() => audits.filter(a => a.status === 'Direview'), [audits]);
+  const categoriesToReview = useMemo(() => {
+    return audits.flatMap(a => 
+      a.categories
+        .filter(c => c.status === 'Direview')
+        .map(c => ({ audit: a, category: c }))
+    );
+  }, [audits]);
 
   return (
     <div className="space-y-6 animate-fade-in" id="home-view">
       {/* Notifications Banner */}
-      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && auditsToReview.length > 0 && (
-        <div className="bg-amber-100 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3">
+      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && categoriesToReview.length > 0 && (
+        <div className="bg-amber-100 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
             <div className="bg-amber-200/50 p-2 rounded-full">
               <AlertTriangle className="w-5 h-5 text-amber-700" />
             </div>
             <div>
               <p className="font-bold text-sm">Menunggu Review Anda</p>
               <p className="text-xs text-amber-700/80">
-                Terdapat <strong>{auditsToReview.length} LHP</strong> yang diajukan oleh Ketua Tim dan membutuhkan review Anda.
+                Terdapat <strong>{categoriesToReview.length} Jenis Audit</strong> yang diajukan oleh Ketua Tim dan membutuhkan review Anda.
               </p>
             </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {categoriesToReview.map(({ audit, category }) => (
+              <button
+                key={`${audit.id}-${category.id}`}
+                onClick={() => onSelectAudit && onSelectAudit(audit, category.id)}
+                className="flex items-center gap-2 bg-white/60 hover:bg-white text-xs font-bold px-3 py-2 rounded-lg border border-amber-200/50 transition-colors cursor-pointer shadow-sm text-left"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                <div>
+                  <span className="text-dark-gray">{audit.opdName}</span>
+                  <span className="text-amber-700/70 ml-1">({category.name})</span>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       )}

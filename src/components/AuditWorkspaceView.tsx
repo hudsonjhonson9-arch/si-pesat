@@ -44,6 +44,7 @@ interface AuditWorkspaceViewProps {
   userProfiles: UserProfile[];
   templates: KKATemplate[];
   currentUserName?: string;
+  initialCategoryId?: string | null;
 }
 
 export default function AuditWorkspaceView({
@@ -58,10 +59,11 @@ export default function AuditWorkspaceView({
   userProfiles = [],
   templates = [],
   currentUserName = '',
+  initialCategoryId = null,
 }: AuditWorkspaceViewProps) {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
-    audit.categories.length > 0 ? audit.categories[0].id : ''
+    initialCategoryId || (audit.categories.length > 0 ? audit.categories[0].id : '')
   );
 
 
