@@ -714,7 +714,7 @@ export default function App() {
           <main className="flex-1 flex flex-col min-w-0 bg-cream-bg overflow-y-auto w-full relative">
 
             {/* Core Body Container Frame */}
-            <div className="flex-1 p-4 md:p-6 lg:p-8 max-w-5xl mx-auto w-full transition-all">
+            <div className="flex-1 p-4 md:p-6 lg:p-8 w-full max-w-[1800px] mx-auto transition-all">
               {renderContent()}
             </div>
           </main>
