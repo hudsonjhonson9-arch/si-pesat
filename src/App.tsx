@@ -626,7 +626,7 @@ export default function App() {
             audits={audits}
             templates={templates}
             targetEntities={targetEntities}
-            onSelectAudit={(aud) => navigateTo(`workspace/${aud.id}`)}
+            onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
             onCreateAudit={handleCreateAudit}
             onDeleteAudit={handleDeleteAudit}
             onSyncToDrive={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}

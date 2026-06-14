@@ -28,7 +28,7 @@ interface AuditListViewProps {
   audits: OpdAudit[];
   templates: KKATemplate[];
   targetEntities: TargetEntity[];
-  onSelectAudit: (audit: OpdAudit) => void;
+  onSelectAudit: (audit: OpdAudit, categoryId?: string) => void;
   onCreateAudit: (
     opdName: string,
     opdType: OpdAudit['opdType'],
@@ -325,7 +325,14 @@ export default function AuditListView({
                             const catProgress = totalItems === 0 ? 0 : Math.round((evaluatedItems / totalItems) * 100);
 
                             return (
-                              <div key={cat.id || idx} className="flex flex-col sm:flex-row sm:items-center gap-4 py-2 border-b border-dark-gray/5 last:border-0 hover:bg-white/30 rounded px-2 transition-colors">
+                              <div 
+                                key={cat.id || idx} 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onSelectAudit(audit, cat.id);
+                                }}
+                                className="flex flex-col sm:flex-row sm:items-center gap-4 py-2 border-b border-dark-gray/5 last:border-0 hover:bg-white/30 hover:shadow-sm rounded px-2 transition-all cursor-pointer"
+                              >
                                 {/* Cat Name */}
                                 <div className="w-[150px] shrink-0">
                                   <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate" title={cat.name}>
