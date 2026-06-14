@@ -67,9 +67,19 @@ export default function AuditWorkspaceView({
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const res = await uploadEvidenceFile(file, audit.fiscalYear, audit.opdName, audit.auditType);
+      // Find existing evidence history for this item
+      const existingItem = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+      const prevHistory = existingItem?.evidenceHistory || [];
+      const historyEntry = {
+        name: res.name,
+        link: res.webViewLink,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: audit.auditorName || 'Auditor'
+      };
       handleFindingDetailsUpdate(itemId, {
         evidenceLink: res.webViewLink,
-        evidenceName: res.name
+        evidenceName: res.name,
+        evidenceHistory: [...prevHistory, historyEntry]
       });
       alert(`Sukses! Berkas bukti "${res.name}" berhasil diunggah langsung ke Google Drive dan tautan dokumen tersemat.`);
     } catch (err: any) {
@@ -87,9 +97,18 @@ export default function AuditWorkspaceView({
     setCopyingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const res = await copyEvidenceFileFromUrl(sourceUrl, currentName || `Copy_of_${itemId}`, audit.fiscalYear, audit.opdName, audit.auditType);
+      const existingItem = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+      const prevHistory = existingItem?.evidenceHistory || [];
+      const historyEntry = {
+        name: res.name,
+        link: res.webViewLink,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: audit.auditorName || 'Auditor'
+      };
       handleFindingDetailsUpdate(itemId, {
         evidenceLink: res.webViewLink,
-        evidenceName: res.name
+        evidenceName: res.name,
+        evidenceHistory: [...prevHistory, historyEntry]
       });
       alert(`Sukses! Berkas dari tautan berhasil disalin ke Drive Pusat sebagai "${res.name}".`);
     } catch (err: any) {
@@ -790,11 +809,11 @@ export default function AuditWorkspaceView({
                       )}
                     </div>
                   )}
-
-                  {/* SPESIFIKASI BUKTI — delegated to EvidencePanel */}
+                  {/* SPESIFIKASI BUKTI - delegated to EvidencePanel */}
                   <EvidencePanel
                     evidenceLink={item.evidenceLink}
                     evidenceName={item.evidenceName}
+                    evidenceHistory={item.evidenceHistory || []}
                     isReadOnly={isReadOnly}
                     isAuditor={userRole === 'Auditor'}
                     isUploading={!!uploadingIds[item.id]}

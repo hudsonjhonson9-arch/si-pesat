@@ -49,21 +49,21 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Map Section */}
-        <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm relative overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between mb-4">
+        {/* Map Section - smaller */}
+        <div className="lg:col-span-1 bg-white rounded-3xl p-4 border border-dark-gray/10 shadow-sm relative overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="font-bold text-dark-gray text-lg flex items-center gap-2">
-                <MapIcon className="w-5 h-5 text-peach-accent" />
-                Peta Wilayah Pengawasan
+              <h3 className="font-bold text-dark-gray text-sm flex items-center gap-1.5">
+                <MapIcon className="w-4 h-4 text-peach-accent" />
+                Peta Wilayah
               </h3>
-              <p className="text-xs text-dark-gray/60 mt-0.5">
-                Cakupan wilayah Kecamatan Loli, Kabupaten Sumba Barat
+              <p className="text-[10px] text-dark-gray/60 mt-0.5">
+                Kecamatan Loli, Sumba Barat
               </p>
             </div>
           </div>
 
-          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] z-10 rounded-sm">
+          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden relative min-h-[220px] z-10 rounded-xl flex-1">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126130.65487777717!2d119.34005886470355!3d-9.610667794353723!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c4cac4b998cfb27%3A0x6b30f73f278d65de!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1714545000000!5m2!1sid!2sid"
               className="absolute inset-0 w-full h-full border-0"
@@ -73,8 +73,8 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
           </div>
         </div>
 
-        {/* Audit Objects Table */}
-        <div className="lg:col-span-1 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col">
+        {/* Audit Objects Table - wider */}
+        <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-bold text-dark-gray text-base">Daftar Objek Audit</h3>
