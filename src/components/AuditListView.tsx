@@ -166,7 +166,7 @@ export default function AuditListView({
       newSchoolType,
       'Audit Keuangan',
       newFiscalYear,
-      'Sistem (Auto-Generated)',
+      defaultAuditorName || 'Auditor',
       [],
       newTemplateId
     );
@@ -315,28 +315,51 @@ export default function AuditListView({
               </div>
               <div className="divide-y divide-dark-gray/5">
                 {group.audits.map((audit) => {
-                  const itemsCount = calculateFindingCount(audit);
-                  const progress = calculateProgress(audit);
-
                   return (
                     <div
                       key={audit.id}
                       onClick={() => onSelectAudit(audit)}
-                      className="px-5 py-3.5 hover:bg-baby-blue/40 transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                      className="px-5 py-3 hover:bg-baby-blue/40 transition cursor-pointer flex flex-col md:flex-row md:items-stretch justify-between gap-4 group"
                     >
-                      {/* Left side info */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-3 py-1">
+                      {/* Left side: Categories list with progress */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 py-1">
                         {audit.categories && audit.categories.length > 0 ? (
-                          audit.categories.map((cat, idx) => (
-                            <div key={cat.id || idx} className="flex items-center gap-4">
-                              <div className="w-[140px] shrink-0">
-                                <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate" title={cat.name}>
-                                  {cat.name}
-                                </span>
-                              </div>
-                              <div className="flex-1 min-w-0 space-y-0.5">
-                                <div className="flex items-center gap-2 text-[11px] text-dark-gray">
-                                  <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold uppercase tracking-wider ${
+                          audit.categories.map((cat, idx) => {
+                            let evaluatedItems = 0;
+                            let totalItems = 0;
+                            cat.items.forEach(item => {
+                              totalItems++;
+                              if (item.status !== 'N/A') evaluatedItems++;
+                            });
+                            const catProgress = totalItems === 0 ? 0 : Math.round((evaluatedItems / totalItems) * 100);
+
+                            return (
+                              <div key={cat.id || idx} className="flex flex-col sm:flex-row sm:items-center gap-4 py-2 border-b border-dark-gray/5 last:border-0 hover:bg-white/30 rounded px-2 transition-colors">
+                                {/* Cat Name */}
+                                <div className="w-[150px] shrink-0">
+                                  <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate" title={cat.name}>
+                                    {cat.name}
+                                  </span>
+                                </div>
+                                
+                                {/* Auditor & Team */}
+                                <div className="flex-1 min-w-0 space-y-0.5">
+                                  <div className="flex items-center gap-2 text-[11px] text-dark-gray">
+                                    <User className="w-3 h-3 text-dark-gray/40 shrink-0" />
+                                    <span className="font-bold truncate" title={cat.auditorName || 'Belum Ditugaskan'}>
+                                      {cat.auditorName || 'Belum Ditugaskan'}
+                                    </span>
+                                  </div>
+                                  {cat.teamMembers && cat.teamMembers.length > 0 && (
+                                    <p className="text-[9px] text-dark-gray/60 font-medium truncate pl-5">
+                                      + {cat.teamMembers.join(', ')}
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* Category Status & Progress */}
+                                <div className="flex items-center gap-3 w-[180px] shrink-0">
+                                  <span className={`text-[9px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider shrink-0 ${
                                     cat.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
                                     cat.status === 'Direview' ? 'bg-amber-100 text-amber-800 border-amber-200' :
                                     cat.status === 'Sedang Berjalan' ? 'bg-blue-100 text-blue-800 border-blue-200' :
@@ -344,22 +367,20 @@ export default function AuditListView({
                                   }`}>
                                     {cat.status || 'Draft'}
                                   </span>
-                                  <User className="w-3 h-3 text-dark-gray/40 shrink-0" />
-                                  <span className="font-bold truncate" title={cat.auditorName || 'Belum Ditugaskan'}>
-                                    {cat.auditorName || 'Belum Ditugaskan'}
-                                  </span>
+                                  <div className="flex-1 h-1.5 bg-dark-gray/10 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-peach-accent rounded-full transition-all duration-500"
+                                      style={{ width: `${catProgress}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[10px] font-bold text-dark-gray/60 w-8 text-right">{catProgress}%</span>
                                 </div>
-                                {cat.teamMembers && cat.teamMembers.length > 0 && (
-                                  <p className="text-[9px] text-dark-gray/60 font-medium truncate pl-5">
-                                    + {cat.teamMembers.join(', ')}
-                                  </p>
-                                )}
                               </div>
-                            </div>
-                          ))
+                            );
+                          })
                         ) : (
-                          <div className="flex items-center gap-4 text-dark-gray/50">
-                            <span className="text-[10px] bg-dark-gray/10 text-dark-gray/50 px-2.5 py-1 rounded-full font-bold uppercase w-[140px] text-center shrink-0">
+                          <div className="flex items-center gap-4 text-dark-gray/50 py-2">
+                            <span className="text-[10px] bg-dark-gray/10 text-dark-gray/50 px-2.5 py-1 rounded-full font-bold uppercase w-[150px] text-center shrink-0">
                               Belum Ada Jenis
                             </span>
                             <span className="text-[11px] font-medium">Masuk untuk menambahkan Jenis Audit</span>
@@ -367,41 +388,26 @@ export default function AuditListView({
                         )}
                       </div>
 
-                      {/* Right side status & action */}
-                      <div className="flex items-center gap-6 shrink-0 justify-between md:justify-end">
-                        <div className="flex items-center gap-3 w-[180px]">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${statusConfig[audit.status]?.bg || 'bg-white/50 border-dark-gray/10 text-dark-gray'} font-semibold shrink-0`}>
-                            {statusConfig[audit.status]?.label || audit.status}
-                          </span>
-                          <div className="flex-1 h-1.5 bg-dark-gray/10 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-peach-accent rounded-full transition-all duration-500"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                          <span className="text-[10px] font-bold text-dark-gray/60 w-8 text-right">{progress}%</span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          {userRole === 'Auditor' && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus kertas kerja pemeriksaan untuk ${audit.opdName}?`);
-                                if (confirmed) {
-                                  onDeleteAudit(audit.id);
-                                }
-                              }}
-                              className="p-1.5 text-rose-700 hover:text-rose-900 hover:bg-rose-100/50 border border-transparent hover:border-rose-200/55 rounded-md transition cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                              title="Hapus KKA"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                          <div className="bg-dark-gray/5 group-hover:bg-dark-gray group-hover:text-white text-dark-gray font-bold p-1.5 rounded-lg transition shadow-xs">
-                            <ArrowRight className="w-4 h-4" />
-                          </div>
+                      {/* Right side: Actions */}
+                      <div className="flex items-center md:flex-col justify-end md:justify-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-dark-gray/10 pt-3 md:pt-0 md:pl-6">
+                        {userRole === 'Auditor' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus kertas kerja pemeriksaan untuk ${audit.opdName}?`);
+                              if (confirmed) {
+                                onDeleteAudit(audit.id);
+                              }
+                            }}
+                            className="p-1.5 text-rose-700 hover:text-rose-900 hover:bg-rose-100/50 border border-transparent hover:border-rose-200/55 rounded-md transition cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                            title="Hapus Pemeriksaan"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                        <div className="w-8 h-8 rounded-full bg-dark-gray text-white flex items-center justify-center shadow-md shadow-dark-gray/20 group-hover:scale-110 group-hover:bg-peach-accent transition-all duration-300">
+                          <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </div>
