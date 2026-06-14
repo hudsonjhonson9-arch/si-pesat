@@ -116,6 +116,7 @@ export default function AuditWorkspaceView({
   const [metaAuditType, setMetaAuditType] = useState<AuditType>(audit.auditType || 'Belum Diatur');
   const [metaTeamMembers, setMetaTeamMembers] = useState<string[]>(audit.teamMembers || []);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
+  const [teamSearchQuery, setTeamSearchQuery] = useState('');
 
   // Find the currently selected category
   const activeCategory = useMemo(() => {
@@ -584,8 +585,24 @@ export default function AuditWorkspaceView({
                   </div>
                   
                   {isTeamDropdownOpen && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                      {userProfiles.map(p => {
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg">
+                      <div className="p-2 border-b border-dark-gray/10">
+                        <input
+                          type="text"
+                          placeholder="Cari anggota tim..."
+                          value={teamSearchQuery}
+                          onChange={(e) => setTeamSearchQuery(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full text-[10px] p-1.5 border border-dark-gray/20 rounded focus:outline-none focus:border-peach-accent bg-white text-dark-gray"
+                        />
+                      </div>
+                      <div className="max-h-48 overflow-y-auto">
+                        {userProfiles
+                          .filter(p => {
+                            const term = teamSearchQuery.toLowerCase();
+                            return (p.full_name?.toLowerCase().includes(term) || p.email?.toLowerCase().includes(term));
+                          })
+                          .map(p => {
                         const val = p.full_name || p.email;
                         const isChecked = metaTeamMembers.includes(val);
                         const sublabel = p.pangkat && p.golongan
@@ -612,12 +629,18 @@ export default function AuditWorkspaceView({
                           </label>
                         );
                       })}
-                      {userProfiles.length === 0 && (
-                        <div className="p-3 text-xs text-center text-dark-gray/50 italic">Tidak ada profil tersedia</div>
+                      {userProfiles.filter(p => {
+                        const term = teamSearchQuery.toLowerCase();
+                        return (p.full_name?.toLowerCase().includes(term) || p.email?.toLowerCase().includes(term));
+                      }).length === 0 && (
+                        <div className="p-3 text-xs text-center text-dark-gray/50 italic">
+                          {userProfiles.length === 0 ? 'Tidak ada profil tersedia' : 'Tidak ditemukan'}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+              </div>
 
                 <div className="flex gap-2 pt-2 border-t border-dark-gray/10">
                   <button 
@@ -993,8 +1016,8 @@ export default function AuditWorkspaceView({
       {/* Add Custom Category Popup Form */}
       {isAddingCategory && (
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
-            <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray">
+            <div className="bg-dark-gray rounded-t-2xl text-white px-4 py-3 flex items-center justify-between">
               <span className="font-extrabold text-xs tracking-wide">Tambah Jenis Audit Pemeriksaan Baru (A.1)</span>
               <button onClick={() => setIsAddingCategory(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>

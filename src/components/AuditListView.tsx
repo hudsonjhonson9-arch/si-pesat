@@ -65,6 +65,7 @@ export default function AuditListView({
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
+  const [newTeamSearchQuery, setNewTeamSearchQuery] = useState('');
 
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
@@ -533,8 +534,24 @@ export default function AuditListView({
                 </div>
 
                 {isTeamDropdownOpen && (
-                  <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-h-48 overflow-y-auto">
-                    {userProfiles.map(p => {
+                  <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <div className="p-2 border-b border-slate-100">
+                      <input
+                        type="text"
+                        placeholder="Cari anggota tim..."
+                        value={newTeamSearchQuery}
+                        onChange={(e) => setNewTeamSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full text-xs p-1.5 border border-slate-200 rounded focus:outline-none focus:border-blue-500 bg-white text-slate-700"
+                      />
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {userProfiles
+                        .filter(p => {
+                          const term = newTeamSearchQuery.toLowerCase();
+                          return (p.full_name?.toLowerCase().includes(term) || p.email?.toLowerCase().includes(term));
+                        })
+                        .map(p => {
                       const val = p.full_name || p.email;
                       const isChecked = newTeamMembers.includes(val);
                       return (
@@ -555,9 +572,15 @@ export default function AuditListView({
                         </label>
                       );
                     })}
-                    {userProfiles.length === 0 && (
-                      <div className="p-3 text-xs text-center text-dark-gray/50 italic">Tidak ada profil tersedia</div>
+                    {userProfiles.filter(p => {
+                      const term = newTeamSearchQuery.toLowerCase();
+                      return (p.full_name?.toLowerCase().includes(term) || p.email?.toLowerCase().includes(term));
+                    }).length === 0 && (
+                      <div className="p-3 text-xs text-center text-slate-500 italic">
+                        {userProfiles.length === 0 ? 'Tidak ada profil tersedia' : 'Tidak ditemukan'}
+                      </div>
                     )}
+                    </div>
                   </div>
                 )}
               </div>
