@@ -316,12 +316,12 @@ export default function AuditWorkspaceView({
   // Remove a whole category dynamically (Requirement A.1)
   const handleDeleteCategory = (catId: string) => {
     if (audit.categories.length <= 1) {
-      alert('Pemeriksaan KKA harus menyisakan minimal satu kategori utama.');
+      alert('Pemeriksaan KKA harus menyisakan minimal satu Jenis Audit Pemeriksaan utama.');
       return;
     }
 
     const name = audit.categories.find(c => c.id === catId)?.name || '';
-    const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus kategori "${name}" beserta seluruh kriteria di dalamnya?`);
+    const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus Jenis Audit Pemeriksaan "${name}" beserta seluruh kriteria di dalamnya?`);
     if (!confirmed) return;
 
     const updatedCategories = audit.categories.filter(c => c.id !== catId);
@@ -687,7 +687,7 @@ export default function AuditWorkspaceView({
                           className={`opacity-0 group-hover:opacity-100 transition p-0.5 rounded hover:bg-red-50 hover:text-red-600 border border-transparent ${
                             isActive ? 'text-white/60 hover:bg-dark-gray/50 hover:text-white' : 'text-dark-gray/40'
                           }`}
-                          title="Hapus Kategori"
+                          title="Hapus Jenis Audit Pemeriksaan"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -971,12 +971,12 @@ export default function AuditWorkspaceView({
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
             <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Tambah Kategori Baru (A.1)</span>
+              <span className="font-extrabold text-xs tracking-wide">Tambah Jenis Audit Pemeriksaan Baru (A.1)</span>
               <button onClick={() => setIsAddingCategory(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleAddCategory} className="p-4 space-y-3.5 text-xs">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Pilih Kategori KKA</label>
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Pilih Jenis Audit Pemeriksaan</label>
                 {availableMasterCategories.length > 0 ? (
                   <select
                     value={selectedMasterCatId}
@@ -984,14 +984,14 @@ export default function AuditWorkspaceView({
                     className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-none focus:border-peach-accent"
                     required
                   >
-                    <option value="" disabled>-- Pilih Kategori --</option>
+                    <option value="" disabled>-- Pilih Jenis Audit Pemeriksaan --</option>
                     {availableMasterCategories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
                 ) : (
                   <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 font-semibold">
-                    Semua kategori dari {audit.auditType || 'Jenis Audit ini'} sudah ditambahkan ke dalam pemeriksaan ini.
+                    Semua Jenis Audit Pemeriksaan dari {audit.auditType || 'Jenis Audit ini'} sudah ditambahkan ke dalam pemeriksaan ini.
                   </div>
                 )}
               </div>
