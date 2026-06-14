@@ -498,7 +498,7 @@ export default function AuditWorkspaceView({
                   <select
                     multiple
                     value={metaTeamMembers}
-                    onChange={e => setMetaTeamMembers(Array.from(e.target.selectedOptions, option => option.value))}
+                    onChange={e => setMetaTeamMembers(Array.from(e.target.selectedOptions, (option: HTMLOptionElement) => option.value))}
                     className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none focus:border-peach-accent min-h-[80px]"
                   >
                     {userProfiles.map(p => (
@@ -628,7 +628,7 @@ export default function AuditWorkspaceView({
               {categoryStats.totTemuan > 0 && (
                 <div className="mt-3.5 bg-rose-500/20 border border-rose-500/25 p-2.5 rounded-lg text-xs text-rose-100 font-semibold inline-flex items-center gap-2 flex-wrap">
                   <AlertTriangle className="w-4 h-4 text-rose-300 animate-bounce flex-shrink-0" />
-                  <span>Ditemukan <span className="underline font-bold font-mono">{categoryStats.totTemuan}</span> penyimpangan / temuan keuangan senilai <span className="font-mono font-bold text-peach-accent">{formatIDR(categoryStats.totVal)}</span></span>
+                  <span>Ditemukan <span className="underline font-bold font-mono">{categoryStats.totTemuan}</span> penyimpangan / temuan keuangan senilai <span className="font-mono font-bold text-peach-accent">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(categoryStats.totVal)}</span></span>
                 </div>
               )}
             </div>
