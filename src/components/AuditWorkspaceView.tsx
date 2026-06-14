@@ -551,7 +551,7 @@ export default function AuditWorkspaceView({
           <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3 text-dark-gray">
             <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
               <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Jenis Audit Pemeriksaan</span>
-              {(!isReadOnly || userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (
+              {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && !isReadOnly && (
                 <button
                   onClick={() => setIsAddingCategory(true)}
                   className="text-xs text-dark-gray hover:text-dark-gray/70 inline-flex items-center gap-0.5 font-extrabold cursor-pointer"
@@ -600,7 +600,7 @@ export default function AuditWorkspaceView({
                       )}
 
                       {/* Delete category button */}
-                      {(!isReadOnly || userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (
+                      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && !isReadOnly && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
