@@ -27,7 +27,9 @@ import {
   CheckCircle,
   HelpCircle,
   Edit2,
-  ChevronDown
+  ChevronDown,
+  ShieldOff,
+  Lock
 } from 'lucide-react';
 
 interface AuditWorkspaceViewProps {
@@ -165,7 +167,14 @@ export default function AuditWorkspaceView({
     return currentTemplate.categories.filter(tc => !audit.categories.find(ac => ac.name === tc.name));
   }, [currentTemplate, audit.categories]);
 
-  const isReadOnly = (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) ||
+  // Check if current user is a member of any category team (Auditor access control)
+  const isTeamMember = userRole !== 'Auditor' || !currentUserName || audit.categories.some(cat =>
+    cat.auditorName === currentUserName ||
+    (cat.teamMembers || []).includes(currentUserName)
+  );
+
+  const isReadOnly = !isTeamMember ||
+    (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) ||
     ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Selesai');
 
   const isReviewerPanelVisible = (userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Direview';
@@ -446,6 +455,23 @@ export default function AuditWorkspaceView({
 
         </div>
       </div>
+
+      {/* Access Denied Banner for Auditors not in any team */}
+      {!isTeamMember && userRole === 'Auditor' && (
+        <div className="flex items-start gap-4 bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
+            <ShieldOff className="w-5 h-5 text-rose-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-black text-rose-800 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5" /> Akses Terbatas — Hanya Baca
+            </p>
+            <p className="text-xs text-rose-700/80 mt-1 font-medium leading-relaxed">
+              Akun Anda (<strong>{currentUserName}</strong>) tidak terdaftar sebagai <strong>Ketua Tim</strong> maupun <strong>Anggota Tim</strong> pada jenis audit manapun di berkas ini. Hubungi supervisor untuk mendapatkan akses edit.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Main Container - Responsive Layout (Category Selector on top/left, items on scroll) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
