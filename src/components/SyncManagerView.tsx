@@ -113,48 +113,16 @@ export default function SyncManagerView({
       {user && accessToken && (
         <>
           {/* Cloud Database Tool Panel */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4" id="drive-tools-grid">
-            
-            {/* Box 1: Backup / Push */}
-            <div className="bg-baby-blue rounded-xl p-5 border border-dark-gray/10 shadow-xs flex flex-col justify-between space-y-4">
-              <div>
-                <span className="w-8 h-8 rounded-lg bg-white/40 text-dark-gray flex items-center justify-center mb-3 border border-dark-gray/5">
-                  <ArrowUpToLine className="w-4 h-4" />
-                </span>
-                <h4 className="font-extrabold text-dark-gray text-sm">Cadangkan Massal Ke Cloud</h4>
-                <p className="text-xs text-dark-gray/80 mt-1 font-semibold leading-relaxed">
-                  Kirim seluruh kertas kerja KKA OPD ({audits.length} berkas) ke Google Drive. Aplikasi akan membuat folder secara otomatis di Drive Anda.
-                </p>
-              </div>
-              <button
-                onClick={onBatchSyncToDrive}
-                disabled={isSyncing}
-                className="w-full bg-peach-accent border border-dark-gray/10 text-dark-gray text-xs font-black py-2 rounded-lg inline-flex items-center justify-center gap-1.5 hover:opacity-90 transition cursor-pointer"
-              >
-                <FolderSync className="w-4 h-4" /> {isSyncing ? 'Mengunggah Berkas...' : 'Unggah Semua KKA'}
-              </button>
+          <div className="bg-baby-blue rounded-xl p-5 border border-dark-gray/10 shadow-xs flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+              <Database className="w-6 h-6" />
             </div>
-
-            {/* Box 2: Pull / Restore */}
-            <div className="bg-baby-blue rounded-xl p-5 border border-dark-gray/10 shadow-xs flex flex-col justify-between space-y-4">
-              <div>
-                <span className="w-8 h-8 rounded-lg bg-white/40 text-dark-gray flex items-center justify-center mb-3 border border-dark-gray/5">
-                  <ArrowDownToLine className="w-4 h-4" />
-                </span>
-                <h4 className="font-extrabold text-dark-gray text-sm">Ambil Berkas Dari Cloud</h4>
-                <p className="text-xs text-dark-gray/80 mt-1 font-semibold leading-relaxed">
-                  Sinkronisasikan kembali laporan-laporan KKA yang tersimpan di Google Drive ke dalam dashboard lokal Anda untuk real-time audit.
-                </p>
-              </div>
-              <button
-                onClick={onFetchFromDrive}
-                disabled={isSyncing}
-                className="w-full bg-dark-gray hover:bg-dark-gray/90 text-white text-xs font-extrabold py-2 rounded-lg inline-flex items-center justify-center gap-1.5 transition cursor-pointer"
-              >
-                <Database className="w-4 h-4" /> {isSyncing ? 'Sinkronisasi Data...' : 'Panggil Semua Dari Drive'}
-              </button>
+            <div>
+              <h4 className="font-extrabold text-dark-gray text-sm">Sinkronisasi Real-Time Aktif</h4>
+              <p className="text-xs text-dark-gray/80 mt-1 font-semibold leading-relaxed">
+                Sistem database Supabase terhubung. Semua perubahan KKA akan langsung tersimpan ke server secara otomatis saat Anda mengubahnya. Tidak perlu melakukan pengunggahan manual.
+              </p>
             </div>
-
           </div>
 
           {/* Sync activity stream logs */}
