@@ -310,27 +310,11 @@ export default function AuditListView({
 
                 {/* Footer interactive bar */}
                 <div className="bg-white/30 px-4 py-3 border-t border-dark-gray/10 flex items-center justify-between mt-auto">
-                  {/* Google Drive Status Indicator */}
+                  {/* Cloud Status Indicator */}
                   <div className="flex items-center gap-1.5">
-                    {audit.googleDriveFileId ? (
-                      <span className="text-[10px] text-emerald-800 font-extrabold inline-flex items-center gap-1">
-                        <Cloud className="w-3.5 h-3.5" /> Terkoneksi Drive
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={!isDriveConnected}
-                        onClick={() => onSyncToDrive(audit)}
-                        className={`text-[10px] font-bold inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border ${
-                          isDriveConnected 
-                            ? 'bg-peach-accent text-dark-gray border-dark-gray/10 hover:opacity-90 cursor-pointer' 
-                            : 'bg-white/20 border-dark-gray/5 text-dark-gray/40 cursor-not-allowed'
-                        }`}
-                        title={isDriveConnected ? 'Sinkronisasikan ke Drive' : 'Masuk untuk mengaktifkan Google Drive'}
-                      >
-                        <CloudOff className="w-3.5 h-3.5" /> {isDriveConnected ? 'Unggah Drive' : 'Drive Off'}
-                      </button>
-                    )}
+                    <span className="text-[10px] text-emerald-800 font-extrabold inline-flex items-center gap-1">
+                      <Cloud className="w-3.5 h-3.5" /> Tersimpan Otomatis
+                    </span>
                   </div>
 
                   {/* Actions (Open audit workspace in bottom navigation pattern) */}
