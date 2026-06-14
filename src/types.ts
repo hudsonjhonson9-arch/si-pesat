@@ -86,4 +86,6 @@ export interface TargetEntity {
   head_name?: string;
   contact?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
 }

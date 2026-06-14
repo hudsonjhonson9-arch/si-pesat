@@ -1,6 +1,9 @@
 import React from 'react';
 import { TargetEntity } from '../types';
-import { Map, MapPin, Building, Landmark, Activity, User, BookOpen } from 'lucide-react';
+import { Map as MapIcon, MapPin, Building, Landmark, Activity, User, BookOpen } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
 interface HomeViewProps {
   targetEntities: TargetEntity[];
@@ -25,6 +28,24 @@ export default function HomeView({ targetEntities }: HomeViewProps) {
       case 'Puskesmas': return 'bg-rose-100 text-rose-800 border-rose-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const createCustomIcon = (type: string) => {
+    let colorClass = 'bg-slate-500 text-white';
+    switch (type) {
+      case 'OPD': colorClass = 'bg-blue-600 text-white'; break;
+      case 'Desa': colorClass = 'bg-emerald-600 text-white'; break;
+      case 'Sekolah': colorClass = 'bg-amber-500 text-white'; break;
+      case 'Puskesmas': colorClass = 'bg-rose-600 text-white'; break;
+    }
+
+    return L.divIcon({
+      className: 'bg-transparent border-0',
+      html: `<div class="w-7 h-7 rounded-full ${colorClass} border-2 border-white shadow-md flex items-center justify-center font-bold text-[10px] uppercase">${type.charAt(0)}</div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14]
+    });
   };
 
   return (
@@ -54,7 +75,7 @@ export default function HomeView({ targetEntities }: HomeViewProps) {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-dark-gray text-lg flex items-center gap-2">
-                <Map className="w-5 h-5 text-peach-accent" />
+                <MapIcon className="w-5 h-5 text-peach-accent" />
                 Peta Wilayah Pengawasan
               </h3>
               <p className="text-xs text-dark-gray/60 mt-0.5">
@@ -63,17 +84,47 @@ export default function HomeView({ targetEntities }: HomeViewProps) {
             </div>
           </div>
           
-          <div className="w-full bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden flex-1 relative min-h-[400px]">
-            <iframe 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }}
-              loading="lazy" 
-              allowFullScreen 
-              referrerPolicy="no-referrer-when-downgrade" 
-              src="https://maps.google.com/maps?q=Kecamatan%20Loli,%20Sumba%20Barat&t=&z=11&ie=UTF8&iwloc=&output=embed"
+          <div className="w-full bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] z-10">
+            <MapContainer 
+              center={[-9.6385, 119.3972]} 
+              zoom={12} 
+              scrollWheelZoom={true} 
               className="absolute inset-0 w-full h-full"
-            ></iframe>
+            >
+              <LayersControl position="topright">
+                <LayersControl.BaseLayer checked name="Peta Jalan (OSM)">
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                </LayersControl.BaseLayer>
+                <LayersControl.BaseLayer name="Peta Satelit (Esri)">
+                  <TileLayer
+                    attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                  />
+                </LayersControl.BaseLayer>
+              </LayersControl>
+
+              {targetEntities.map(entity => (
+                entity.latitude && entity.longitude ? (
+                  <Marker 
+                    key={entity.id} 
+                    position={[entity.latitude, entity.longitude]}
+                    icon={createCustomIcon(entity.type)}
+                  >
+                    <Popup>
+                      <div className="text-center p-1">
+                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mb-1.5 ${getBadgeColor(entity.type)}`}>
+                          {entity.type}
+                        </span>
+                        <h4 className="font-bold text-xs text-slate-800 m-0">{entity.name}</h4>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ) : null
+              ))}
+            </MapContainer>
           </div>
         </div>
 
