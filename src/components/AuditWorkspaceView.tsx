@@ -184,8 +184,8 @@ export default function AuditWorkspaceView({
   );
 
   const isReadOnly = !isTeamMember ||
-    (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) ||
-    ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Selesai');
+    (userRole === 'Auditor' && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
+    ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (activeCategory?.status === 'Selesai' || audit.status === 'Selesai'));
 
   const isReviewerPanelVisible = (userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Direview';
 
@@ -662,8 +662,8 @@ export default function AuditWorkspaceView({
                             const confirmed = window.confirm('Apakah Anda yakin ingin mengajukan Jenis Audit ini untuk direview oleh pimpinan?');
                             if (confirmed) {
                               const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Direview' as any } : c);
-                              const newAuditStatus = newCategories.some(c => c.status === 'Direview') ? 'Direview' : audit.status;
-                              onUpdates({ ...audit, status: newAuditStatus, categories: newCategories });
+                              const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
+                              onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
                               alert('Notifikasi: Jenis Audit telah diajukan ke Irban untuk direview.');
                             }
                           }}
@@ -680,8 +680,8 @@ export default function AuditWorkspaceView({
                               const confirmed = window.confirm('Apakah Anda menyetujui Jenis Audit ini menjadi Selesai?');
                               if (confirmed) {
                                 const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Selesai' as any } : c);
-                                const allSelesai = newCategories.every(c => c.status === 'Selesai');
-                                onUpdates({ ...audit, status: allSelesai ? 'Selesai' : audit.status, categories: newCategories });
+                                const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
+                                onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
                                 alert('Notifikasi: Jenis Audit telah disetujui. Auditor akan mendapatkan notifikasi.');
                               }
                             }}
@@ -694,7 +694,8 @@ export default function AuditWorkspaceView({
                               const confirmed = window.confirm('Apakah Anda ingin mengembalikan Jenis Audit ini ke Auditor untuk direvisi?');
                               if (confirmed) {
                                 const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Sedang Berjalan' as any } : c);
-                                onUpdates({ ...audit, categories: newCategories });
+                                const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
+                                onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
                                 alert('Notifikasi: Jenis Audit dikembalikan. Auditor akan mendapatkan notifikasi revisi.');
                               }
                             }}
