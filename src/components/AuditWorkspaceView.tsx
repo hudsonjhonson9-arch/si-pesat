@@ -104,6 +104,7 @@ export default function AuditWorkspaceView({
   };
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [selectedAddModalTemplateId, setSelectedAddModalTemplateId] = useState<string>('');
   const [selectedMasterCatId, setSelectedMasterCatId] = useState('');
 
   // Editing School General Information
@@ -125,10 +126,18 @@ export default function AuditWorkspaceView({
     return templates?.find(t => t.name === audit.auditType);
   }, [templates, audit.auditType]);
 
+  // Set default selected template id when opening modal
+  React.useEffect(() => {
+    if (isAddingCategory && !selectedAddModalTemplateId) {
+      setSelectedAddModalTemplateId(currentTemplate?.id || (templates.length > 0 ? templates[0].id : ''));
+    }
+  }, [isAddingCategory, currentTemplate, templates, selectedAddModalTemplateId]);
+
   const availableMasterCategories = useMemo(() => {
-    if (!currentTemplate) return [];
-    return currentTemplate.categories.filter(tc => !audit.categories.find(ac => ac.name === tc.name));
-  }, [currentTemplate, audit.categories]);
+    const templateToUse = templates?.find(t => t.id === selectedAddModalTemplateId) || currentTemplate;
+    if (!templateToUse) return [];
+    return templateToUse.categories.filter(tc => !audit.categories.find(ac => ac.name === tc.name));
+  }, [templates, selectedAddModalTemplateId, currentTemplate, audit.categories]);
 
   const isReadOnly = (userRole === 'Auditor' && (audit.status === 'Direview' || audit.status === 'Selesai')) || 
                      ((userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && audit.status === 'Selesai');
@@ -740,21 +749,29 @@ export default function AuditWorkspaceView({
           {/* Dynamic Criteria checklist stream */}
           <div className="space-y-4">
             
-            {/* Header Checklist & Action to trigger ADD item */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
-              {userRole === 'Auditor' && !isReadOnly && (
-                <button 
-                  onClick={() => setIsAddingItem(true)}
-                  className="bg-peach-accent hover:opacity-90 border border-dark-gray/10 text-dark-gray text-xs font-extrabold px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Tambah Kriteria
-                </button>
-              )}
-            </div>
+            {!activeCategory ? (
+              <div className="bg-white rounded-xl border border-dark-gray/10 p-12 text-center text-dark-gray/60 flex flex-col items-center justify-center">
+                <Layers className="w-12 h-12 mb-3 opacity-20" />
+                <h3 className="text-lg font-bold text-dark-gray/80">Belum Ada Jenis Audit Aktif</h3>
+                <p className="text-sm max-w-md mt-2">Pilih Jenis Audit dari daftar di sebelah kiri, atau klik tombol <strong>+ Tambah</strong> untuk memasukkan Jenis Audit baru ke dalam pemeriksaan ini.</p>
+              </div>
+            ) : (
+              <>
+                {/* Header Checklist & Action to trigger ADD item */}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
+                  {userRole === 'Auditor' && !isReadOnly && (
+                    <button 
+                      onClick={() => setIsAddingItem(true)}
+                      className="bg-peach-accent hover:opacity-90 border border-dark-gray/10 text-dark-gray text-xs font-extrabold px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Tambah Kriteria
+                    </button>
+                  )}
+                </div>
 
-            {/* Checklists items */}
-            {activeCategory && activeCategory.items.map((item, idx) => {
+                {/* Checklists items */}
+                {activeCategory.items.map((item, idx) => {
               const hasFinding = item.status === 'Temuan';
               return (
                 <div 
@@ -967,6 +984,8 @@ export default function AuditWorkspaceView({
                 </div>
               );
             })}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -980,6 +999,23 @@ export default function AuditWorkspaceView({
               <button onClick={() => setIsAddingCategory(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleAddCategory} className="p-4 space-y-3.5 text-xs">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Pilih Master Kertas Kerja</label>
+                <select
+                  value={selectedAddModalTemplateId}
+                  onChange={e => {
+                    setSelectedAddModalTemplateId(e.target.value);
+                    setSelectedMasterCatId('');
+                  }}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-none focus:border-peach-accent"
+                  required
+                >
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Pilih Jenis Audit Pemeriksaan</label>
                 {availableMasterCategories.length > 0 ? (
@@ -996,7 +1032,7 @@ export default function AuditWorkspaceView({
                   </select>
                 ) : (
                   <div className="text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100 font-semibold">
-                    Semua Jenis Audit Pemeriksaan dari {audit.auditType || 'Jenis Audit ini'} sudah ditambahkan ke dalam pemeriksaan ini.
+                    Semua Jenis Audit Pemeriksaan dari Master ini sudah ditambahkan ke dalam pemeriksaan ini.
                   </div>
                 )}
               </div>
