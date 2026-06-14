@@ -372,6 +372,17 @@ export default function TemplateConfiguratorView({
               );
             })}
           </div>
+          
+          <div className="mt-4 pt-4 border-t border-dark-gray/10 space-y-2">
+            <label className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Nama Master Kertas Kerja</label>
+            <input
+              type="text"
+              value={template?.name || ''}
+              onChange={e => handleTemplateNameChange(e.target.value)}
+              className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded bg-white text-dark-gray outline-none focus:border-dark-gray/30"
+              placeholder="Nama Kertas Kerja Master (mis. Standar 2026)"
+            />
+          </div>
         </div>
         
         {/* Category config column */}
@@ -384,16 +395,6 @@ export default function TemplateConfiguratorView({
             >
               <PlusCircle className="w-3.5 h-3.5" /> Tambah Jenis Audit
             </button>
-          </div>
-
-          <div className="space-y-2 mb-4">
-            <input
-              type="text"
-              value={template?.name || ''}
-              onChange={e => handleTemplateNameChange(e.target.value)}
-              className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded bg-white text-dark-gray outline-none focus:border-dark-gray/30"
-              placeholder="Nama Kertas Kerja Master (mis. Standar 2026)"
-            />
           </div>
 
           <div className="space-y-1.5 max-h-[350px] overflow-y-auto">
@@ -440,6 +441,10 @@ export default function TemplateConfiguratorView({
                 <div
                   key={cat.id}
                   onClick={() => setSelectedCatId(cat.id)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    startEditingCat(cat);
+                  }}
                   className={`group relative flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition border ${
                     isActive 
                       ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold' 
@@ -449,7 +454,7 @@ export default function TemplateConfiguratorView({
                   <span className="truncate pr-8">{cat.name}</span>
                   
                   {/* Actions buttons */}
-                  <div className="absolute right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex items-center gap-1.5">
+                  <div className="absolute right-2 flex items-center gap-1.5">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -482,13 +487,11 @@ export default function TemplateConfiguratorView({
           {activeCategory ? (
             <div className="space-y-4">
               {/* Category Scope Title Bar */}
-              <div className="bg-dark-gray border border-white/5 shadow-md p-4 rounded-xl text-white">
-                <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded font-mono font-bold tracking-wide">
-                  Seksi Pengujian Aktif
-                </span>
-                <h4 className="text-sm font-extrabold text-white mt-2 leading-tight">{activeCategory.name}</h4>
-                <p className="text-xs text-white/80 leading-relaxed max-w-2xl mt-1 font-medium">{activeCategory.description}</p>
+              <div className="bg-dark-gray text-white p-3 rounded-t-xl flex items-center gap-2">
+                <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Jenis Audit Aktif</span>
+                <span className="font-extrabold text-sm truncate">{activeCategory.name}</span>
               </div>
+              <p className="text-xs text-dark-gray/80 leading-relaxed max-w-2xl mt-1 font-medium">{activeCategory.description}</p>
 
               {/* Items config list wrapper */}
               <div className="space-y-3">
