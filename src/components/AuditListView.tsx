@@ -321,23 +321,38 @@ export default function AuditListView({
                       className="px-5 py-3.5 hover:bg-baby-blue/40 transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group"
                     >
                       {/* Left side info */}
-                      <div className="flex-1 min-w-0 flex items-center gap-4">
-                        <div className="w-[140px] shrink-0">
-                          <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate">
-                            {audit.auditType || 'Belum Diatur'}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-center gap-2 text-xs text-dark-gray">
-                            <User className="w-3.5 h-3.5 text-dark-gray/40 shrink-0" />
-                            <span className="font-bold truncate" title={audit.auditorName}>{audit.auditorName || 'Belum Ditugaskan'}</span>
+                      <div className="flex-1 min-w-0 flex flex-col gap-3 py-1">
+                        {audit.categories && audit.categories.length > 0 ? (
+                          audit.categories.map((cat, idx) => (
+                            <div key={cat.id || idx} className="flex items-center gap-4">
+                              <div className="w-[140px] shrink-0">
+                                <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate" title={cat.name}>
+                                  {cat.name}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0 space-y-0.5">
+                                <div className="flex items-center gap-2 text-[11px] text-dark-gray">
+                                  <User className="w-3 h-3 text-dark-gray/40 shrink-0" />
+                                  <span className="font-bold truncate" title={cat.auditorName || 'Belum Ditugaskan'}>
+                                    {cat.auditorName || 'Belum Ditugaskan'}
+                                  </span>
+                                </div>
+                                {cat.teamMembers && cat.teamMembers.length > 0 && (
+                                  <p className="text-[9px] text-dark-gray/60 font-medium truncate pl-5">
+                                    + {cat.teamMembers.join(', ')}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex items-center gap-4 text-dark-gray/50">
+                            <span className="text-[10px] bg-dark-gray/10 text-dark-gray/50 px-2.5 py-1 rounded-full font-bold uppercase w-[140px] text-center shrink-0">
+                              Belum Ada Jenis
+                            </span>
+                            <span className="text-[11px] font-medium">Masuk untuk menambahkan Jenis Audit</span>
                           </div>
-                          {audit.teamMembers && audit.teamMembers.length > 0 && (
-                            <p className="text-[10px] text-dark-gray/60 font-medium truncate pl-5">
-                              + {audit.teamMembers.join(', ')}
-                            </p>
-                          )}
-                        </div>
+                        )}
                       </div>
 
                       {/* Right side status & action */}

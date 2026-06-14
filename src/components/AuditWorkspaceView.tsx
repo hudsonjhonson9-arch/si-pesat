@@ -60,9 +60,6 @@ export default function AuditWorkspaceView({
     audit.categories.length > 0 ? audit.categories[0].id : ''
   );
 
-  const [isAddingItem, setIsAddingItem] = useState(false);
-  const [newItemTitle, setNewItemTitle] = useState('');
-  const [newItemDesc, setNewItemDesc] = useState('');
 
   const [uploadingIds, setUploadingIds] = useState<Record<string, boolean>>({});
 
@@ -239,40 +236,6 @@ export default function AuditWorkspaceView({
   };
 
   // Adding a new custom checklist criterion to the active category
-  const handleAddItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItemTitle || !selectedCategoryId) return;
-
-    const newItem: AuditItem = {
-      id: `item_custom_${Date.now()}`,
-      title: newItemTitle,
-      description: newItemDesc,
-      status: 'N/A',
-      nilaiTemuan: 0,
-      uraianTemuan: '',
-      rekomendasi: ''
-    };
-
-    const updatedCategories = audit.categories.map(cat => {
-      if (cat.id === selectedCategoryId) {
-        return {
-          ...cat,
-          items: [...cat.items, newItem]
-        };
-      }
-      return cat;
-    });
-
-    onUpdates({
-      ...audit,
-      categories: updatedCategories
-    });
-
-    // Reset item form
-    setNewItemTitle('');
-    setNewItemDesc('');
-    setIsAddingItem(false);
-  };
 
   // Delete checklist item
   const handleDeleteItem = (itemId: string) => {
@@ -672,14 +635,7 @@ export default function AuditWorkspaceView({
             {/* Header Checklist & Action to trigger ADD item */}
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
-              {userRole === 'Auditor' && !isReadOnly && (
-                <button
-                  onClick={() => setIsAddingItem(true)}
-                  className="bg-peach-accent hover:opacity-90 border border-dark-gray/10 text-dark-gray text-xs font-extrabold px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Tambah Kriteria
-                </button>
-              )}
+
             </div>
 
             {/* Checklists items */}
@@ -1049,46 +1005,7 @@ export default function AuditWorkspaceView({
         </div>
       )}
 
-      {/* Add Custom Checklist Item Popup Form */}
-      {isAddingItem && (
-        <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
-            <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Tambah Kriteria Pemeriksaan</span>
-              <button onClick={() => setIsAddingItem(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
-            </div>
-            <form onSubmit={handleAddItem} className="p-4 space-y-3.5 text-xs">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Judul Kriteria Pemeriksaan</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Misal: Surat Pertanggungjawaban (SPJ) Transportasi Guru"
-                  value={newItemTitle}
-                  onChange={e => setNewItemTitle(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 focus:bg-white text-dark-gray outline-none"
-                />
-              </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Deskripsi Uji Bukti Fisik</label>
-                <textarea
-                  placeholder="Uraikan hal murni apa yang diuji (nota, stempel, pemotongan PPh)..."
-                  value={newItemDesc}
-                  onChange={e => setNewItemDesc(e.target.value)}
-                  rows={2}
-                  className="w-full text-xs font-medium border border-dark-gray/15 p-2 rounded-lg bg-white/70 focus:bg-white resize-none outline-none text-dark-gray"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2 border-t border-dark-gray/10">
-                <button type="button" onClick={() => setIsAddingItem(false)} className="flex-1 bg-white py-2 border border-dark-gray/15 rounded-lg font-bold text-dark-gray cursor-pointer">Batal</button>
-                <button type="submit" className="flex-1 bg-peach-accent border border-dark-gray/10 py-2 rounded-lg font-black text-dark-gray hover:opacity-90 cursor-pointer">Simpan</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Edit Category Team Modal */}
       {isEditingCategoryTeam && (
