@@ -25,7 +25,8 @@ import {
   Download,
   CheckCircle,
   HelpCircle,
-  Edit2
+  Edit2,
+  ChevronDown
 } from 'lucide-react';
 
 interface AuditWorkspaceViewProps {
@@ -88,6 +89,7 @@ export default function AuditWorkspaceView({
   const [metaStatus, setMetaStatus] = useState<AuditStatus>(audit.status);
   const [metaFiscalYear, setMetaFiscalYear] = useState(audit.fiscalYear);
   const [metaTeamMembers, setMetaTeamMembers] = useState<string[]>(audit.teamMembers || []);
+  const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
 
   // Find the currently selected category
   const activeCategory = useMemo(() => {
@@ -493,18 +495,48 @@ export default function AuditWorkspaceView({
                   </select>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 relative">
                   <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Anggota Tim (Pilih Beberapa)</label>
-                  <select
-                    multiple
-                    value={metaTeamMembers}
-                    onChange={e => setMetaTeamMembers(Array.from(e.target.selectedOptions, (option: HTMLOptionElement) => option.value))}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none focus:border-peach-accent min-h-[80px]"
+                  <div 
+                    onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded bg-white text-dark-gray cursor-pointer flex justify-between items-center"
                   >
-                    {userProfiles.map(p => (
-                      <option key={p.id} value={p.full_name || p.email}>{p.full_name || p.email} ({p.role})</option>
-                    ))}
-                  </select>
+                    <span className="truncate">
+                      {metaTeamMembers.length > 0 
+                        ? `${metaTeamMembers.length} anggota terpilih` 
+                        : 'Pilih Anggota Tim...'}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-dark-gray/60" />
+                  </div>
+                  
+                  {isTeamDropdownOpen && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {userProfiles.map(p => {
+                        const val = p.full_name || p.email;
+                        const isChecked = metaTeamMembers.includes(val);
+                        return (
+                          <label key={p.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer border-b border-dark-gray/5 last:border-b-0 text-xs font-semibold text-dark-gray">
+                            <input 
+                              type="checkbox" 
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setMetaTeamMembers([...metaTeamMembers, val]);
+                                } else {
+                                  setMetaTeamMembers(metaTeamMembers.filter(m => m !== val));
+                                }
+                              }}
+                              className="rounded border-dark-gray/20 text-peach-accent focus:ring-peach-accent/30"
+                            />
+                            <span>{val} ({p.role})</span>
+                          </label>
+                        );
+                      })}
+                      {userProfiles.length === 0 && (
+                        <div className="p-3 text-xs text-center text-dark-gray/50 italic">Tidak ada profil tersedia</div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2 pt-2 border-t border-dark-gray/10">

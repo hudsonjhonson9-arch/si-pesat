@@ -545,7 +545,7 @@ export default function App() {
             onSyncToDrive={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
             isDriveConnected={true}
             userRole={userRole}
-            defaultAuditorName={user?.user_metadata?.full_name || user?.email || customAuditorName || ''}
+            defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || customAuditorName || ''}
             userProfiles={userProfiles}
           />
         );
@@ -663,7 +663,7 @@ export default function App() {
                   {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
                   {userRole === 'Inspektur' && '👑 Inspektur'}
                 </span>
-                <span className="text-xs font-bold text-dark-gray">{user?.user_metadata?.full_name || user?.email || customAuditorName || 'Auditor'}</span>
+                <span className="text-xs font-bold text-dark-gray">{userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || customAuditorName || 'Auditor'}</span>
               </div>
               
               {/* Mobile compact role */}
