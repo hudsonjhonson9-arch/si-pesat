@@ -159,15 +159,15 @@ export default function AuditListView({
 
   const handleSubmitNewAudit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSchoolName || !newAuditorName || !newTemplateId) return;
+    if (!newSchoolName || !newTemplateId) return;
 
     onCreateAudit(
       newSchoolName,
       newSchoolType,
       'Audit Keuangan',
       newFiscalYear,
-      newAuditorName,
-      newTeamMembers,
+      'Sistem (Auto-Generated)',
+      [],
       newTemplateId
     );
 
@@ -458,7 +458,7 @@ export default function AuditListView({
               {/* Template dan Tipe KKA */}
               <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Jenis Audit Pemeriksaan</label>
+                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Kelompok Audit</label>
                   <select
                     value={newTemplateId}
                     onChange={e => setNewTemplateId(e.target.value)}
@@ -471,68 +471,7 @@ export default function AuditListView({
                 </div>
               </div>
 
-              {/* Nama Pemeriksa / Ketua Tim */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Nama Auditor / Ketua Tim Pemeriksa</label>
-                <select
-                  required
-                  value={newAuditorName}
-                  onChange={e => setNewAuditorName(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
-                >
-                  <option value="" disabled>Pilih Ketua Tim</option>
-                  {userProfiles.map(p => (
-                    <option key={p.id} value={p.full_name || p.email}>{p.full_name || p.email} ({p.role})</option>
-                  ))}
-                  {/* Fallback if user is not in profiles */}
-                  {!userProfiles.some(p => (p.full_name || p.email) === newAuditorName) && newAuditorName && (
-                    <option value={newAuditorName}>{newAuditorName}</option>
-                  )}
-                </select>
-              </div>
 
-              {/* Anggota Tim */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Anggota Tim (Pilih Beberapa)</label>
-                <div
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray flex justify-between items-center cursor-pointer"
-                  onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
-                >
-                  <span className={newTeamMembers.length === 0 ? "text-dark-gray/50" : ""}>
-                    {newTeamMembers.length === 0 ? "Pilih Anggota Tim" : `${newTeamMembers.length} Anggota Terpilih`}
-                  </span>
-                  <ChevronDown className={`w-4 h-4 text-dark-gray/50 transition-transform ${isTeamDropdownOpen ? 'rotate-180' : ''}`} />
-                </div>
-
-                {isTeamDropdownOpen && (
-                  <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-h-48 overflow-y-auto">
-                    {userProfiles.map(p => {
-                      const val = p.full_name || p.email;
-                      const isChecked = newTeamMembers.includes(val);
-                      return (
-                        <label key={p.id} className="flex items-center gap-3 p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setNewTeamMembers([...newTeamMembers, val]);
-                              } else {
-                                setNewTeamMembers(newTeamMembers.filter(m => m !== val));
-                              }
-                            }}
-                            className="w-4 h-4 rounded border-slate-300 text-peach-accent focus:ring-peach-accent"
-                          />
-                          <span className="text-xs font-medium text-slate-700">{val} <span className="text-slate-400 font-normal">({p.role})</span></span>
-                        </label>
-                      );
-                    })}
-                    {userProfiles.length === 0 && (
-                      <div className="p-3 text-xs text-center text-dark-gray/50 italic">Tidak ada profil tersedia</div>
-                    )}
-                  </div>
-                )}
-              </div>
 
 
               {/* Action buttons */}

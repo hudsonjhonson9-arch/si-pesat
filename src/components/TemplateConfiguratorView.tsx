@@ -332,7 +332,7 @@ export default function TemplateConfiguratorView({
         {/* Template Sidebar column */}
         <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Jenis Audit</span>
+            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Kelompok Audit</span>
             <button
               onClick={handleAddTemplate}
               className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
@@ -376,7 +376,7 @@ export default function TemplateConfiguratorView({
         {/* Category config column */}
         <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Kategori Jenis Audit</span>
+            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Jenis Audit</span>
             <button
               onClick={() => setIsAddingCategory(true)}
               className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"

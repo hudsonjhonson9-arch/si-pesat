@@ -112,6 +112,16 @@ export default function AuditWorkspaceView({
   const [isNewCatTeamDropdownOpen, setIsNewCatTeamDropdownOpen] = useState(false);
   const [newCatTeamSearchQuery, setNewCatTeamSearchQuery] = useState('');
 
+  // Editing Category Team
+  const [isEditingCategoryTeam, setIsEditingCategoryTeam] = useState(false);
+  const [editCatAuditorName, setEditCatAuditorName] = useState('');
+  const [editCatTeamMembers, setEditCatTeamMembers] = useState<string[]>([]);
+  const [editCatFiscalYear, setEditCatFiscalYear] = useState('');
+  const [isEditCatAuditorDropdownOpen, setIsEditCatAuditorDropdownOpen] = useState(false);
+  const [editCatAuditorSearchQuery, setEditCatAuditorSearchQuery] = useState('');
+  const [isEditCatTeamDropdownOpen, setIsEditCatTeamDropdownOpen] = useState(false);
+  const [editCatTeamSearchQuery, setEditCatTeamSearchQuery] = useState('');
+
   // Editing School General Information
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
   const [metaSchoolName, setMetaSchoolName] = useState(audit.opdName);
@@ -146,10 +156,7 @@ export default function AuditWorkspaceView({
     onUpdates({
       ...audit,
       opdName: metaSchoolName,
-      auditorName: metaAuditorName,
-      status: metaStatus,
-      fiscalYear: metaFiscalYear,
-      teamMembers: metaTeamMembers
+      fiscalYear: metaFiscalYear
     });
     setIsEditingMetadata(false);
   };
@@ -322,6 +329,37 @@ export default function AuditWorkspaceView({
     setNewCatTeamMembers([]);
   };
 
+  const openEditCategoryTeam = () => {
+    if (!activeCategory) return;
+    setEditCatAuditorName(activeCategory.auditorName || audit.auditorName || '');
+    setEditCatTeamMembers(activeCategory.teamMembers || []);
+    setEditCatFiscalYear(activeCategory.fiscalYear || audit.fiscalYear);
+    setIsEditingCategoryTeam(true);
+  };
+
+  const handleSaveCategoryTeam = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeCategory) return;
+
+    const updatedCategories = audit.categories.map(cat => {
+      if (cat.id === activeCategory.id) {
+        return {
+          ...cat,
+          auditorName: editCatAuditorName,
+          teamMembers: editCatTeamMembers,
+          fiscalYear: editCatFiscalYear
+        };
+      }
+      return cat;
+    });
+
+    onUpdates({
+      ...audit,
+      categories: updatedCategories
+    });
+    setIsEditingCategoryTeam(false);
+  };
+
 
   // Remove a whole category dynamically (Requirement A.1)
   const handleDeleteCategory = (catId: string) => {
@@ -473,7 +511,6 @@ export default function AuditWorkspaceView({
                 <div>
                   <h2 className="text-lg font-black text-dark-gray flex flex-wrap items-center gap-2">
                     {audit.opdName}
-                    <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{audit.auditType || 'Belum Diatur'}</span>
                   </h2>
                   <p className="text-xs text-dark-gray/70 mt-0.5">Jenjang {audit.opdType} • Tahun Anggaran {audit.fiscalYear}</p>
                 </div>
@@ -526,92 +563,6 @@ export default function AuditWorkspaceView({
                       <option value="2025">2025</option>
                     </select>
                   </div>
-                </div>
-                <div className="space-y-1 mt-2">
-                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Status</label>
-                  <select
-                    value={metaStatus}
-                    onChange={e => setMetaStatus(e.target.value as any)}
-                    className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray font-bold"
-                  >
-                    <option value="Draft">Draft KKA</option>
-                    <option value="Sedang Berjalan">Audit Lapangan</option>
-                    <option value="Direview">Review Pengendali</option>
-                    <option value="Selesai">LHP Selesai</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama</label>
-                  <select
-                    value={metaAuditorName}
-                    onChange={e => setMetaAuditorName(e.target.value)}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none focus:border-peach-accent"
-                  >
-                    <option value="" disabled>Pilih Ketua Tim</option>
-                    {userProfiles.map(p => {
-                      const label = p.pangkat && p.golongan
-                        ? `${p.full_name || p.email} — ${p.pangkat} (${p.golongan})`
-                        : `${p.full_name || p.email} (${p.role})`;
-                      return (
-                        <option key={p.id} value={p.full_name || p.email}>{label}</option>
-                      );
-                    })}
-                    {/* Fallback if user is not in profiles */}
-                    {!userProfiles.some(p => (p.full_name || p.email) === metaAuditorName) && metaAuditorName && (
-                      <option value={metaAuditorName}>{metaAuditorName}</option>
-                    )}
-                  </select>
-                </div>
-
-                <div className="space-y-1 relative">
-                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Anggota Tim (Pilih Beberapa)</label>
-                  <div
-                    onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded bg-white text-dark-gray cursor-pointer flex justify-between items-center"
-                  >
-                    <span className="truncate">
-                      {metaTeamMembers.length > 0
-                        ? metaTeamMembers.join(', ')
-                        : 'Pilih Anggota Tim...'}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-dark-gray/60" />
-                  </div>
-
-                  {isTeamDropdownOpen && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                      {userProfiles.map(p => {
-                        const val = p.full_name || p.email;
-                        const isChecked = metaTeamMembers.includes(val);
-                        const sublabel = p.pangkat && p.golongan
-                          ? `${p.pangkat} · ${p.golongan}`
-                          : p.role;
-                        return (
-                          <label key={p.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer border-b border-dark-gray/5 last:border-b-0">
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setMetaTeamMembers([...metaTeamMembers, val]);
-                                } else {
-                                  setMetaTeamMembers(metaTeamMembers.filter(m => m !== val));
-                                }
-                              }}
-                              className="rounded border-dark-gray/20 text-peach-accent focus:ring-peach-accent/30"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs font-bold text-dark-gray truncate">{val}</div>
-                              <div className="text-[10px] text-dark-gray/55 font-semibold">{sublabel}</div>
-                            </div>
-                          </label>
-                        );
-                      })}
-                      {userProfiles.length === 0 && (
-                        <div className="p-3 text-xs text-center text-dark-gray/50 italic">Tidak ada profil tersedia</div>
-                      )}
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex gap-2 pt-2 border-t border-dark-gray/10">
@@ -714,8 +665,13 @@ export default function AuditWorkspaceView({
             <div className="bg-dark-gray text-white rounded-xl p-5 border border-white/5 shadow-md">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1.5">
-                  <h3 className="text-base font-extrabold tracking-tight text-white leading-tight">
+                  <h3 className="text-base font-extrabold tracking-tight text-white leading-tight flex items-center gap-2">
                     {activeCategory.name}
+                    {!isReadOnly && userRole === 'Auditor' && (
+                      <button onClick={openEditCategoryTeam} className="p-1 hover:bg-white/10 rounded cursor-pointer transition-colors" title="Edit Tim & Tahun Kategori">
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </h3>
                   <p className="text-xs text-white/80 leading-relaxed max-w-2xl">
                     {activeCategory.description}
@@ -971,8 +927,8 @@ export default function AuditWorkspaceView({
       {/* Add Custom Category Popup Form */}
       {isAddingCategory && (
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
-            <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray">
+            <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between rounded-t-2xl">
               <span className="font-extrabold text-xs tracking-wide">Tambah Jenis Audit Pemeriksaan Baru (A.1)</span>
               <button onClick={() => setIsAddingCategory(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
@@ -1155,6 +1111,144 @@ export default function AuditWorkspaceView({
 
               <div className="flex gap-2 pt-2 border-t border-dark-gray/10">
                 <button type="button" onClick={() => setIsAddingItem(false)} className="flex-1 bg-white py-2 border border-dark-gray/15 rounded-lg font-bold text-dark-gray cursor-pointer">Batal</button>
+                <button type="submit" className="flex-1 bg-peach-accent border border-dark-gray/10 py-2 rounded-lg font-black text-dark-gray hover:opacity-90 cursor-pointer">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Category Team Modal */}
+      {isEditingCategoryTeam && (
+        <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray">
+            <div className="bg-dark-gray text-white rounded-t-2xl px-4 py-3 flex items-center justify-between">
+              <span className="font-extrabold text-xs tracking-wide">Edit Tim Kategori</span>
+              <button onClick={() => setIsEditingCategoryTeam(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
+            </div>
+            <form onSubmit={handleSaveCategoryTeam} className="p-4 space-y-3.5 text-xs">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Tahun Anggaran</label>
+                <select
+                  value={editCatFiscalYear}
+                  onChange={e => setEditCatFiscalYear(e.target.value)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent cursor-pointer"
+                >
+                  <option value="2026">2026</option>
+                  <option value="2025">2025</option>
+                </select>
+              </div>
+              
+              <div className="space-y-1 relative">
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama (Ketua Tim)</label>
+                <div 
+                  onClick={() => setIsEditCatAuditorDropdownOpen(!isEditCatAuditorDropdownOpen)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent cursor-pointer flex justify-between items-center"
+                >
+                  <span>{editCatAuditorName || '-- Pilih Ketua Tim --'}</span>
+                  <ChevronDown className="w-4 h-4 text-dark-gray/50" />
+                </div>
+
+                {isEditCatAuditorDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg overflow-hidden max-h-48 flex flex-col">
+                    <div className="p-2 border-b border-dark-gray/10 bg-slate-50 sticky top-0">
+                      <input
+                        type="text"
+                        placeholder="Cari nama..."
+                        value={editCatAuditorSearchQuery}
+                        onChange={(e) => setEditCatAuditorSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-hidden focus:border-peach-accent"
+                      />
+                    </div>
+                    <div className="overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
+                      {userProfiles
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatAuditorSearchQuery.toLowerCase()))
+                        .map(p => {
+                          const isSelected = editCatAuditorName === (p.full_name || p.email);
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                setEditCatAuditorName(p.full_name || p.email);
+                                setIsEditCatAuditorDropdownOpen(false);
+                                setEditCatAuditorSearchQuery('');
+                              }}
+                              className={`text-[10px] p-2 rounded cursor-pointer font-medium flex items-center justify-between ${
+                                isSelected ? 'bg-peach-accent/20 text-dark-gray font-bold' : 'hover:bg-dark-gray/5 text-dark-gray/80'
+                              }`}
+                            >
+                              <span>{p.full_name || p.email}</span>
+                              {isSelected && <Check className="w-3 h-3 text-dark-gray" />}
+                            </div>
+                          );
+                        })
+                      }
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1 relative">
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Anggota Tim (Pilih Beberapa)</label>
+                <div 
+                  onClick={() => setIsEditCatTeamDropdownOpen(!isEditCatTeamDropdownOpen)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent cursor-pointer flex justify-between items-center"
+                >
+                  <span className="truncate">
+                    {editCatTeamMembers.length > 0 
+                      ? `${editCatTeamMembers.length} anggota dipilih`
+                      : '-- Pilih Anggota --'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-dark-gray/50" />
+                </div>
+                
+                {isEditCatTeamDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-dark-gray/15 rounded-lg shadow-lg overflow-hidden max-h-48 flex flex-col">
+                    <div className="p-2 border-b border-dark-gray/10 bg-slate-50 sticky top-0">
+                      <input
+                        type="text"
+                        placeholder="Cari anggota..."
+                        value={editCatTeamSearchQuery}
+                        onChange={(e) => setEditCatTeamSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-hidden focus:border-peach-accent"
+                      />
+                    </div>
+                    <div className="overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
+                      {userProfiles
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase()))
+                        .map(p => {
+                          const name = p.full_name || p.email;
+                          const isSelected = editCatTeamMembers.includes(name);
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isSelected) {
+                                  setEditCatTeamMembers(prev => prev.filter(n => n !== name));
+                                } else {
+                                  setEditCatTeamMembers(prev => [...prev, name]);
+                                }
+                              }}
+                              className={`text-[10px] p-2 rounded cursor-pointer font-medium flex items-center justify-between ${
+                                isSelected ? 'bg-peach-accent/20 text-dark-gray font-bold' : 'hover:bg-dark-gray/5 text-dark-gray/80'
+                              }`}
+                            >
+                              <span>{name}</span>
+                              {isSelected && <Check className="w-3 h-3 text-dark-gray" />}
+                            </div>
+                          );
+                        })
+                      }
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-dark-gray/10">
+                <button type="button" onClick={() => setIsEditingCategoryTeam(false)} className="flex-1 bg-white py-2 border border-dark-gray/15 rounded-lg font-bold text-dark-gray cursor-pointer">Batal</button>
                 <button type="submit" className="flex-1 bg-peach-accent border border-dark-gray/10 py-2 rounded-lg font-black text-dark-gray hover:opacity-90 cursor-pointer">Simpan</button>
               </div>
             </form>
