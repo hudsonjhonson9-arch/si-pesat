@@ -146,6 +146,7 @@ export default function AuditWorkspaceView({
   // Editing School General Information
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
   const [metaSchoolName, setMetaSchoolName] = useState(audit.opdName);
+  const [metaOpdType, setMetaOpdType] = useState<OpdAudit['opdType']>(audit.opdType || 'Dinas');
   const [metaAuditorName, setMetaAuditorName] = useState(audit.auditorName);
   const [metaStatus, setMetaStatus] = useState<AuditStatus>(audit.status);
   const [metaFiscalYear, setMetaFiscalYear] = useState(audit.fiscalYear);
@@ -184,6 +185,7 @@ export default function AuditWorkspaceView({
     onUpdates({
       ...audit,
       opdName: metaSchoolName,
+      opdType: metaOpdType,
       fiscalYear: metaFiscalYear
     });
     setIsEditingMetadata(false);
@@ -527,8 +529,20 @@ export default function AuditWorkspaceView({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1 col-span-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Tipe Objek</label>
+                    <select
+                      value={metaOpdType}
+                      onChange={e => setMetaOpdType(e.target.value as OpdAudit['opdType'])}
+                      className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray font-bold outline-none"
+                    >
+                      {['SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'Puskesmas', 'Lainnya'].map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
                     <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Tahun Anggaran</label>
                     <select
                       value={metaFiscalYear}
