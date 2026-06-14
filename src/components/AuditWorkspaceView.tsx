@@ -646,7 +646,7 @@ export default function AuditWorkspaceView({
                   <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-1">
                     <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Ketua Tim: <span className="text-white font-normal">{activeCategory.auditorName || 'Belum diatur'}</span></div>
                     <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Anggota Tim: <span className="text-white font-normal">{activeCategory.teamMembers && activeCategory.teamMembers.length > 0 ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></div>
-                    <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Tahun Anggaran: <span className="text-white font-normal">{activeCategory.fiscalYear || audit.fiscalYear}</span></div>
+
                   </div>
                 </div>
 
@@ -1099,17 +1099,7 @@ export default function AuditWorkspaceView({
               <button onClick={() => setIsEditingCategoryTeam(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleSaveCategoryTeam} className="p-4 space-y-3.5 text-xs">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Tahun Anggaran</label>
-                <select
-                  value={editCatFiscalYear}
-                  onChange={e => setEditCatFiscalYear(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent cursor-pointer"
-                >
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                </select>
-              </div>
+
               
               <div className="space-y-1 relative">
                 <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama (Ketua Tim)</label>
