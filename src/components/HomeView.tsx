@@ -1,9 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { TargetEntity, OpdAudit } from '../types';
 import { Map as MapIcon, MapPin, Building, Landmark, Activity, User, BookOpen, BarChart3, CheckCircle, FileText, AlertTriangle, ArrowUpRight } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl, GeoJSON } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 
 interface HomeViewProps {
   targetEntities: TargetEntity[];
@@ -28,57 +25,6 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
 
     return { totalAudits, completedAudits, totalTemuan };
   }, [audits]);
-
-  const [loliBoundary, setLoliBoundary] = useState<any>(null);
-
-  useEffect(() => {
-    fetch('/loli_boundary.json')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.type) {
-          setLoliBoundary(data);
-        }
-      })
-      .catch(err => console.error('Failed to load boundary geojson:', err));
-  }, []);
-
-  const getIconForType = (type: string) => {
-    switch (type) {
-      case 'OPD': return <Building className="w-4 h-4" />;
-      case 'Desa': return <Landmark className="w-4 h-4" />;
-      case 'Sekolah': return <BookOpen className="w-4 h-4" />;
-      case 'Puskesmas': return <Activity className="w-4 h-4" />;
-      default: return <MapPin className="w-4 h-4" />;
-    }
-  };
-
-  const getBadgeColor = (type: string) => {
-    switch (type) {
-      case 'OPD': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Desa': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'Sekolah': return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'Puskesmas': return 'bg-rose-100 text-rose-800 border-rose-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const createCustomIcon = (type: string) => {
-    let colorClass = 'bg-slate-500 text-white';
-    switch (type) {
-      case 'OPD': colorClass = 'bg-blue-600 text-white'; break;
-      case 'Desa': colorClass = 'bg-emerald-600 text-white'; break;
-      case 'Sekolah': colorClass = 'bg-amber-500 text-white'; break;
-      case 'Puskesmas': colorClass = 'bg-rose-600 text-white'; break;
-    }
-
-    return L.divIcon({
-      className: 'bg-transparent border-0',
-      html: `<div class="w-7 h-7 rounded-full ${colorClass} border-2 border-white shadow-md flex items-center justify-center font-bold text-[10px] uppercase">${type.charAt(0)}</div>`,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-      popupAnchor: [0, -14]
-    });
-  };
 
   return (
     <div className="space-y-6 animate-fade-in" id="home-view">
@@ -116,60 +62,14 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
             </div>
           </div>
           
-          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] z-10">
-            <MapContainer 
-              center={[-9.6385, 119.3972]} 
-              zoom={12} 
-              scrollWheelZoom={true} 
-              className="absolute inset-0 w-full h-full"
-            >
-              <LayersControl position="topright">
-                <LayersControl.BaseLayer checked name="Peta Jalan (OSM)">
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                </LayersControl.BaseLayer>
-                <LayersControl.BaseLayer name="Peta Satelit (Esri)">
-                  <TileLayer
-                    attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                  />
-                </LayersControl.BaseLayer>
-              </LayersControl>
-
-              {loliBoundary && (
-                <GeoJSON 
-                  data={loliBoundary} 
-                  style={{
-                    color: '#f97316', // peach-accent orange/amber
-                    weight: 2,
-                    opacity: 0.8,
-                    fillColor: '#fdba74',
-                    fillOpacity: 0.1
-                  }} 
-                />
-              )}
-
-              {targetEntities.map(entity => (
-                entity.latitude && entity.longitude ? (
-                  <Marker 
-                    key={entity.id} 
-                    position={[entity.latitude, entity.longitude]}
-                    icon={createCustomIcon(entity.type)}
-                  >
-                    <Popup>
-                      <div className="text-center p-1">
-                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase mb-1.5 ${getBadgeColor(entity.type)}`}>
-                          {entity.type}
-                        </span>
-                        <h4 className="font-bold text-xs text-slate-800 m-0">{entity.name}</h4>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ) : null
-              ))}
-            </MapContainer>
+          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] z-10 rounded-sm">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126130.65487777717!2d119.34005886470355!3d-9.610667794353723!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c4cac4b998cfb27%3A0x6b30f73f278d65de!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1714545000000!5m2!1sid!2sid" 
+              className="absolute inset-0 w-full h-full border-0" 
+              allowFullScreen={false} 
+              loading="lazy" 
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
           </div>
         </div>
 
