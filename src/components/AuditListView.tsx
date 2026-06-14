@@ -301,7 +301,7 @@ export default function AuditListView({
                   </p>
                 </div>
                 <div className="bg-white border border-dark-gray/10 px-2.5 py-1 rounded-full text-[10px] font-black text-dark-gray shadow-xs">
-                  {group.audits.length} Audit
+                  {group.audits.reduce((sum, a) => sum + Math.max(1, a.categories?.length || 0), 0)} Audit
                 </div>
               </div>
               <div className="divide-y divide-dark-gray/5">
