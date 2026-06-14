@@ -456,30 +456,6 @@ export default function AuditWorkspaceView({
             </>
           )}
 
-          {/* Real-time sync status button */}
-          <button
-            disabled={!isDriveConnected || isSyncing}
-            onClick={() => onSync(audit)}
-            className={`text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border ${isDriveConnected
-                ? 'bg-peach-accent text-dark-gray hover:opacity-90 border-dark-gray/10 shadow-xs'
-                : 'bg-white/20 border-dark-gray/5 text-dark-gray/40 cursor-not-allowed'
-              }`}
-          >
-            {isSyncing ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-1.5 h-3.5 w-3.5 text-dark-gray" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Sinkronisasi...
-              </>
-            ) : (
-              <>
-                <Cloud className="w-4 h-4" />
-                {audit.lastSyncedAt ? 'Sinkron Ulang Drive' : 'Kirim Ke Drive'}
-              </>
-            )}
-          </button>
         </div>
       </div>
 
@@ -516,16 +492,7 @@ export default function AuditWorkspaceView({
                 </div>
 
                 <div className="pt-2 border-t border-dark-gray/10 space-y-1.5 text-xs font-semibold">
-                  <div className="flex justify-between">
-                    <span className="text-dark-gray/60 font-bold">Ketua Pemeriksa:</span>
-                    <span className="font-extrabold text-dark-gray truncate max-w-[150px]">{audit.auditorName}</span>
-                  </div>
-                  {audit.teamMembers && audit.teamMembers.length > 0 && (
-                    <div className="flex flex-col">
-                      <span className="text-dark-gray/60 font-bold">Anggota Tim:</span>
-                      <span className="font-extrabold text-dark-gray">{audit.teamMembers.join(', ')}</span>
-                    </div>
-                  )}
+
                   <div className="flex justify-between">
                     <span className="text-dark-gray/60 font-bold">Status Berkas:</span>
                     <span className="font-extrabold text-green-850">{audit.status}</span>
@@ -676,6 +643,11 @@ export default function AuditWorkspaceView({
                   <p className="text-xs text-white/80 leading-relaxed max-w-2xl">
                     {activeCategory.description}
                   </p>
+                  <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-1">
+                    <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Ketua Tim: <span className="text-white font-normal">{activeCategory.auditorName || 'Belum diatur'}</span></div>
+                    <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Anggota Tim: <span className="text-white font-normal">{activeCategory.teamMembers && activeCategory.teamMembers.length > 0 ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></div>
+                    <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Tahun Anggaran: <span className="text-white font-normal">{activeCategory.fiscalYear || audit.fiscalYear}</span></div>
+                  </div>
                 </div>
 
                 {/* Category stats badges (Mobile friendly flex block) */}
