@@ -83,7 +83,7 @@ export default function TemplateConfiguratorView({
     const newTemplateId = `template_${Date.now()}`;
     const newTemplate: KKATemplate = {
       id: newTemplateId,
-      name: 'Template Baru',
+      name: 'Jenis Audit Baru',
       isDefault: false,
       categories: [
         {
@@ -104,7 +104,7 @@ export default function TemplateConfiguratorView({
       alert('Harus ada setidaknya satu template.');
       return;
     }
-    const confirmed = window.confirm('Apakah Anda yakin ingin menghapus template ini?');
+    const confirmed = window.confirm('Apakah Anda yakin ingin mengHapus Jenis Audit ini?');
     if (confirmed) {
       const newTemplates = templates.filter(t => t.id !== id);
       onUpdateTemplates(newTemplates);
@@ -205,7 +205,7 @@ export default function TemplateConfiguratorView({
   const handleDeleteItem = (itemId: string) => {
     if (!selectedCatId || !activeCategory) return;
     if (activeCategory.items.length <= 1) {
-      alert('Kategori template harus menyimpan minimal satu kriteria pemeriksaan.');
+      alert('Kategori Jenis Audit harus menyimpan minimal satu kriteria pemeriksaan.');
       return;
     }
     const confirmed = window.confirm('Apakah Anda yakin ingin menghapus kriteria pemeriksaan default ini dari template master?');
@@ -297,10 +297,10 @@ export default function TemplateConfiguratorView({
       <div className="bg-amber-100/45 border border-amber-200/50 text-dark-gray p-4 rounded-xl text-xs space-y-1.5 shadow-xs">
         <div className="flex items-center gap-1.5 font-bold text-amber-900">
           <AlertCircle className="w-4 h-4 text-amber-800 flex-shrink-0" />
-          <span className="font-extrabold text-dark-gray">Konfigurasi Template KKA Dinamis (A.2)</span>
+          <span className="font-extrabold text-dark-gray">Konfigurasi Jenis Audit Pemeriksaan Dinamis (A.2)</span>
         </div>
         <p className="leading-relaxed font-semibold text-dark-gray/90">
-          Kriteria dan Kategori di halaman ini adalah <strong>master template default</strong>. Setiap kali Anda menekan tombol <strong>"Mulai Audit Baru"</strong> di beranda, struktur daftar periksa akan disalin langsung dari apa yang Anda atur di bawah ini. Audit yang sudah berjalan tidak akan terpengaruh.
+          Kriteria dan Kategori di halaman ini adalah <strong>master jenis audit default</strong>. Setiap kali Anda menekan tombol <strong>"Mulai Audit Baru"</strong> di beranda, struktur daftar periksa akan disalin langsung dari apa yang Anda atur di bawah ini. Audit yang sudah berjalan tidak akan terpengaruh.
         </p>
       </div>
 
@@ -332,7 +332,7 @@ export default function TemplateConfiguratorView({
         {/* Template Sidebar column */}
         <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Template</span>
+            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Jenis Audit</span>
             <button
               onClick={handleAddTemplate}
               className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
@@ -355,14 +355,14 @@ export default function TemplateConfiguratorView({
                 >
                   <span className="truncate pr-8">{t.name}</span>
                   {!t.isDefault && (
-                    <div className="absolute right-2 opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5">
+                    <div className="absolute right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex items-center gap-1.5">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteTemplate(t.id);
                         }}
                         className={`p-1 rounded text-xs ${isActive ? 'text-white/80 hover:bg-white/20 hover:text-white' : 'text-dark-gray/60 hover:text-rose-700'}`}
-                        title="Hapus Template"
+                        title="Hapus Jenis Audit"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -377,7 +377,7 @@ export default function TemplateConfiguratorView({
         {/* Category config column */}
         <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Kategori Template</span>
+            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Kategori Jenis Audit</span>
             <button
               onClick={() => setIsAddingCategory(true)}
               className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
@@ -392,7 +392,7 @@ export default function TemplateConfiguratorView({
               value={template?.name || ''}
               onChange={e => handleTemplateNameChange(e.target.value)}
               className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded bg-white text-dark-gray outline-none focus:border-dark-gray/30"
-              placeholder="Nama Template"
+              placeholder="Nama Jenis Audit"
             />
           </div>
 
@@ -449,7 +449,7 @@ export default function TemplateConfiguratorView({
                   <span className="truncate pr-8">{cat.name}</span>
                   
                   {/* Actions buttons */}
-                  <div className="absolute right-2 opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5">
+                  <div className="absolute right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex items-center gap-1.5">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -556,7 +556,7 @@ export default function TemplateConfiguratorView({
                           <p className="text-xs text-dark-gray/80 font-medium leading-relaxed pr-6">{item.description}</p>
                         </div>
 
-                        <div className="opacity-0 group-hover:opacity-100 transition flex items-center justify-end gap-1 flex-shrink-0">
+                        <div className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex items-center justify-end gap-1 flex-shrink-0">
                           <button
                             onClick={() => startEditingItem(item)}
                             className="p-1 text-dark-gray/60 hover:text-dark-gray rounded transition cursor-pointer"
@@ -591,7 +591,7 @@ export default function TemplateConfiguratorView({
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
             <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Tambah Kategori Template Baru (A.1)</span>
+              <span className="font-extrabold text-xs tracking-wide">Tambah Kategori Jenis Audit Baru (A.1)</span>
               <button onClick={() => setIsAddingCategory(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleAddCategory} className="p-4 space-y-3.5 text-xs">
@@ -610,7 +610,7 @@ export default function TemplateConfiguratorView({
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Ruang Lingkup Deskripsi</label>
                 <textarea
-                  placeholder="Deskripsikan pengujian kriteria pada seksi template baru..."
+                  placeholder="Deskripsikan pengujian kriteria pada seksi Jenis Audit Baru..."
                   value={newCatDesc}
                   onChange={e => setNewCatDesc(e.target.value)}
                   rows={2}

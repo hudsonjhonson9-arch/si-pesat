@@ -111,7 +111,7 @@ export default function AuditWorkspaceView({
   const [metaAuditorName, setMetaAuditorName] = useState(audit.auditorName);
   const [metaStatus, setMetaStatus] = useState<AuditStatus>(audit.status);
   const [metaFiscalYear, setMetaFiscalYear] = useState(audit.fiscalYear);
-  const [metaAuditType, setMetaAuditType] = useState<AuditType>(audit.auditType || 'Audit Keuangan');
+  const [metaAuditType, setMetaAuditType] = useState<AuditType>(audit.auditType || 'Belum Diatur');
   const [metaTeamMembers, setMetaTeamMembers] = useState<string[]>(audit.teamMembers || []);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
 
@@ -459,7 +459,7 @@ export default function AuditWorkspaceView({
                 <div>
                   <h2 className="text-lg font-black text-dark-gray flex flex-wrap items-center gap-2">
                     {audit.opdName}
-                    <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{audit.auditType || 'Audit Keuangan'}</span>
+                    <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{audit.auditType || 'Belum Diatur'}</span>
                   </h2>
                   <p className="text-xs text-dark-gray/70 mt-0.5">Jenjang {audit.opdType} • Tahun Anggaran {audit.fiscalYear}</p>
                 </div>
@@ -514,18 +514,14 @@ export default function AuditWorkspaceView({
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Jenis Audit</label>
-                    <select
+                    <input
+                      type="text"
                       value={metaAuditType}
-                      onChange={e => setMetaAuditType(e.target.value as any)}
-                      className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray font-bold focus:border-peach-accent outline-none"
-                    >
-                      <option value="Audit Keuangan">Audit Keuangan</option>
-                      <option value="Audit Ketaatan">Audit Ketaatan</option>
-                      <option value="Audit Kinerja">Audit Kinerja</option>
-                      <option value="Audit Tujuan Tertentu">Audit Tujuan Tertentu</option>
-                      <option value="Reviu">Reviu</option>
-                      <option value="Lainnya">Lainnya</option>
-                    </select>
+                      readOnly
+                      disabled
+                      className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-dark-gray/5 text-dark-gray/60 font-bold outline-none cursor-not-allowed"
+                      title="Jenis Audit ditentukan otomatis dari Template yang dipilih saat inisiasi."
+                    />
                   </div>
                 </div>
                   <div className="space-y-1 mt-2">

@@ -322,7 +322,7 @@ export default function AuditListView({
                       <div className="flex-1 min-w-0 flex items-center gap-4">
                         <div className="w-[140px] shrink-0">
                           <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate">
-                            {audit.auditType || 'Audit Keuangan'}
+                            {audit.auditType || 'Belum Diatur'}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
@@ -364,7 +364,7 @@ export default function AuditListView({
                                   onDeleteAudit(audit.id);
                                 }
                               }}
-                              className="p-1.5 text-rose-700 hover:text-rose-900 hover:bg-rose-100/50 border border-transparent hover:border-rose-200/55 rounded-md transition cursor-pointer opacity-0 group-hover:opacity-100"
+                              className="p-1.5 text-rose-700 hover:text-rose-900 hover:bg-rose-100/50 border border-transparent hover:border-rose-200/55 rounded-md transition cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100"
                               title="Hapus KKA"
                             >
                               <Trash2 className="w-4 h-4" />
