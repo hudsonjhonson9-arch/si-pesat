@@ -29,7 +29,6 @@ import { Session, User } from '@supabase/supabase-js';
 
 // Custom subcomponents
 import HomeView from './components/HomeView';
-import DashboardView from './components/DashboardView';
 import AuditListView from './components/AuditListView';
 import AuditWorkspaceView from './components/AuditWorkspaceView';
 import TemplateConfiguratorView from './components/TemplateConfiguratorView';
@@ -535,15 +534,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <HomeView targetEntities={targetEntities} />;
-      case 'analytics':
-        return (
-          <DashboardView 
-            audits={audits}
-            onSelectAudit={(aud) => setSelectedAuditId(aud.id)}
-            userRole={userRole}
-          />
-        );
+        return <HomeView targetEntities={targetEntities} audits={audits} />;
       case 'audits':
         return (
           <AuditListView
@@ -659,16 +650,6 @@ export default function App() {
                 <BarChart3 className="w-4 h-4" /> Beranda
               </button>
               <button
-                onClick={() => { setActiveTab('analytics'); setSelectedAuditId(null); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                  activeTab === 'analytics' && !selectedAuditId
-                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
-                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4" /> Analitik
-              </button>
-              <button
                 onClick={() => { setActiveTab('audits'); setSelectedAuditId(null); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                   activeTab === 'audits' || selectedAuditId
@@ -743,7 +724,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16">
-          <div className="grid grid-cols-5 h-full">
+          <div className="grid grid-cols-4 h-full">
             <button
               onClick={() => { setActiveTab('dashboard'); setSelectedAuditId(null); }}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -752,16 +733,6 @@ export default function App() {
             >
               <BarChart3 className="w-5 h-5" />
               <span className="text-[9px] tracking-wide">Beranda</span>
-            </button>
-
-            <button
-              onClick={() => { setActiveTab('analytics'); setSelectedAuditId(null); }}
-              className={`flex flex-col items-center justify-center gap-1 transition ${
-                activeTab === 'analytics' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Analitik</span>
             </button>
 
             <button

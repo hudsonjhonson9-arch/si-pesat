@@ -20,7 +20,8 @@ import {
   User,
   ArrowRight,
   Calculator,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
 
 interface AuditListViewProps {
@@ -61,6 +62,7 @@ export default function AuditListView({
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
 
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
@@ -465,19 +467,44 @@ export default function AuditListView({
               </div>
 
               {/* Anggota Tim */}
-              <div className="space-y-1">
+              <div className="space-y-1 relative">
                 <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Anggota Tim (Pilih Beberapa)</label>
-                <select
-                  multiple
-                  value={newTeamMembers}
-                  onChange={e => setNewTeamMembers(Array.from(e.target.selectedOptions, (option: HTMLOptionElement) => option.value))}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent min-h-[80px]"
+                <div 
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray flex justify-between items-center cursor-pointer"
+                  onClick={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
                 >
-                  {userProfiles.map(p => (
-                    <option key={p.id} value={p.full_name || p.email}>{p.full_name || p.email} ({p.role})</option>
-                  ))}
-                </select>
-                <p className="text-[9.5px] text-dark-gray/50 italic">Tahan tombol Ctrl (Windows) atau Cmd (Mac) untuk memilih lebih dari satu.</p>
+                  <span className={newTeamMembers.length === 0 ? "text-dark-gray/50" : ""}>
+                    {newTeamMembers.length === 0 ? "Pilih Anggota Tim" : `${newTeamMembers.length} Anggota Terpilih`}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-dark-gray/50" />
+                </div>
+
+                {isTeamDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto">
+                    {userProfiles.map(p => {
+                      const val = p.full_name || p.email;
+                      const isChecked = newTeamMembers.includes(val);
+                      return (
+                        <label key={p.id} className="flex items-center gap-3 p-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0">
+                          <input 
+                            type="checkbox" 
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNewTeamMembers([...newTeamMembers, val]);
+                              } else {
+                                setNewTeamMembers(newTeamMembers.filter(m => m !== val));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-slate-300 text-peach-accent focus:ring-peach-accent"
+                          />
+                          <span className="text-xs font-medium text-slate-700">{val} <span className="text-slate-400 font-normal">({p.role})</span></span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               </div>
 
               {/* Action buttons */}

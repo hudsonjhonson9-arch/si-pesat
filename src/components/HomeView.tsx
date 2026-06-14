@@ -1,15 +1,32 @@
-import React from 'react';
-import { TargetEntity } from '../types';
-import { Map as MapIcon, MapPin, Building, Landmark, Activity, User, BookOpen } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { TargetEntity, OpdAudit } from '../types';
+import { Map as MapIcon, MapPin, Building, Landmark, Activity, User, BookOpen, BarChart3, CheckCircle, FileText, AlertTriangle } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 interface HomeViewProps {
   targetEntities: TargetEntity[];
+  audits?: OpdAudit[];
 }
 
-export default function HomeView({ targetEntities }: HomeViewProps) {
+export default function HomeView({ targetEntities, audits = [] }: HomeViewProps) {
+  // Simple analytics computation
+  const stats = useMemo(() => {
+    const totalAudits = audits.length;
+    const completedAudits = audits.filter(a => a.status === 'Selesai').length;
+    let totalTemuan = 0;
+    
+    audits.forEach(audit => {
+      audit.categories.forEach(cat => {
+        cat.items.forEach(item => {
+          if (item.status === 'Temuan') totalTemuan++;
+        });
+      });
+    });
+
+    return { totalAudits, completedAudits, totalTemuan };
+  }, [audits]);
   const getIconForType = (type: string) => {
     switch (type) {
       case 'OPD': return <Building className="w-4 h-4" />;
@@ -69,7 +86,7 @@ export default function HomeView({ targetEntities }: HomeViewProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Map Section */}
         <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm relative overflow-hidden flex flex-col">
           <div className="flex items-center justify-between mb-4">
@@ -174,6 +191,65 @@ export default function HomeView({ targetEntities }: HomeViewProps) {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Analytics Section */}
+        <div className="lg:col-span-1 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="font-bold text-dark-gray text-base flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-peach-accent" />
+                Analitik KKA
+              </h3>
+              <p className="text-xs text-dark-gray/60 mt-0.5">
+                Progres audit wilayah Loli
+              </p>
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col gap-4">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Total KKA</p>
+                <p className="text-2xl font-black text-slate-800">{stats.totalAudits}</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                <CheckCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Selesai (Final)</p>
+                <p className="text-2xl font-black text-slate-800">{stats.completedAudits}</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Total Temuan</p>
+                <p className="text-2xl font-black text-slate-800">{stats.totalTemuan}</p>
+              </div>
+            </div>
+            
+            {stats.totalAudits > 0 && (
+              <div className="mt-auto bg-peach-accent/10 rounded-xl p-4 border border-peach-accent/20">
+                <p className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider mb-2">Progres Keseluruhan</p>
+                <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                  <div className="bg-peach-accent h-2.5 rounded-full" style={{ width: `${(stats.completedAudits / stats.totalAudits) * 100}%` }}></div>
+                </div>
+                <p className="text-xs text-right mt-1.5 font-bold text-dark-gray">
+                  {Math.round((stats.completedAudits / stats.totalAudits) * 100)}%
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
