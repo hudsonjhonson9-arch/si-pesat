@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { TargetEntity, OpdAudit } from '../types';
 import { Map as MapIcon, MapPin, Building, Landmark, Activity, User, BookOpen, BarChart3, CheckCircle, FileText, AlertTriangle } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, LayersControl, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -27,6 +27,20 @@ export default function HomeView({ targetEntities, audits = [] }: HomeViewProps)
 
     return { totalAudits, completedAudits, totalTemuan };
   }, [audits]);
+
+  const [loliBoundary, setLoliBoundary] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/loli_boundary.json')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.type) {
+          setLoliBoundary(data);
+        }
+      })
+      .catch(err => console.error('Failed to load boundary geojson:', err));
+  }, []);
+
   const getIconForType = (type: string) => {
     switch (type) {
       case 'OPD': return <Building className="w-4 h-4" />;
@@ -122,6 +136,19 @@ export default function HomeView({ targetEntities, audits = [] }: HomeViewProps)
                   />
                 </LayersControl.BaseLayer>
               </LayersControl>
+
+              {loliBoundary && (
+                <GeoJSON 
+                  data={loliBoundary} 
+                  style={{
+                    color: '#f97316', // peach-accent orange/amber
+                    weight: 2,
+                    opacity: 0.8,
+                    fillColor: '#fdba74',
+                    fillOpacity: 0.1
+                  }} 
+                />
+              )}
 
               {targetEntities.map(entity => (
                 entity.latitude && entity.longitude ? (
