@@ -636,7 +636,7 @@ export default function AuditWorkspaceView({
           {/* Category/Instrument Navigation Controller with responsive list */}
           <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3 text-dark-gray">
             <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-              <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Kategori Pemeriksaan KKA</span>
+              <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Jenis Audit Pemeriksaan</span>
               {userRole === 'Auditor' && !isReadOnly && (
                 <button 
                   onClick={() => setIsAddingCategory(true)}
