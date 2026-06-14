@@ -83,7 +83,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
               </p>
             </div>
             <span className="text-[10px] bg-peach-accent text-dark-gray border border-dark-gray/10 px-2.5 py-1 rounded font-bold font-mono uppercase">
-              {audits.length} Objek
+              {targetEntities.length} Objek
             </span>
           </div>
 
@@ -97,48 +97,62 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {audits.length === 0 ? (
+                {targetEntities.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="p-8 text-center text-slate-400">
                       <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      Belum ada KKA.
+                      Belum ada Objek Audit di database.
                     </td>
                   </tr>
                 ) : (
-                  audits.map((audit) => (
-                    <tr
-                      key={audit.id}
-                      className="hover:bg-slate-50/50 transition-colors cursor-pointer"
-                      onClick={() => onSelectAudit && onSelectAudit(audit)}
-                    >
-                      <td className="p-3.5 font-bold text-slate-800">
-                        {audit.opdName}
-                        {audit.categories && audit.categories.length > 0 && (
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            {audit.categories.map(c => (
-                              <span key={c.id} className="text-[9px] bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-medium">
-                                {c.name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-3.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                            audit.status === 'Direview' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                  targetEntities.map((entity) => {
+                    const audit = audits.find(a => a.opdName === entity.name);
+                    
+                    return (
+                      <tr
+                        key={entity.id}
+                        className={`transition-colors ${audit ? 'hover:bg-slate-50/50 cursor-pointer' : ''}`}
+                        onClick={() => audit && onSelectAudit && onSelectAudit(audit)}
+                      >
+                        <td className="p-3.5 font-bold text-slate-800">
+                          {entity.name}
+                          <div className="text-[9px] text-slate-500 font-normal mt-0.5">{entity.type}</div>
+                          {audit && audit.categories && audit.categories.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {audit.categories.map(c => (
+                                <span key={c.id} className="text-[9px] bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-medium">
+                                  {c.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-3.5">
+                          {audit ? (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${
+                              audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                              audit.status === 'Direview' ? 'bg-amber-100 text-amber-800 border-amber-200' :
                               audit.status === 'Sedang Berjalan' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                                'bg-slate-100 text-slate-800 border-slate-200'
-                          }`}>
-                          {audit.status}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <div className="px-3 py-1.5 bg-peach-accent text-dark-gray text-[10px] font-bold rounded-md hover:opacity-90 transition inline-flex items-center gap-1 ml-auto">
-                          <FolderOpen className="w-3.5 h-3.5" /> Buka
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                              'bg-slate-100 text-slate-800 border-slate-200'
+                            }`}>
+                              {audit.status}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase bg-slate-50 text-slate-400 border-slate-200">
+                              Belum Audit
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3.5 text-right">
+                          {audit && (
+                            <div className="px-3 py-1.5 bg-peach-accent text-dark-gray text-[10px] font-bold rounded-md hover:opacity-90 transition inline-flex items-center gap-1 ml-auto">
+                              <FolderOpen className="w-3.5 h-3.5" /> Buka
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

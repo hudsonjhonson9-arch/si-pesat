@@ -577,6 +577,7 @@ export default function App() {
           <AuditListView
             audits={audits}
             templates={templates}
+            targetEntities={targetEntities}
             onSelectAudit={(aud) => navigateTo(`workspace/${aud.id}`)}
             onCreateAudit={handleCreateAudit}
             onDeleteAudit={handleDeleteAudit}

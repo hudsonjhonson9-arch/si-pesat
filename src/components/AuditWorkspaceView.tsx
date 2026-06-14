@@ -897,14 +897,20 @@ export default function AuditWorkspaceView({
 
                 {/* Checklists items */}
                 {activeCategory.items.map((item, idx) => {
-              const hasFinding = item.status === 'Temuan';
-              return (
-                <div 
-                  key={item.id} 
-                  className={`bg-baby-blue rounded-xl border border-dark-gray/10 p-4 transition-all shadow-xs text-dark-gray ${
-                    hasFinding ? 'border-l-4 border-l-rose-500 bg-rose-400/10' : ''
-                  }`}
-                >
+                  const hasFinding = item.status === 'Temuan';
+                  const isNA = item.status === 'N/A';
+                  const isSesuai = item.status === 'Sesuai';
+                  
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`rounded-xl border border-dark-gray/10 p-4 transition-all shadow-xs text-dark-gray ${
+                        hasFinding ? 'border-l-4 border-l-rose-500 bg-rose-400/10' : 
+                        isNA ? 'bg-slate-200/80 grayscale-[20%]' :
+                        isSesuai ? 'bg-emerald-100/60 border-l-4 border-l-emerald-500' :
+                        'bg-baby-blue'
+                      }`}
+                    >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     
                     {/* Title and Descriptions */}

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditStatus, KKATemplate, UserProfile, AuditType } from '../types';
+import { OpdAudit, AuditStatus, KKATemplate, UserProfile, AuditType, TargetEntity } from '../types';
 import { 
   Plus, 
   Search, 
@@ -27,6 +27,7 @@ import {
 interface AuditListViewProps {
   audits: OpdAudit[];
   templates: KKATemplate[];
+  targetEntities: TargetEntity[];
   onSelectAudit: (audit: OpdAudit) => void;
   onCreateAudit: (
     opdName: string, 
@@ -49,6 +50,7 @@ interface AuditListViewProps {
 export default function AuditListView({
   audits,
   templates,
+  targetEntities,
   onSelectAudit,
   onCreateAudit,
   onDeleteAudit,
@@ -422,14 +424,24 @@ export default function AuditListView({
               {/* Nama OPD */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Nama Instansi / OPD / OPD</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Misal: Dinas Kesehatan, SDN 04 Palmerah, Kecamatan Palmerah"
+                <select
                   value={newSchoolName}
-                  onChange={e => setNewSchoolName(e.target.value)}
+                  onChange={e => {
+                    const selectedName = e.target.value;
+                    setNewSchoolName(selectedName);
+                    // Optionally auto-fill opdType if targetEntity matches
+                    const entity = targetEntities.find(t => t.name === selectedName);
+                    if (entity && entity.type) {
+                      setNewSchoolType(entity.type as any);
+                    }
+                  }}
                   className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
-                />
+                >
+                  <option value="" disabled>-- Pilih Objek Audit (Dari Database) --</option>
+                  {targetEntities.map(entity => (
+                    <option key={entity.id} value={entity.name}>{entity.name} ({entity.type})</option>
+                  ))}
+                </select>
               </div>
 
               {/* Jenjang Dan TA */}
