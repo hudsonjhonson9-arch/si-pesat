@@ -268,7 +268,8 @@ export default function AuditListView({
             return (
               <div 
                 key={audit.id}
-                className="bg-baby-blue border rounded-xl border-dark-gray/10 shadow-sm hover:shadow-md transition-all hover:border-peach-accent flex flex-col justify-between overflow-hidden relative group"
+                onClick={() => onSelectAudit(audit)}
+                className="bg-baby-blue border rounded-xl border-dark-gray/10 shadow-sm hover:shadow-md transition-all hover:border-peach-accent flex flex-col justify-between overflow-hidden relative group cursor-pointer"
               >
                 {/* Header card info */}
                 <div className="p-4 space-y-3">
@@ -282,10 +283,7 @@ export default function AuditListView({
                   </div>
 
                   <div className="space-y-1">
-                    <h3 
-                      onClick={() => onSelectAudit(audit)}
-                      className="text-base font-bold text-dark-gray hover:text-dark-gray/80 cursor-pointer transition line-clamp-1 truncate"
-                    >
+                    <h3 className="text-base font-bold text-dark-gray group-hover:text-peach-accent transition line-clamp-1 truncate">
                       {audit.opdName}
                     </h3>
                     <div className="flex items-center gap-1 text-dark-gray/60 text-xs">

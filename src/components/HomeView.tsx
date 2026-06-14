@@ -105,7 +105,11 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                   </tr>
                 ) : (
                   audits.map((audit) => (
-                    <tr key={audit.id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr 
+                      key={audit.id} 
+                      className="hover:bg-slate-50/50 transition-colors cursor-pointer"
+                      onClick={() => onSelectAudit && onSelectAudit(audit)}
+                    >
                       <td className="p-3.5 font-bold text-slate-800">
                         {audit.opdName}
                       </td>
@@ -120,13 +124,9 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                         </span>
                       </td>
                       <td className="p-3.5 text-right">
-                        <button
-                          onClick={() => onSelectAudit && onSelectAudit(audit)}
-                          className="px-3 py-1.5 bg-peach-accent text-dark-gray text-[10px] font-bold rounded-md hover:opacity-90 transition flex items-center gap-1 ml-auto"
-                          title="Buka KKA"
-                        >
+                        <div className="px-3 py-1.5 bg-peach-accent text-dark-gray text-[10px] font-bold rounded-md hover:opacity-90 transition inline-flex items-center gap-1 ml-auto">
                           <FolderOpen className="w-3.5 h-3.5" /> Buka
-                        </button>
+                        </div>
                       </td>
                     </tr>
                   ))
