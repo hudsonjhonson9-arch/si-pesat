@@ -812,8 +812,8 @@ export default function App() {
 
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
-        <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16">
-          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16 pb-safe">
+          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <button
               onClick={() => navigateTo('dashboard')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -832,6 +832,16 @@ export default function App() {
             >
               <School className="w-5 h-5" />
               <span className="text-[9px] tracking-wide">Pemeriksaan</span>
+            </button>
+
+            <button
+              onClick={() => navigateTo('new-audit')}
+              className={`flex flex-col items-center justify-center gap-1 transition ${
+                activeTab === 'new-audit' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              <PlusCircle className="w-5 h-5" />
+              <span className="text-[9px] tracking-wide">Mulai Audit</span>
             </button>
 
             {['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) && (
