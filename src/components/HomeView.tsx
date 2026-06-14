@@ -28,6 +28,12 @@ const OPD_TYPE_COLORS: Record<string, string> = {
 
 export default function HomeView({ targetEntities, audits = [], onSelectAudit, userRole }: HomeViewProps) {
   const [typeFilter, setTypeFilter] = useState<string>('Semua');
+  const [yearFilter, setYearFilter] = useState<string>('Semua');
+
+  const availableYears = useMemo(() => {
+    const years = Array.from(new Set(audits.map(a => a.fiscalYear))).sort().reverse();
+    return ['Semua', ...years];
+  }, [audits]);
 
   // Simple analytics computation
   const stats = useMemo(() => {
@@ -48,9 +54,15 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
   }, [audits]);
 
   const filteredAudits = useMemo(() => {
-    if (typeFilter === 'Semua') return audits;
-    return audits.filter(a => a.opdType === typeFilter);
-  }, [audits, typeFilter]);
+    let result = audits;
+    if (typeFilter !== 'Semua') {
+      result = result.filter(a => a.opdType === typeFilter);
+    }
+    if (yearFilter !== 'Semua') {
+      result = result.filter(a => a.fiscalYear === yearFilter);
+    }
+    return result;
+  }, [audits, typeFilter, yearFilter]);
 
   // Count per type for filter badges
   const typeCounts = useMemo(() => {
@@ -135,9 +147,20 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
                 Pemantauan KKA Irban IV.
               </p>
             </div>
-            <span className="text-[10px] bg-peach-accent text-dark-gray border border-dark-gray/10 px-2.5 py-1 rounded font-bold font-mono uppercase">
-              {filteredAudits.length} Objek
-            </span>
+            <div className="flex flex-col items-end gap-2">
+              <span className="text-[10px] bg-peach-accent text-dark-gray border border-dark-gray/10 px-2.5 py-1 rounded font-bold font-mono uppercase">
+                {filteredAudits.length} Objek
+              </span>
+              <select
+                value={yearFilter}
+                onChange={e => setYearFilter(e.target.value)}
+                className="text-xs font-bold border border-dark-gray/15 px-2 py-1 rounded-lg bg-white text-dark-gray outline-none focus:border-peach-accent"
+              >
+                {availableYears.map(y => (
+                  <option key={y} value={y}>{y === 'Semua' ? 'Semua Tahun' : `TA ${y}`}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Type Filter Chips */}

@@ -43,6 +43,8 @@ export interface AuditCategory {
   fiscalYear?: string;
   auditDate?: string;
   status?: AuditStatus;
+  templateId?: string;
+  categoryId?: string;
 }
 
 export interface OpdAudit {

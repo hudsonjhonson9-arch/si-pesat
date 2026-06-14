@@ -170,7 +170,7 @@ export default function App() {
     }
 
     // Try to fetch real data from Supabase to overwrite local cache if online
-    if (navigator.onLine) {
+    const fetchAudits = () => {
       supabase.from('audits').select('*').then(({ data, error }) => {
         if (!error && data) {
           const mapped = data.map(d => ({
@@ -189,7 +189,6 @@ export default function App() {
           }));
           
           setAudits(prevLocalAudits => {
-            // Keep local audits that are NOT in DB but have NO lastSyncedAt (newly created offline)
             const offlineCreatedAudits = prevLocalAudits.filter(
               local => !mapped.find(m => m.id === local.id) && !local.lastSyncedAt
             );
@@ -197,6 +196,17 @@ export default function App() {
           });
         }
       });
+    };
+
+    if (navigator.onLine) {
+      fetchAudits();
+
+      // Realtime subscription
+      const auditsChannel = supabase.channel('audits_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'audits' }, () => {
+          fetchAudits();
+        })
+        .subscribe();
 
       supabase.from('templates').select('*').then(({ data, error }) => {
         if (!error && data) {
@@ -257,7 +267,6 @@ export default function App() {
               id: a.id,
               opd_name: a.opdName,
               opd_type: a.opdType,
-              audit_type: a.auditType,
               fiscal_year: a.fiscalYear,
               auditor_name: a.auditorName,
               audit_date: a.auditDate,
@@ -479,6 +488,8 @@ export default function App() {
         auditorName: auditorName,
         teamMembers: teamMembers,
         fiscalYear: fiscalYear,
+        templateId: templateId,
+        categoryId: tempCat.id,
         items: tempCat.items.map(tempItem => {
           return {
             id: tempItem.id,
@@ -492,6 +503,16 @@ export default function App() {
         })
       };
     });
+
+    const existingAudit = audits.find(a => a.opdName.toLowerCase() === opdName.trim().toLowerCase() && a.fiscalYear === fiscalYear);
+    if (existingAudit) {
+      const updatedAudit = { ...existingAudit, categories: [...existingAudit.categories, ...initialCategories] };
+      setAudits(prev => prev.map(a => a.id === existingAudit.id ? updatedAudit : a));
+      setSelectedAuditId(existingAudit.id);
+      setActiveTab('workspace');
+      showToast('Berhasil menambahkan jenis audit ke berkas yang sudah ada.', 'success');
+      return;
+    }
 
     // Generate a valid UUID for Supabase
     const auditId = typeof crypto !== 'undefined' && crypto.randomUUID 
@@ -598,6 +619,7 @@ export default function App() {
       case 'new-audit':
         return (
           <NewAuditView
+            audits={audits}
             templates={templates}
             userProfiles={userProfiles}
             defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}

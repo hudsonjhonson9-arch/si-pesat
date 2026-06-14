@@ -178,10 +178,11 @@ export default function AuditWorkspaceView({
   }, [templates, audit.categories]);
 
   // Check if current user is a member of any category team (Auditor access control)
-  const isTeamMember = userRole !== 'Auditor' || !currentUserName || audit.categories.some(cat =>
-    cat.auditorName === currentUserName ||
-    (cat.teamMembers || []).includes(currentUserName)
-  );
+  const isTeamMember = userRole !== 'Auditor' || !currentUserName || audit.categories.some(cat => {
+    const currNameLower = currentUserName.toLowerCase().trim();
+    return (cat.auditorName || '').toLowerCase().trim() === currNameLower ||
+           (cat.teamMembers || []).some(m => m.toLowerCase().trim() === currNameLower);
+  });
 
   const isReadOnly = !isTeamMember ||
     (userRole === 'Auditor' && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||

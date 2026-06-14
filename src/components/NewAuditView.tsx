@@ -19,6 +19,7 @@ interface CategoryDraft {
 }
 
 interface NewAuditViewProps {
+  audits: OpdAudit[];
   templates: KKATemplate[];
   userProfiles: UserProfile[];
   defaultAuditorName?: string;
@@ -39,6 +40,7 @@ const OPD_TYPES: OpdAudit['opdType'][] = ['SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Din
 const FISCAL_YEARS = ['2026', '2025', '2024', '2023'];
 
 export default function NewAuditView({
+  audits,
   templates,
   userProfiles,
   defaultAuditorName = '',
@@ -63,7 +65,10 @@ export default function NewAuditView({
 
   const selectedTemplate = templates.find(t => t.id === selTemplateId) || templates[0];
 
-  const addedCategoryIds = categories.map(c => c.templateId + '|' + c.categoryId);
+  const existingAudit = audits.find(a => a.opdName.toLowerCase() === opdName.trim().toLowerCase() && a.fiscalYear === fiscalYear);
+  const existingCategoryIds = existingAudit ? existingAudit.categories.map(c => c.templateId + '|' + (c as any).categoryId) : [];
+
+  const addedCategoryIds = [...categories.map(c => c.templateId + '|' + c.categoryId), ...existingCategoryIds];
 
   const availableCategories = selectedTemplate?.categories.filter(
     c => !addedCategoryIds.includes(selTemplateId + '|' + c.id)
