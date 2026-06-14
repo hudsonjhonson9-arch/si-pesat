@@ -354,16 +354,16 @@ export default function TemplateConfiguratorView({
                 >
                   <span className="truncate pr-8">{t.name}</span>
                   {!t.isDefault && (
-                    <div className="absolute right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex items-center gap-1.5">
+                    <div className="absolute right-2 flex items-center gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteTemplate(t.id);
                         }}
-                        className={`p-1 rounded text-xs ${isActive ? 'text-white/80 hover:bg-white/20 hover:text-white' : 'text-dark-gray/60 hover:text-rose-700'}`}
+                        className={`p-2 rounded-lg transition-colors shadow-sm border ${isActive ? 'bg-rose-500/20 text-white border-rose-500/30 hover:bg-rose-500 hover:border-rose-500' : 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100 hover:text-rose-700 cursor-pointer'}`}
                         title="Hapus Jenis Audit"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   )}
@@ -444,29 +444,29 @@ export default function TemplateConfiguratorView({
                       : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/60 font-semibold'
                     }`}
                 >
-                  <span className="truncate pr-8">{cat.name}</span>
+                  <span className="truncate pr-16">{cat.name}</span>
 
                   {/* Actions buttons */}
-                  <div className="absolute right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex items-center gap-1.5">
+                  <div className="absolute right-2 flex items-center gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         startEditingCat(cat);
                       }}
-                      className={`p-1 rounded text-xs ${isActive ? 'text-white/80 hover:bg-white/20 hover:text-white' : 'text-dark-gray/60 hover:text-dark-gray'}`}
+                      className={`p-2 rounded-lg transition-colors shadow-sm border ${isActive ? 'bg-white/20 text-white border-white/30 hover:bg-white hover:text-dark-gray' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800 cursor-pointer'}`}
                       title="Ubah Seksi"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
+                      <Edit3 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteCategory(cat.id);
                       }}
-                      className={`p-1 rounded text-xs ${isActive ? 'text-white/80 hover:bg-white/20 hover:text-white' : 'text-dark-gray/60 hover:text-rose-700'}`}
+                      className={`p-2 rounded-lg transition-colors shadow-sm border ${isActive ? 'bg-rose-500/20 text-white border-rose-500/30 hover:bg-rose-500 hover:border-rose-500' : 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100 hover:text-rose-700 cursor-pointer'}`}
                       title="Hapus Seksi"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -554,20 +554,20 @@ export default function TemplateConfiguratorView({
                           <p className="text-xs text-dark-gray/80 font-medium leading-relaxed pr-6">{item.description}</p>
                         </div>
 
-                        <div className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition flex items-center justify-end gap-1 flex-shrink-0">
+                        <div className="flex items-center justify-end gap-2 flex-shrink-0">
                           <button
                             onClick={() => startEditingItem(item)}
-                            className="p-1 text-dark-gray/60 hover:text-dark-gray rounded transition cursor-pointer"
+                            className="p-2 bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition shadow-sm cursor-pointer"
                             title="Ubah Dokumen"
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteItem(item.id)}
-                            className="p-1 text-dark-gray/60 hover:text-rose-700 rounded transition cursor-pointer"
+                            className="p-2 bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition shadow-sm cursor-pointer"
                             title="Hapus Dokumen"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>

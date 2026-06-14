@@ -400,7 +400,7 @@ export default function AuditListView({
                                 onDeleteAudit(audit.id);
                               }
                             }}
-                            className="p-1.5 text-rose-700 hover:text-rose-900 hover:bg-rose-100/50 border border-transparent hover:border-rose-200/55 rounded-md transition cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                            className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 border border-rose-100 rounded-xl transition cursor-pointer shadow-sm"
                             title="Hapus Pemeriksaan"
                           >
                             <Trash2 className="w-4 h-4" />
