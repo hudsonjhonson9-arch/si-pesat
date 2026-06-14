@@ -461,12 +461,14 @@ export default function App() {
     fiscalYear: string, 
     auditorName: string,
     teamMembers: string[],
-    templateId: string
+    templateId: string,
+    initialCategoryId?: string
   ) => {
     // Copy checklist structures from active configured template (Requirement A.2)
     const selectedTemplate = templates.find(t => t.id === templateId) || templates[0];
     const auditType = selectedTemplate.name;
-    const initialCategories: AuditCategory[] = selectedTemplate.categories.map(tempCat => {
+    const catsToCopy = initialCategoryId ? selectedTemplate.categories.filter(c => c.id === initialCategoryId) : [];
+    const initialCategories: AuditCategory[] = catsToCopy.map(tempCat => {
       return {
         id: tempCat.id,
         name: tempCat.name,

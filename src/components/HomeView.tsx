@@ -113,6 +113,15 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                     >
                       <td className="p-3.5 font-bold text-slate-800">
                         {audit.opdName}
+                        {audit.categories && audit.categories.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {audit.categories.map(c => (
+                              <span key={c.id} className="text-[9px] bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-medium">
+                                {c.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="p-3.5">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :

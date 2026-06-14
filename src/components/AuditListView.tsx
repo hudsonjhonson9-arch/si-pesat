@@ -35,7 +35,8 @@ interface AuditListViewProps {
     fiscalYear: string, 
     auditorName: string, 
     teamMembers: string[],
-    templateId: string
+    templateId: string,
+    initialCategoryId?: string
   ) => void;
   onDeleteAudit: (auditId: string) => void;
   onSyncToDrive: (audit: OpdAudit) => void;
@@ -72,6 +73,7 @@ export default function AuditListView({
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
   const [newTeamMembers, setNewTeamMembers] = useState<string[]>([]);
   const [newTemplateId, setNewTemplateId] = useState<string>(templates.length > 0 ? templates[0].id : '');
+  const [newInitialCategoryId, setNewInitialCategoryId] = useState<string>('');
 
   // Prefill auditor name when context is ready or modal is launched
   React.useEffect(() => {
@@ -166,7 +168,8 @@ export default function AuditListView({
       newFiscalYear,
       newAuditorName,
       newTeamMembers,
-      newTemplateId
+      newTemplateId,
+      newInitialCategoryId
     );
 
     // Reset and close
@@ -321,9 +324,19 @@ export default function AuditListView({
                       {/* Left side info */}
                       <div className="flex-1 min-w-0 flex items-center gap-4">
                         <div className="w-[140px] shrink-0">
-                          <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate">
-                            {audit.auditType || 'Belum Diatur'}
-                          </span>
+                          <div className="flex flex-col gap-1 items-center">
+                            {audit.categories.length > 0 ? (
+                              audit.categories.map(c => (
+                                <span key={c.id} className="text-[9px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block text-center truncate w-full" title={c.name}>
+                                  {c.name}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-[9px] bg-slate-100 border border-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider block text-center truncate w-full">
+                                Belum Ada Jenis Audit
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
                           <div className="flex items-center gap-2 text-xs text-dark-gray">
@@ -456,14 +469,31 @@ export default function AuditListView({
               {/* Template dan Tipe KKA */}
               <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Jenis Audit Pemeriksaan</label>
+                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Kertas Kerja Master</label>
                   <select
                     value={newTemplateId}
-                    onChange={e => setNewTemplateId(e.target.value)}
+                    onChange={e => {
+                      setNewTemplateId(e.target.value);
+                      setNewInitialCategoryId('');
+                    }}
                     className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
                   >
                     {templates.map(t => (
                       <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Jenis Audit Awal (Opsional)</label>
+                  <select
+                    value={newInitialCategoryId}
+                    onChange={e => setNewInitialCategoryId(e.target.value)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
+                  >
+                    <option value="">-- Pilih Jenis Audit --</option>
+                    {templates.find(t => t.id === newTemplateId)?.categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>

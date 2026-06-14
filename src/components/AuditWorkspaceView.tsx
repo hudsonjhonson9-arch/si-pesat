@@ -464,7 +464,12 @@ export default function AuditWorkspaceView({
                 <div>
                   <h2 className="text-lg font-black text-dark-gray flex flex-wrap items-center gap-2">
                     {audit.opdName}
-                    <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{audit.auditType || 'Belum Diatur'}</span>
+                    <div className="flex flex-wrap gap-1 items-center">
+                      <span className="text-[9px] bg-dark-gray/10 border border-dark-gray/20 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" title="Master Kertas Kerja">Master: {audit.auditType || 'Tanpa Master'}</span>
+                      {audit.categories.map(c => (
+                        <span key={c.id} className="text-[9px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" title="Jenis Audit">{c.name}</span>
+                      ))}
+                    </div>
                   </h2>
                   <p className="text-xs text-dark-gray/70 mt-0.5">Jenjang {audit.opdType} • Tahun Anggaran {audit.fiscalYear}</p>
                 </div>
