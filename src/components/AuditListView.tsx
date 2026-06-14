@@ -68,11 +68,10 @@ export default function AuditListView({
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
   const [newSchoolType, setNewSchoolType] = useState<'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya'>('SD');
-  const [newAuditType, setNewAuditType] = useState<AuditType>('Audit Keuangan');
   const [newFiscalYear, setNewFiscalYear] = useState('2026');
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
   const [newTeamMembers, setNewTeamMembers] = useState<string[]>([]);
-  const [newTemplateId, setNewTemplateId] = useState(templates.length > 0 ? templates[0].id : '');
+  const [newTemplateId, setNewTemplateId] = useState<string>(templates.length > 0 ? templates[0].id : '');
 
   // Prefill auditor name when context is ready or modal is launched
   React.useEffect(() => {
@@ -163,7 +162,7 @@ export default function AuditListView({
     onCreateAudit(
       newSchoolName,
       newSchoolType,
-      newAuditType,
+      'Audit Keuangan',
       newFiscalYear,
       newAuditorName,
       newTeamMembers,
@@ -173,8 +172,7 @@ export default function AuditListView({
     // Reset and close
     setNewSchoolName('');
     setNewAuditorName('');
-    setNewAuditorName('');
-    setNewTeamMembers('');
+    setNewTeamMembers([]);
     setIsCreateModalOpen(false);
   };
 
@@ -456,25 +454,9 @@ export default function AuditListView({
               </div>
 
               {/* Template dan Tipe KKA */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Jenis Audit</label>
-                  <select
-                    value={newAuditType}
-                    onChange={e => setNewAuditType(e.target.value as any)}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
-                  >
-                    <option value="Audit Keuangan">Audit Keuangan</option>
-                    <option value="Audit Ketaatan">Audit Ketaatan</option>
-                    <option value="Audit Kinerja">Audit Kinerja</option>
-                    <option value="Audit Tujuan Tertentu">Audit Tujuan Tertentu</option>
-                    <option value="Reviu">Reviu</option>
-                    <option value="Lainnya">Lainnya</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Template KKA</label>
+                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Jenis Audit Pemeriksaan</label>
                   <select
                     value={newTemplateId}
                     onChange={e => setNewTemplateId(e.target.value)}

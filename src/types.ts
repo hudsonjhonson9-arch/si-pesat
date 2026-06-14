@@ -4,7 +4,7 @@
  */
 
 export type AuditStatus = 'Draft' | 'Sedang Berjalan' | 'Direview' | 'Selesai';
-export type AuditType = 'Audit Keuangan' | 'Audit Ketaatan' | 'Audit Kinerja' | 'Audit Tujuan Tertentu' | 'Reviu' | 'Lainnya';
+export type AuditType = string;
 
 export type FindingStatus = 'Sesuai' | 'Temuan' | 'N/A';
 

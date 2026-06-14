@@ -263,7 +263,6 @@ export default function EvidencePanel({
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".pdf,.xlsx,.xls,.docx,.doc,image/*"
                     disabled={isUploading}
                     onChange={(e) => {
                       const file = e.target.files?.[0];

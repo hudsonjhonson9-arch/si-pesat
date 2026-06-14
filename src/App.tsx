@@ -35,9 +35,40 @@ import TemplateConfiguratorView from './components/TemplateConfiguratorView';
 import LoginView from './components/LoginView';
 
 export default function App() {
-  // Navigation & General Tabs
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'template'>('dashboard');
+  // Navigation & General Tabs based on URL Hash
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit'>('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
+
+  // Router logic for hash changes (browser back/forward support)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash.startsWith('workspace/')) {
+        const id = hash.split('/')[1];
+        setActiveTab('audits');
+        setSelectedAuditId(id);
+      } else if (hash === 'jenis-audit' || hash === 'audits' || hash === 'dashboard') {
+        setActiveTab(hash as any);
+        setSelectedAuditId(null);
+      } else {
+        setActiveTab('dashboard');
+        setSelectedAuditId(null);
+      }
+    };
+
+    // Initialize on load
+    if (!window.location.hash) {
+      window.history.replaceState(null, '', '#dashboard');
+    }
+    handleHashChange();
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    window.location.hash = path;
+  };
 
   // Core Applet States
   const [audits, setAudits] = useState<OpdAudit[]>([]);
@@ -426,7 +457,7 @@ export default function App() {
   const handleCreateAudit = (
     opdName: string, 
     opdType: OpdAudit['opdType'], 
-    auditType: OpdAudit['auditType'],
+    _legacyAuditType: string, // Kept for backwards compatibility with AuditListView call signature
     fiscalYear: string, 
     auditorName: string,
     teamMembers: string[],
@@ -434,6 +465,7 @@ export default function App() {
   ) => {
     // Copy checklist structures from active configured template (Requirement A.2)
     const selectedTemplate = templates.find(t => t.id === templateId) || templates[0];
+    const auditType = selectedTemplate.name;
     const initialCategories: AuditCategory[] = selectedTemplate.categories.map(tempCat => {
       return {
         id: tempCat.id,
@@ -524,7 +556,7 @@ export default function App() {
       return (
         <AuditWorkspaceView
           audit={activeAudit}
-          onBack={() => setSelectedAuditId(null)}
+          onBack={() => navigateTo('audits')}
           onUpdates={handleUpdateAudit}
           onSync={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
           isDriveConnected={true}
@@ -537,13 +569,13 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud) => setSelectedAuditId(aud.id)} />;
+        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud) => navigateTo(`workspace/${aud.id}`)} />;
       case 'audits':
         return (
           <AuditListView
             audits={audits}
             templates={templates}
-            onSelectAudit={(aud) => setSelectedAuditId(aud.id)}
+            onSelectAudit={(aud) => navigateTo(`workspace/${aud.id}`)}
             onCreateAudit={handleCreateAudit}
             onDeleteAudit={handleDeleteAudit}
             onSyncToDrive={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
@@ -553,7 +585,7 @@ export default function App() {
             userProfiles={userProfiles}
           />
         );
-      case 'template':
+      case 'jenis-audit':
         return (
           <TemplateConfiguratorView
             templates={templates}
@@ -628,7 +660,7 @@ export default function App() {
             {/* Desktop Center Navigation Menu */}
             <nav className="hidden md:flex items-center gap-2">
               <button
-                onClick={() => { setActiveTab('dashboard'); setSelectedAuditId(null); }}
+                onClick={() => navigateTo('dashboard')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                   activeTab === 'dashboard' && !selectedAuditId
                     ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
@@ -638,7 +670,7 @@ export default function App() {
                 <BarChart3 className="w-4 h-4" /> Beranda
               </button>
               <button
-                onClick={() => { setActiveTab('audits'); setSelectedAuditId(null); }}
+                onClick={() => navigateTo('audits')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                   activeTab === 'audits' || selectedAuditId
                     ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
@@ -648,14 +680,14 @@ export default function App() {
                 <School className="w-4 h-4" /> Pemeriksaan
               </button>
               <button
-                onClick={() => { setActiveTab('template'); setSelectedAuditId(null); }}
+                onClick={() => navigateTo('jenis-audit')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                  activeTab === 'template' && !selectedAuditId
+                  activeTab === 'jenis-audit' && !selectedAuditId
                     ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
                     : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                 }`}
               >
-                <Settings className="w-4 h-4" /> Template
+                <Settings className="w-4 h-4" /> Jenis Audit
               </button>
             </nav>
 
@@ -704,7 +736,7 @@ export default function App() {
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16">
           <div className="grid grid-cols-3 h-full">
             <button
-              onClick={() => { setActiveTab('dashboard'); setSelectedAuditId(null); }}
+              onClick={() => navigateTo('dashboard')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
                 activeTab === 'dashboard' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
               }`}
@@ -714,7 +746,7 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => { setActiveTab('audits'); setSelectedAuditId(null); }}
+              onClick={() => navigateTo('audits')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
                 activeTab === 'audits' || selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
               }`}
@@ -724,13 +756,13 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => { setActiveTab('template'); setSelectedAuditId(null); }}
+              onClick={() => navigateTo('jenis-audit')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
-                activeTab === 'template' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+                activeTab === 'jenis-audit' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
               }`}
             >
               <Settings className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Template</span>
+              <span className="text-[9px] tracking-wide">Jenis Audit</span>
             </button>
           </div>
         </footer>
