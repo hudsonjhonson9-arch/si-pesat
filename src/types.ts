@@ -4,6 +4,7 @@
  */
 
 export type AuditStatus = 'Draft' | 'Sedang Berjalan' | 'Direview' | 'Selesai';
+export type AuditType = 'Audit Keuangan' | 'Audit Ketaatan' | 'Audit Kinerja' | 'Audit Tujuan Tertentu' | 'Reviu' | 'Lainnya';
 
 export type FindingStatus = 'Sesuai' | 'Temuan' | 'N/A';
 
@@ -42,6 +43,7 @@ export interface OpdAudit {
   id: string;
   opdName: string; // Nama Instansi / OPD / OPD
   opdType: 'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Desa' | 'Kelurahan' | 'Puskesmas' | 'Lainnya';
+  auditType: AuditType;
   fiscalYear: string;
   auditorName: string;
   auditDate: string;

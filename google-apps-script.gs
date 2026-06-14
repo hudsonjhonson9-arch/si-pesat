@@ -76,6 +76,9 @@ function doPost(e) {
     if (payload.opd) {
       currentFolder = getOrCreateFolder(currentFolder, payload.opd);
     }
+    if (payload.auditType) {
+      currentFolder = getOrCreateFolder(currentFolder, payload.auditType);
+    }
 
     let file;
     if (payload.action === 'copy') {

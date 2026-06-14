@@ -12,7 +12,8 @@ import { OpdAudit } from '../types';
 export async function uploadEvidenceFile(
   file: File,
   year?: string,
-  opdName?: string
+  opdName?: string,
+  auditType?: string
 ): Promise<{ id: string; name: string; webViewLink: string }> {
   const SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
 
@@ -33,7 +34,8 @@ export async function uploadEvidenceFile(
           mimeType: file.type || 'application/octet-stream',
           base64: base64Data,
           year: year,
-          opd: opdName
+          opd: opdName,
+          auditType: auditType
         };
 
         const response = await fetch(SCRIPT_URL, {
@@ -76,7 +78,8 @@ export async function copyEvidenceFileFromUrl(
   sourceUrl: string,
   fileName: string,
   year?: string,
-  opdName?: string
+  opdName?: string,
+  auditType?: string
 ): Promise<{ id: string; name: string; webViewLink: string }> {
   const SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
 
@@ -101,7 +104,8 @@ export async function copyEvidenceFileFromUrl(
     sourceId: sourceId,
     name: fileName,
     year: year,
-    opd: opdName
+    opd: opdName,
+    auditType: auditType
   };
 
   const response = await fetch(SCRIPT_URL, {

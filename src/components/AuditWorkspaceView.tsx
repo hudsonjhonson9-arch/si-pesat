@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, UserProfile } from '../types';
+import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
 import EvidencePanel from './EvidencePanel';
 import { 
@@ -67,7 +67,7 @@ export default function AuditWorkspaceView({
   const handleDirectUpload = async (itemId: string, file: File) => {
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
-      const res = await uploadEvidenceFile(file, audit.fiscalYear, audit.opdName);
+      const res = await uploadEvidenceFile(file, audit.fiscalYear, audit.opdName, audit.auditType);
       handleFindingDetailChange(itemId, 'evidenceLink', res.webViewLink);
       handleFindingDetailChange(itemId, 'evidenceName', res.name);
       alert(`Sukses! Berkas bukti "${res.name}" berhasil diunggah langsung ke Google Drive dan tautan dokumen tersemat.`);
@@ -85,7 +85,7 @@ export default function AuditWorkspaceView({
     if (!sourceUrl || !sourceUrl.includes('drive.google.com')) return;
     setCopyingIds(prev => ({ ...prev, [itemId]: true }));
     try {
-      const res = await copyEvidenceFileFromUrl(sourceUrl, currentName || `Copy_of_${itemId}`, audit.fiscalYear, audit.opdName);
+      const res = await copyEvidenceFileFromUrl(sourceUrl, currentName || `Copy_of_${itemId}`, audit.fiscalYear, audit.opdName, audit.auditType);
       handleFindingDetailChange(itemId, 'evidenceLink', res.webViewLink);
       handleFindingDetailChange(itemId, 'evidenceName', res.name);
       alert(`Sukses! Berkas dari tautan berhasil disalin ke Drive Pusat sebagai "${res.name}".`);
@@ -107,6 +107,7 @@ export default function AuditWorkspaceView({
   const [metaAuditorName, setMetaAuditorName] = useState(audit.auditorName);
   const [metaStatus, setMetaStatus] = useState<AuditStatus>(audit.status);
   const [metaFiscalYear, setMetaFiscalYear] = useState(audit.fiscalYear);
+  const [metaAuditType, setMetaAuditType] = useState<AuditType>(audit.auditType || 'Audit Keuangan');
   const [metaTeamMembers, setMetaTeamMembers] = useState<string[]>(audit.teamMembers || []);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
 
@@ -128,6 +129,7 @@ export default function AuditWorkspaceView({
       auditorName: metaAuditorName,
       status: metaStatus,
       fiscalYear: metaFiscalYear,
+      auditType: metaAuditType,
       teamMembers: metaTeamMembers
     });
     setIsEditingMetadata(false);
@@ -428,7 +430,10 @@ export default function AuditWorkspaceView({
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-dark-gray">{audit.opdName}</h2>
+                  <h2 className="text-lg font-black text-dark-gray flex flex-wrap items-center gap-2">
+                    {audit.opdName}
+                    <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{audit.auditType || 'Audit Keuangan'}</span>
+                  </h2>
                   <p className="text-xs text-dark-gray/70 mt-0.5">Jenjang {audit.opdType} • Tahun Anggaran {audit.fiscalYear}</p>
                 </div>
 
@@ -478,10 +483,25 @@ export default function AuditWorkspaceView({
                     >
                       <option value="2026">2026</option>
                       <option value="2025">2025</option>
-                      <option value="2024">2024</option>
                     </select>
                   </div>
                   <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Jenis Audit</label>
+                    <select
+                      value={metaAuditType}
+                      onChange={e => setMetaAuditType(e.target.value as any)}
+                      className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray font-bold focus:border-peach-accent outline-none"
+                    >
+                      <option value="Audit Keuangan">Audit Keuangan</option>
+                      <option value="Audit Ketaatan">Audit Ketaatan</option>
+                      <option value="Audit Kinerja">Audit Kinerja</option>
+                      <option value="Audit Tujuan Tertentu">Audit Tujuan Tertentu</option>
+                      <option value="Reviu">Reviu</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                  </div>
+                </div>
+                  <div className="space-y-1 mt-2">
                     <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Status</label>
                     <select
                       value={metaStatus}
@@ -494,7 +514,6 @@ export default function AuditWorkspaceView({
                       <option value="Selesai">LHP Selesai</option>
                     </select>
                   </div>
-                </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama</label>
@@ -739,15 +758,15 @@ export default function AuditWorkspaceView({
                       </p>
                     </div>
 
-                    {/* Checkbox Status Row Selector (Highly Mobile-First responsive button group) */}
-                    <div className="flex items-center gap-1 bg-white/30 p-1 rounded-lg self-start md:self-auto flex-shrink-0 border border-dark-gray/5">
+                    {/* Checkbox Status Row Selector */}
+                    <div className="flex items-center gap-1.5 bg-white/50 p-1.5 rounded-lg self-start md:self-auto flex-shrink-0 border border-dark-gray/10">
                       <button
                         disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'Sesuai')}
-                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
+                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
                           item.status === 'Sesuai' 
-                            ? 'bg-emerald-700 text-white shadow-xs' 
-                            : `text-dark-gray/60 ${!isReadOnly && 'hover:text-dark-gray hover:bg-white/35'}`
+                            ? 'bg-emerald-600 text-white shadow-md scale-105' 
+                            : `bg-emerald-50 text-emerald-700/70 border border-emerald-200/50 ${!isReadOnly && 'hover:bg-emerald-100 hover:text-emerald-800'}`
                         } ${isReadOnly && 'opacity-70'}`}
                       >
                         Sesuai
@@ -755,10 +774,10 @@ export default function AuditWorkspaceView({
                       <button
                         disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'Temuan')}
-                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
+                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
                           item.status === 'Temuan' 
-                            ? 'bg-rose-700 text-white shadow-xs' 
-                            : `text-dark-gray/60 ${!isReadOnly && 'hover:text-rose-700 hover:bg-white/35'}`
+                            ? 'bg-rose-600 text-white shadow-md scale-105' 
+                            : `bg-rose-50 text-rose-700/70 border border-rose-200/50 ${!isReadOnly && 'hover:bg-rose-100 hover:text-rose-800'}`
                         } ${isReadOnly && 'opacity-70'}`}
                       >
                         Temuan
@@ -766,10 +785,10 @@ export default function AuditWorkspaceView({
                       <button
                         disabled={isReadOnly}
                         onClick={() => handleItemStatusChange(item.id, 'N/A')}
-                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
+                        className={`text-[10px] font-black px-3 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
                           item.status === 'N/A' 
-                            ? 'bg-dark-gray text-white shadow-xs' 
-                            : `text-dark-gray/60 ${!isReadOnly && 'hover:text-dark-gray hover:bg-white/35'}`
+                            ? 'bg-slate-700 text-white shadow-md scale-105' 
+                            : `bg-slate-100 text-slate-600/70 border border-slate-200/50 ${!isReadOnly && 'hover:bg-slate-200 hover:text-slate-800'}`
                         } ${isReadOnly && 'opacity-70'}`}
                       >
                         N/A

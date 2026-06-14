@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditStatus, KKATemplate, UserProfile } from '../types';
+import { OpdAudit, AuditStatus, KKATemplate, UserProfile, AuditType } from '../types';
 import { 
   Plus, 
   Search, 
@@ -30,7 +30,8 @@ interface AuditListViewProps {
   onSelectAudit: (audit: OpdAudit) => void;
   onCreateAudit: (
     opdName: string, 
-    opdType: 'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya', 
+    opdType: OpdAudit['opdType'], 
+    auditType: AuditType,
     fiscalYear: string, 
     auditorName: string, 
     teamMembers: string[],
@@ -67,6 +68,7 @@ export default function AuditListView({
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
   const [newSchoolType, setNewSchoolType] = useState<'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya'>('SD');
+  const [newAuditType, setNewAuditType] = useState<AuditType>('Audit Keuangan');
   const [newFiscalYear, setNewFiscalYear] = useState('2026');
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
   const [newTeamMembers, setNewTeamMembers] = useState<string[]>([]);
@@ -114,6 +116,19 @@ export default function AuditListView({
     return count;
   };
 
+  const calculateProgress = (audit: OpdAudit) => {
+    let evaluatedItems = 0;
+    let totalItems = 0;
+    audit.categories.forEach(cat => {
+      cat.items.forEach(item => {
+        totalItems++;
+        if (item.status !== 'N/A') evaluatedItems++;
+      });
+    });
+    if (totalItems === 0) return 0;
+    return Math.round((evaluatedItems / totalItems) * 100);
+  };
+
   // Dynamic status configurations
   const statusConfig: Record<AuditStatus, { bg: string; text: string; label: string }> = {
     'Draft': { bg: 'bg-slate-50 border-slate-200 text-slate-700', text: 'slate', label: 'Draft KKA' },
@@ -148,6 +163,7 @@ export default function AuditListView({
     onCreateAudit(
       newSchoolName,
       newSchoolType,
+      newAuditType,
       newFiscalYear,
       newAuditorName,
       newTeamMembers,
@@ -262,90 +278,111 @@ export default function AuditListView({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="audit-grid">
-          {filteredAudits.map((audit) => {
-            const totalFindingsVal = calculateTotalFindings(audit);
-            const itemsCount = calculateFindingCount(audit);
-
-            return (
-              <div 
-                key={audit.id}
-                onClick={() => onSelectAudit(audit)}
-                className="bg-baby-blue border rounded-xl border-dark-gray/10 shadow-sm hover:shadow-md transition-all hover:border-peach-accent flex flex-col justify-between overflow-hidden relative group cursor-pointer"
-              >
-                {/* Header card info */}
-                <div className="p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-peach-accent text-dark-gray border border-dark-gray/10 flex-shrink-0">
-                      {audit.opdType}
-                    </span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border ${statusConfig[audit.status]?.bg || 'bg-white/50 border-dark-gray/10 text-dark-gray'} font-semibold flex-shrink-0`}>
-                      {statusConfig[audit.status]?.label || audit.status}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <h3 className="text-base font-bold text-dark-gray group-hover:text-peach-accent transition line-clamp-1 truncate">
-                      {audit.opdName}
-                    </h3>
-                    <div className="flex items-center gap-1 text-dark-gray/60 text-xs">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Tahun Anggaran {audit.fiscalYear}</span>
-                    </div>
-                  </div>
-
-                  {/* Auditor in charge info */}
-                  <div className="flex flex-col gap-1.5 text-xs text-dark-gray/80 bg-white/40 px-2.5 py-1.5 rounded-lg border border-dark-gray/5">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <User className="w-3.5 h-3.5 text-dark-gray/50 flex-shrink-0" />
-                      <span className="truncate font-bold">Ketua Tim: {audit.auditorName || 'Belum Ditugaskan'}</span>
-                    </div>
-                    {audit.teamMembers && audit.teamMembers.length > 0 && (
-                      <div className="flex items-start gap-1.5 text-[10px] text-dark-gray/60 pl-5">
-                        <span className="truncate">Anggota: {audit.teamMembers.join(', ')}</span>
-                      </div>
-                    )}
-                  </div>
+        <div className="space-y-6" id="audit-grid">
+          {Object.entries(
+            filteredAudits.reduce((acc, audit) => {
+              const groupKey = `${audit.opdName}_${audit.fiscalYear}`;
+              if (!acc[groupKey]) {
+                acc[groupKey] = {
+                  opdName: audit.opdName,
+                  opdType: audit.opdType,
+                  fiscalYear: audit.fiscalYear,
+                  audits: []
+                };
+              }
+              acc[groupKey].audits.push(audit);
+              return acc;
+            }, {} as Record<string, { opdName: string, opdType: string, fiscalYear: string, audits: OpdAudit[] }>)
+          ).map(([key, group]: [string, { opdName: string, opdType: string, fiscalYear: string, audits: OpdAudit[] }]) => (
+            <div key={key} className="bg-white rounded-2xl border border-dark-gray/15 overflow-hidden shadow-sm">
+              <div className="bg-dark-gray/5 border-b border-dark-gray/10 px-5 py-3 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-dark-gray flex items-center gap-2">
+                    <Building className="w-4 h-4 text-dark-gray/50" />
+                    {group.opdName}
+                  </h3>
+                  <p className="text-[10px] font-semibold text-dark-gray/60 uppercase tracking-widest mt-0.5">
+                    Jenjang {group.opdType} • Tahun Anggaran {group.fiscalYear}
+                  </p>
                 </div>
-
-                {/* Footer interactive bar */}
-                <div className="bg-white/30 px-4 py-3 border-t border-dark-gray/10 flex items-center justify-between mt-auto">
-                  {/* Cloud Status Indicator */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-emerald-800 font-extrabold inline-flex items-center gap-1">
-                      <Cloud className="w-3.5 h-3.5" /> Tersimpan Otomatis
-                    </span>
-                  </div>
-
-                  {/* Actions (Open audit workspace in bottom navigation pattern) */}
-                  <div className="flex items-center gap-1.5">
-                    {userRole === 'Auditor' && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus kertas kerja pemeriksaan untuk ${audit.opdName}?`);
-                          if (confirmed) {
-                            onDeleteAudit(audit.id);
-                          }
-                        }}
-                        className="p-1.5 text-rose-700 hover:text-rose-900 hover:bg-rose-100/50 border border-transparent hover:border-rose-200/55 rounded-md transition cursor-pointer"
-                        title="Hapus KKA"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => onSelectAudit(audit)}
-                      className="bg-dark-gray hover:bg-dark-gray/80 text-white font-bold text-xs px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1 transition cursor-pointer shadow-sw"
-                    >
-                      Buka KKA <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                <div className="bg-white border border-dark-gray/10 px-2.5 py-1 rounded-full text-[10px] font-black text-dark-gray shadow-xs">
+                  {group.audits.length} Audit
                 </div>
               </div>
-            );
-          })}
+              <div className="divide-y divide-dark-gray/5">
+                {group.audits.map((audit) => {
+                  const itemsCount = calculateFindingCount(audit);
+                  const progress = calculateProgress(audit);
+                  
+                  return (
+                    <div 
+                      key={audit.id}
+                      onClick={() => onSelectAudit(audit)}
+                      className="px-5 py-3.5 hover:bg-baby-blue/40 transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                    >
+                      {/* Left side info */}
+                      <div className="flex-1 min-w-0 flex items-center gap-4">
+                        <div className="w-[140px] shrink-0">
+                          <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate">
+                            {audit.auditType || 'Audit Keuangan'}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center gap-2 text-xs text-dark-gray">
+                            <User className="w-3.5 h-3.5 text-dark-gray/40 shrink-0" />
+                            <span className="font-bold truncate" title={audit.auditorName}>{audit.auditorName || 'Belum Ditugaskan'}</span>
+                          </div>
+                          {audit.teamMembers && audit.teamMembers.length > 0 && (
+                            <p className="text-[10px] text-dark-gray/60 font-medium truncate pl-5">
+                              + {audit.teamMembers.join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right side status & action */}
+                      <div className="flex items-center gap-6 shrink-0 justify-between md:justify-end">
+                        <div className="flex items-center gap-3 w-[180px]">
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${statusConfig[audit.status]?.bg || 'bg-white/50 border-dark-gray/10 text-dark-gray'} font-semibold shrink-0`}>
+                            {statusConfig[audit.status]?.label || audit.status}
+                          </span>
+                          <div className="flex-1 h-1.5 bg-dark-gray/10 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-peach-accent rounded-full transition-all duration-500"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] font-bold text-dark-gray/60 w-8 text-right">{progress}%</span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          {userRole === 'Auditor' && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus kertas kerja pemeriksaan untuk ${audit.opdName}?`);
+                                if (confirmed) {
+                                  onDeleteAudit(audit.id);
+                                }
+                              }}
+                              className="p-1.5 text-rose-700 hover:text-rose-900 hover:bg-rose-100/50 border border-transparent hover:border-rose-200/55 rounded-md transition cursor-pointer opacity-0 group-hover:opacity-100"
+                              title="Hapus KKA"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                          <div className="bg-dark-gray/5 group-hover:bg-dark-gray group-hover:text-white text-dark-gray font-bold p-1.5 rounded-lg transition shadow-xs">
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -418,18 +455,36 @@ export default function AuditListView({
                 </div>
               </div>
 
-              {/* Template KKA */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Template KKA</label>
-                <select
-                  value={newTemplateId}
-                  onChange={e => setNewTemplateId(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
-                >
-                  {templates.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
+              {/* Template dan Tipe KKA */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Jenis Audit</label>
+                  <select
+                    value={newAuditType}
+                    onChange={e => setNewAuditType(e.target.value as any)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
+                  >
+                    <option value="Audit Keuangan">Audit Keuangan</option>
+                    <option value="Audit Ketaatan">Audit Ketaatan</option>
+                    <option value="Audit Kinerja">Audit Kinerja</option>
+                    <option value="Audit Tujuan Tertentu">Audit Tujuan Tertentu</option>
+                    <option value="Reviu">Reviu</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Template KKA</label>
+                  <select
+                    value={newTemplateId}
+                    onChange={e => setNewTemplateId(e.target.value)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
+                  >
+                    {templates.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Nama Pemeriksa / Ketua Tim */}
