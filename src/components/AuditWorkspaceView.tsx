@@ -424,7 +424,14 @@ export default function AuditWorkspaceView({
             <button
               onClick={() => {
                 const confirmed = window.confirm('Apakah Anda yakin ingin mengajukan LHP ini untuk direview oleh pimpinan?');
-                if (confirmed) onUpdates({ ...audit, status: 'Direview' });
+                if (confirmed) {
+                  onUpdates({ 
+                    ...audit, 
+                    status: 'Direview',
+                    categories: audit.categories.map(c => ({ ...c, status: 'Direview' }))
+                  });
+                  alert('Notifikasi: LHP telah diajukan ke Irban untuk direview.');
+                }
               }}
               className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-blue-500 text-white border-blue-600 hover:bg-blue-600 shadow-xs"
             >
@@ -437,7 +444,14 @@ export default function AuditWorkspaceView({
               <button
                 onClick={() => {
                   const confirmed = window.confirm('Apakah Anda menyetujui LHP ini menjadi Selesai?');
-                  if (confirmed) onUpdates({ ...audit, status: 'Selesai' });
+                  if (confirmed) {
+                    onUpdates({ 
+                      ...audit, 
+                      status: 'Selesai',
+                      categories: audit.categories.map(c => ({ ...c, status: 'Selesai' }))
+                    });
+                    alert('Notifikasi: LHP telah disetujui. Auditor akan mendapatkan notifikasi.');
+                  }
                 }}
                 className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-xs"
               >
@@ -446,7 +460,14 @@ export default function AuditWorkspaceView({
               <button
                 onClick={() => {
                   const confirmed = window.confirm('Apakah Anda ingin mengembalikan KKA ini ke Auditor untuk direvisi?');
-                  if (confirmed) onUpdates({ ...audit, status: 'Sedang Berjalan' });
+                  if (confirmed) {
+                    onUpdates({ 
+                      ...audit, 
+                      status: 'Sedang Berjalan',
+                      categories: audit.categories.map(c => ({ ...c, status: 'Sedang Berjalan' }))
+                    });
+                    alert('Notifikasi: LHP dikembalikan. Auditor akan mendapatkan notifikasi revisi.');
+                  }
                 }}
                 className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-rose-500 text-white border-rose-600 hover:bg-rose-600 shadow-xs"
               >

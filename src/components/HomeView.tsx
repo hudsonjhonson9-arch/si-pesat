@@ -6,6 +6,7 @@ interface HomeViewProps {
   targetEntities: TargetEntity[];
   audits?: OpdAudit[];
   onSelectAudit?: (audit: OpdAudit) => void;
+  userRole?: string;
 }
 
 const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'] as const;
@@ -25,7 +26,7 @@ const OPD_TYPE_COLORS: Record<string, string> = {
   Lainnya: 'bg-slate-100 text-slate-800 border-slate-200',
 };
 
-export default function HomeView({ targetEntities, audits = [], onSelectAudit }: HomeViewProps) {
+export default function HomeView({ targetEntities, audits = [], onSelectAudit, userRole }: HomeViewProps) {
   const [typeFilter, setTypeFilter] = useState<string>('Semua');
 
   // Simple analytics computation
@@ -60,8 +61,27 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
     return counts;
   }, [audits]);
 
+  const auditsToReview = useMemo(() => audits.filter(a => a.status === 'Direview'), [audits]);
+
   return (
     <div className="space-y-6 animate-fade-in" id="home-view">
+      {/* Notifications Banner */}
+      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && auditsToReview.length > 0 && (
+        <div className="bg-amber-100 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-200/50 p-2 rounded-full">
+              <AlertTriangle className="w-5 h-5 text-amber-700" />
+            </div>
+            <div>
+              <p className="font-bold text-sm">Menunggu Review Anda</p>
+              <p className="text-xs text-amber-700/80">
+                Terdapat <strong>{auditsToReview.length} LHP</strong> yang diajukan oleh Ketua Tim dan membutuhkan review Anda.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 -mr-10 -mt-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
@@ -179,6 +199,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                             </span>
                           )}
                         </div>
+                      </td>
                       <td className="p-3.5 text-right">
                         <div className="px-3 py-1.5 bg-peach-accent text-dark-gray text-[10px] font-bold rounded-md hover:opacity-90 transition inline-flex items-center gap-1 ml-auto">
                           <FolderOpen className="w-3.5 h-3.5" /> Buka

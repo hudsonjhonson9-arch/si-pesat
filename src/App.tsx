@@ -575,7 +575,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud) => navigateTo(`workspace/${aud.id}`)} />;
+        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud) => navigateTo(`workspace/${aud.id}`)} userRole={userRole} />;
       case 'audits':
         return (
           <AuditListView
