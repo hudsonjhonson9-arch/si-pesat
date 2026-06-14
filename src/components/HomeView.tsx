@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { TargetEntity, OpdAudit } from '../types';
-import { Map as MapIcon, MapPin, Building, Landmark, Activity, User, BookOpen, BarChart3, CheckCircle, FileText, AlertTriangle } from 'lucide-react';
+import { Map as MapIcon, MapPin, Building, Landmark, Activity, User, BookOpen, BarChart3, CheckCircle, FileText, AlertTriangle, ArrowUpRight } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, LayersControl, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -8,9 +8,10 @@ import L from 'leaflet';
 interface HomeViewProps {
   targetEntities: TargetEntity[];
   audits?: OpdAudit[];
+  onSelectAudit?: (audit: OpdAudit) => void;
 }
 
-export default function HomeView({ targetEntities, audits = [] }: HomeViewProps) {
+export default function HomeView({ targetEntities, audits = [], onSelectAudit }: HomeViewProps) {
   // Simple analytics computation
   const stats = useMemo(() => {
     const totalAudits = audits.length;
@@ -115,7 +116,7 @@ export default function HomeView({ targetEntities, audits = [] }: HomeViewProps)
             </div>
           </div>
           
-          <div className="w-full bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] z-10">
+          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden flex-1 relative min-h-[400px] z-10">
             <MapContainer 
               center={[-9.6385, 119.3972]} 
               zoom={12} 
@@ -192,12 +193,13 @@ export default function HomeView({ targetEntities, audits = [] }: HomeViewProps)
                 <tr className="border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                   <th className="p-3.5">Nama Objek</th>
                   <th className="p-3.5 w-24">Status</th>
+                  <th className="p-3.5 w-16"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {audits.length === 0 ? (
                   <tr>
-                    <td colSpan={2} className="p-8 text-center text-slate-400">
+                    <td colSpan={3} className="p-8 text-center text-slate-400">
                       <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       Belum ada KKA.
                     </td>
@@ -217,6 +219,15 @@ export default function HomeView({ targetEntities, audits = [] }: HomeViewProps)
                         }`}>
                           {audit.status}
                         </span>
+                      </td>
+                      <td className="p-3.5 text-right">
+                        <button
+                          onClick={() => onSelectAudit && onSelectAudit(audit)}
+                          className="p-1.5 text-slate-400 hover:text-peach-accent hover:bg-peach-accent/10 rounded-md transition-colors"
+                          title="Buka KKA"
+                        >
+                          <ArrowUpRight className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))
