@@ -172,17 +172,17 @@ export default function HomeView({ targetEntities, audits = [] }: HomeViewProps)
           </div>
         </div>
 
-        {/* Target Entities Table */}
+        {/* Audit Objects Table */}
         <div className="lg:col-span-1 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="font-bold text-dark-gray text-base">Daftar Entitas</h3>
+              <h3 className="font-bold text-dark-gray text-base">Daftar Objek Audit</h3>
               <p className="text-xs text-dark-gray/60 mt-0.5">
-                Wilayah pengawasan Irban IV.
+                Pemantauan KKA Irban IV.
               </p>
             </div>
             <span className="text-[10px] bg-peach-accent text-dark-gray border border-dark-gray/10 px-2.5 py-1 rounded font-bold font-mono uppercase">
-              {targetEntities.length} Entitas
+              {audits.length} Objek
             </span>
           </div>
 
@@ -190,27 +190,32 @@ export default function HomeView({ targetEntities, audits = [] }: HomeViewProps)
             <table className="w-full text-left border-collapse text-xs">
               <thead className="sticky top-0 bg-slate-50 z-10 shadow-xs">
                 <tr className="border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
-                  <th className="p-3.5">Nama Entitas</th>
-                  <th className="p-3.5 w-24">Kategori</th>
+                  <th className="p-3.5">Nama Objek</th>
+                  <th className="p-3.5 w-24">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {targetEntities.length === 0 ? (
+                {audits.length === 0 ? (
                   <tr>
                     <td colSpan={2} className="p-8 text-center text-slate-400">
-                      <Building className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      Belum ada data entitas.
+                      <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      Belum ada KKA.
                     </td>
                   </tr>
                 ) : (
-                  targetEntities.map((entity, idx) => (
-                    <tr key={entity.id} className="hover:bg-slate-50/50 transition-colors">
+                  audits.map((audit) => (
+                    <tr key={audit.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-3.5 font-bold text-slate-800">
-                        {entity.name}
+                        {audit.opdName}
                       </td>
                       <td className="p-3.5">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${getBadgeColor(entity.type)}`}>
-                          {getIconForType(entity.type)} {entity.type}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${
+                          audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                          audit.status === 'Direview' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                          audit.status === 'Sedang Berjalan' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                          'bg-slate-100 text-slate-800 border-slate-200'
+                        }`}>
+                          {audit.status}
                         </span>
                       </td>
                     </tr>
