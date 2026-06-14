@@ -22,12 +22,14 @@ import {
 interface TemplateConfiguratorViewProps {
   templates: KKATemplate[];
   onUpdateTemplates: (updatedTemplates: KKATemplate[]) => void;
+  onDeleteTemplate: (id: string) => void;
   onResetTemplates: () => void;
 }
 
 export default function TemplateConfiguratorView({
   templates,
   onUpdateTemplates,
+  onDeleteTemplate,
   onResetTemplates
 }: TemplateConfiguratorViewProps) {
   
@@ -44,6 +46,16 @@ export default function TemplateConfiguratorView({
   const [selectedCatId, setSelectedCatId] = useState<string>(
     template?.categories?.length > 0 ? template.categories[0].id : ''
   );
+
+  // Update selectedCatId when template changes to avoid pointing to non-existent category
+  React.useEffect(() => {
+    if (template && template.categories.length > 0) {
+      const catExists = template.categories.find(c => c.id === selectedCatId);
+      if (!catExists) {
+        setSelectedCatId(template.categories[0].id);
+      }
+    }
+  }, [template, selectedCatId]);
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCatName, setNewCatName] = useState('');
@@ -99,6 +111,7 @@ export default function TemplateConfiguratorView({
       if (selectedTemplateId === id) {
         setSelectedTemplateId(newTemplates[0].id);
       }
+      onDeleteTemplate(id);
     }
   };
 

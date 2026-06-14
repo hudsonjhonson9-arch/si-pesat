@@ -80,7 +80,6 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
   // Compute stats
   const stats = useMemo(() => {
     let totalAudited = audits.length;
-    let totalBudgetInspected = 0;
     let totalFindingsVal = 0;
     let totalItemsChecked = 0;
     let totalTemuanItems = 0;
@@ -107,7 +106,6 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
     }[] = [];
 
     audits.forEach(audit => {
-      totalBudgetInspected += audit.budget || 0;
       if (audit.status === 'Selesai') {
         completedAudits++;
       } else {
@@ -146,7 +144,6 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
 
     return {
       totalAudited,
-      totalBudgetInspected,
       totalFindingsVal,
       totalItemsChecked,
       totalTemuanItems,
@@ -236,22 +233,8 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
       </div>
 
       {/* Aggregate KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="dashboard-kpis">
-        {/* Card 1: Total Anggaran Diperiksa */}
-        <div className="bg-white rounded-3xl p-4 border border-dark-gray/10 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Total Anggaran Diperiksa</span>
-            <span className="text-lg md:text-xl font-mono font-black text-dark-gray block mt-0.5">
-              {formatIDR(stats.totalBudgetInspected)}
-            </span>
-            <span className="text-[10px] text-dark-gray/80 font-bold inline-flex items-center gap-0.5 mt-0.5">
-              Dari <span className="underline font-black mx-0.5 text-dark-gray">{stats.totalAudited}</span> Objek Pemeriksaan
-            </span>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-baby-blue/40 text-dark-gray flex items-center justify-center border border-dark-gray/10">
-            <School className="w-5 h-5" />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4" id="dashboard-kpis">
+
 
         {/* Card 2: Total Temuan Keuangan */}
         <div className="bg-white rounded-3xl p-4 border border-dark-gray/10 shadow-xs flex items-center justify-between">
@@ -462,13 +445,13 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
         )}
       </div>
 
-      {/* List of Inspected OPDs/Schools and Budgets (Requested by User) */}
+      {/* List of Inspected OPDs/Schools */}
       <div className="bg-white rounded-3xl p-5 md:p-6 border border-dark-gray/10 shadow-sm space-y-5" id="schools-budgets-registry">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-dark-gray/10">
           <div>
-            <h3 className="font-bold text-dark-gray text-base">Daftar Objek Audit (OPD & OPD) & Anggaran</h3>
+            <h3 className="font-bold text-dark-gray text-base">Daftar Objek Audit</h3>
             <p className="text-xs text-dark-gray/70 mt-0.5">
-              Rincian komparasi alokasi Pagu Anggaran (DPA/Dana BOS) tahunan dan progres kertas kerja pemeriksaan (KKA).
+              Rincian objek audit dan progres kertas kerja pemeriksaan (KKA).
             </p>
           </div>
           
@@ -558,7 +541,6 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
                   <tr className="bg-slate-50 border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                     <th className="p-3.5">Nama Instansi / Objek</th>
                     <th className="p-3.5">T.A & Auditor</th>
-                    <th className="p-3.5 text-right">Pagu Anggaran (DPA/BOS)</th>
                     <th className="p-3.5 text-center">Status KKA</th>
                     <th className="p-3.5 text-right">Temuan Keuangan</th>
                     <th className="p-3.5 text-center">Aksi</th>
@@ -607,9 +589,6 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
                             <span className="text-slate-500 font-mono">T.A {audit.fiscalYear}</span>
                             <span className="text-[10px] text-slate-400 block font-medium">Auditor: {audit.auditorName}</span>
                           </div>
-                        </td>
-                        <td className="p-3.5 text-right font-mono font-bold text-slate-800">
-                          {formatIDR(audit.budget)}
                         </td>
                         <td className="p-3.5 text-center">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusStyles[audit.status] || 'bg-slate-150'}`}>
@@ -683,13 +662,7 @@ export default function DashboardView({ audits, onSelectAudit, userRole = 'Audit
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 border-y border-slate-50 py-2">
-                        <div className="text-left">
-                          <span className="text-[10px] text-slate-400 block">Anggaran BOS</span>
-                          <span className="text-xs font-mono font-bold text-slate-800">
-                            {formatIDR(audit.budget)}
-                          </span>
-                        </div>
+                      <div className="grid grid-cols-1 gap-2 border-y border-slate-50 py-2">
                         <div className="text-right">
                           <span className="text-[10px] text-slate-400 block font-bold">Progres Temuan</span>
                           {audit.findingsCount > 0 ? (

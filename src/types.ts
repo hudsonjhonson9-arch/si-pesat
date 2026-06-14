@@ -7,6 +7,13 @@ export type AuditStatus = 'Draft' | 'Sedang Berjalan' | 'Direview' | 'Selesai';
 
 export type FindingStatus = 'Sesuai' | 'Temuan' | 'N/A';
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+}
+
 export interface AuditItem {
   id: string;
   title: string;
@@ -35,7 +42,6 @@ export interface OpdAudit {
   fiscalYear: string;
   auditorName: string;
   auditDate: string;
-  budget: number; // Total Anggaran (Dana BOS atau Anggaran OPD)
   status: AuditStatus;
   progress: number; // Persentase penyelesaian KKA
   categories: AuditCategory[];
@@ -71,4 +77,13 @@ export interface SyncLog {
   type: 'UPLOAD' | 'DOWNLOAD' | 'CREATE_FOLDER' | 'ERROR';
   description: string;
   opdName?: string;
+}
+
+export interface TargetEntity {
+  id: string;
+  name: string;
+  type: 'OPD' | 'Desa' | 'Sekolah' | 'Puskesmas' | 'Lainnya';
+  head_name?: string;
+  contact?: string;
+  address?: string;
 }

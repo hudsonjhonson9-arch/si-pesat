@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus } from '../types';
+import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, UserProfile } from '../types';
 import { uploadEvidenceFile } from '../lib/googleDrive';
 import { 
   ArrowLeft, 
@@ -37,6 +37,7 @@ interface AuditWorkspaceViewProps {
   isSyncing: boolean;
   userRole?: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur';
   accessToken?: string | null;
+  userProfiles: UserProfile[];
 }
 
 export default function AuditWorkspaceView({
@@ -47,7 +48,8 @@ export default function AuditWorkspaceView({
   isDriveConnected,
   isSyncing,
   userRole = 'Auditor',
-  accessToken = null
+  accessToken = null,
+  userProfiles = []
 }: AuditWorkspaceViewProps) {
   
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
@@ -83,18 +85,9 @@ export default function AuditWorkspaceView({
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
   const [metaSchoolName, setMetaSchoolName] = useState(audit.opdName);
   const [metaAuditorName, setMetaAuditorName] = useState(audit.auditorName);
-  const [metaBosBudget, setMetaBosBudget] = useState(audit.budget.toString());
   const [metaStatus, setMetaStatus] = useState<AuditStatus>(audit.status);
   const [metaFiscalYear, setMetaFiscalYear] = useState(audit.fiscalYear);
-  const [metaTeamMembers, setMetaTeamMembers] = useState(audit.teamMembers?.join(', ') || '');
-
-  const formatIDR = (num: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0
-    }).format(num);
-  };
+  const [metaTeamMembers, setMetaTeamMembers] = useState<string[]>(audit.teamMembers || []);
 
   // Find the currently selected category
   const activeCategory = useMemo(() => {
@@ -112,10 +105,9 @@ export default function AuditWorkspaceView({
       ...audit,
       opdName: metaSchoolName,
       auditorName: metaAuditorName,
-      budget: parseFloat(metaBosBudget) || 0,
       status: metaStatus,
       fiscalYear: metaFiscalYear,
-      teamMembers: metaTeamMembers.split(',').map(s => s.trim()).filter(Boolean)
+      teamMembers: metaTeamMembers
     });
     setIsEditingMetadata(false);
   };
@@ -431,10 +423,6 @@ export default function AuditWorkspaceView({
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-dark-gray/60 font-bold">Pagu Anggaran:</span>
-                    <span className="font-extrabold font-mono text-dark-gray">{formatIDR(audit.budget)}</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-dark-gray/60 font-bold">Status Berkas:</span>
                     <span className="font-extrabold text-green-850">{audit.status}</span>
                   </div>
@@ -488,33 +476,35 @@ export default function AuditWorkspaceView({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Pagu Dana BOS / APBD (IDR)</label>
-                  <input
-                    type="number"
-                    value={metaBosBudget}
-                    onChange={e => setMetaBosBudget(e.target.value)}
-                    className="w-full text-xs font-mono font-bold border border-dark-gray/15 p-1.5 rounded bg-white/70 text-dark-gray"
-                  />
-                </div>
-
-                <div className="space-y-1">
                   <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Nama Auditor Utama</label>
-                  <input
-                    type="text"
+                  <select
                     value={metaAuditorName}
                     onChange={e => setMetaAuditorName(e.target.value)}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white/70 text-dark-gray"
-                  />
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none focus:border-peach-accent"
+                  >
+                    <option value="" disabled>Pilih Ketua Tim</option>
+                    {userProfiles.map(p => (
+                      <option key={p.id} value={p.full_name || p.email}>{p.full_name || p.email} ({p.role})</option>
+                    ))}
+                    {/* Fallback if user is not in profiles */}
+                    {!userProfiles.some(p => (p.full_name || p.email) === metaAuditorName) && metaAuditorName && (
+                      <option value={metaAuditorName}>{metaAuditorName}</option>
+                    )}
+                  </select>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Anggota Tim (Koma)</label>
-                  <input
-                    type="text"
+                  <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Anggota Tim (Pilih Beberapa)</label>
+                  <select
+                    multiple
                     value={metaTeamMembers}
-                    onChange={e => setMetaTeamMembers(e.target.value)}
-                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white/70 text-dark-gray"
-                  />
+                    onChange={e => setMetaTeamMembers(Array.from(e.target.selectedOptions, option => option.value))}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none focus:border-peach-accent min-h-[80px]"
+                  >
+                    {userProfiles.map(p => (
+                      <option key={p.id} value={p.full_name || p.email}>{p.full_name || p.email} ({p.role})</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="flex gap-2 pt-2 border-t border-dark-gray/10">
@@ -793,15 +783,15 @@ export default function AuditWorkspaceView({
                         </div>
                       </div>
 
-                      {/* Delete action button for custom item */}
-                      {item.id.startsWith('item_custom_') && userRole === 'Auditor' && !isReadOnly && (
+                      {/* Delete action button for item */}
+                      {userRole === 'Auditor' && !isReadOnly && (
                         <div className="md:col-span-2 pt-1.5 flex justify-end">
                           <button
                             type="button"
                             onClick={() => handleDeleteItem(item.id)}
                             className="text-[10px] text-rose-700 hover:text-rose-950 font-extrabold inline-flex items-center gap-0.5 cursor-pointer bg-white/50 border border-dark-gray/10 px-2 py-1 rounded"
                           >
-                            <Trash2 className="w-3.5 h-3.5" /> Hapus Kriteria Kustom
+                            <Trash2 className="w-3.5 h-3.5" /> Hapus Kriteria
                           </button>
                         </div>
                       )}
@@ -918,14 +908,14 @@ export default function AuditWorkspaceView({
                   </div>
                   
                   {/* Fallback delete button if NOT currently expanded */}
-                  {!hasFinding && item.id.startsWith('item_custom_') && userRole === 'Auditor' && !isReadOnly && (
+                  {!hasFinding && userRole === 'Auditor' && !isReadOnly && (
                     <div className="mt-2.5 pt-2 border-t border-dark-gray/10 flex justify-end">
                       <button
                         type="button"
                         onClick={() => handleDeleteItem(item.id)}
                         className="text-[10px] text-rose-700 hover:text-rose-950 font-bold inline-flex items-center gap-0.5 cursor-pointer bg-white/40 border border-dark-gray/10 px-2 py-0.5 rounded"
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Hapus Kriteria Kustom
+                        <Trash2 className="w-3.5 h-3.5" /> Hapus Kriteria
                       </button>
                     </div>
                   )}

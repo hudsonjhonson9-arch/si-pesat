@@ -22,12 +22,13 @@ import {
   Info
 } from 'lucide-react';
 
-import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem } from './types';
+import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity } from './types';
 import { EMPTY_KKA_TEMPLATE } from './data';
 import { supabase } from './lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
 
 // Custom subcomponents
+import HomeView from './components/HomeView';
 import DashboardView from './components/DashboardView';
 import AuditListView from './components/AuditListView';
 import AuditWorkspaceView from './components/AuditWorkspaceView';
@@ -64,6 +65,8 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
+  const [targetEntities, setTargetEntities] = useState<TargetEntity[]>([]);
 
   // Form notifications
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
@@ -146,27 +149,41 @@ export default function App() {
             fiscalYear: d.fiscal_year,
             auditorName: d.auditor_name,
             auditDate: d.audit_date,
-            budget: d.budget,
             status: d.status,
             progress: d.progress,
             teamMembers: d.team_members || [],
-            categories: d.categories || []
+            categories: d.categories || [],
+            lastSyncedAt: d.updated_at || new Date().toISOString()
           }));
-          if (mapped.length > 0 || !cachedAudits) {
-             setAudits(mapped);
-          }
+          
+          setAudits(prevLocalAudits => {
+            // Keep local audits that are NOT in DB but have NO lastSyncedAt (newly created offline)
+            const offlineCreatedAudits = prevLocalAudits.filter(
+              local => !mapped.find(m => m.id === local.id) && !local.lastSyncedAt
+            );
+            return [...mapped, ...offlineCreatedAudits];
+          });
         }
       });
 
       supabase.from('templates').select('*').then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           const fetchedTemplates = data.map(d => ({
             id: d.id,
             name: d.name,
             isDefault: d.is_default,
-            categories: d.categories || []
+            categories: d.categories || [],
+            lastSyncedAt: d.updated_at || new Date().toISOString()
           }));
-          setTemplates(fetchedTemplates);
+          
+          setTemplates(prevLocalTemplates => {
+            // Keep local templates that are NOT in DB but have NO lastSyncedAt
+            const offlineCreatedTemplates = prevLocalTemplates.filter(
+              local => !fetchedTemplates.find(m => m.id === local.id) && !(local as any).lastSyncedAt && !local.isDefault
+            );
+            const merged = [...fetchedTemplates, ...offlineCreatedTemplates];
+            return merged.length > 0 ? merged : [EMPTY_KKA_TEMPLATE];
+          });
         }
       });
     }
@@ -211,7 +228,6 @@ export default function App() {
               fiscal_year: a.fiscalYear,
               auditor_name: a.auditorName,
               audit_date: a.auditDate,
-              budget: a.budget,
               status: a.status,
               progress: calculateProgress(a),
               categories: a.categories,
@@ -281,6 +297,10 @@ export default function App() {
         const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
         setCustomAuditorName(name);
         
+        supabase.from('profiles').select('id, email, full_name, role').then(({ data, error }) => {
+          if (!error && data) setUserProfiles(data as UserProfile[]);
+        });
+
         supabase.from('profiles').select('role').eq('id', session.user.id).single()
           .then(({ data }) => {
              if (data?.role) setUserRole(data.role as any);
@@ -297,6 +317,14 @@ export default function App() {
          const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
          setCustomAuditorName(name);
          
+         supabase.from('profiles').select('id, email, full_name, role').then(({ data, error }) => {
+           if (!error && data) setUserProfiles(data as UserProfile[]);
+         });
+
+         supabase.from('target_entities').select('*').order('type').then(({ data, error }) => {
+           if (!error && data) setTargetEntities(data as TargetEntity[]);
+         });
+
          supabase.from('profiles').select('role').eq('id', session.user.id).single()
            .then(({ data }) => {
               if (data?.role) {
@@ -399,8 +427,7 @@ export default function App() {
     opdName: string, 
     opdType: OpdAudit['opdType'], 
     fiscalYear: string, 
-    auditorName: string, 
-    budget: number,
+    auditorName: string,
     teamMembers: string[],
     templateId: string
   ) => {
@@ -440,7 +467,6 @@ export default function App() {
       fiscalYear,
       auditorName,
       auditDate: new Date().toISOString().split('T')[0],
-      budget,
       status: 'Draft',
       progress: 0,
       categories: initialCategories,
@@ -460,10 +486,14 @@ export default function App() {
   };
 
   const handleDeleteAudit = async (auditId: string) => {
-    // Deletion from Drive is not supported in current central Web App yet
     setAudits(prev => prev.filter(a => a.id !== auditId));
     if (selectedAuditId === auditId) {
       setSelectedAuditId(null);
+    }
+    if (navigator.onLine) {
+      supabase.from('audits').delete().eq('id', auditId).then(({ error }) => {
+        if (error) console.error("Error deleting audit from Supabase", error);
+      });
     }
     showToast('KKA Berhasil dihapus.', 'info');
   };
@@ -497,14 +527,17 @@ export default function App() {
           onSync={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
           isDriveConnected={true}
           isSyncing={isSyncing}
-          
           userRole={userRole}
+          accessToken={googleAccessToken}
+          userProfiles={userProfiles}
         />
       );
     }
 
     switch (activeTab) {
       case 'dashboard':
+        return <HomeView targetEntities={targetEntities} />;
+      case 'analytics':
         return (
           <DashboardView 
             audits={audits}
@@ -524,6 +557,7 @@ export default function App() {
             isDriveConnected={true}
             userRole={userRole}
             defaultAuditorName={user?.displayName || customAuditorName || ''}
+            userProfiles={userProfiles}
           />
         );
       case 'template':
@@ -531,6 +565,11 @@ export default function App() {
           <TemplateConfiguratorView
             templates={templates}
             onUpdateTemplates={setTemplates}
+            onDeleteTemplate={(id) => {
+              if (navigator.onLine) {
+                supabase.from('templates').delete().eq('id', id).then();
+              }
+            }}
             onResetTemplates={() => {
               setTemplates([EMPTY_KKA_TEMPLATE]);
               showToast('Template master diatur ulang ke standar juknis.', 'info');
@@ -632,6 +671,17 @@ export default function App() {
                 onClick={() => { setActiveTab('dashboard'); setSelectedAuditId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                   activeTab === 'dashboard' && !selectedAuditId
+                    ? 'bg-peach-accent text-dark-gray font-extrabold shadow-sm border border-dark-gray/5' 
+                    : 'hover:bg-white/40 text-dark-gray/75 hover:text-dark-gray'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4" /> Beranda
+              </button>
+
+              <button
+                onClick={() => { setActiveTab('analytics'); setSelectedAuditId(null); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                  activeTab === 'analytics' && !selectedAuditId
                     ? 'bg-peach-accent text-dark-gray font-extrabold shadow-sm border border-dark-gray/5' 
                     : 'hover:bg-white/40 text-dark-gray/75 hover:text-dark-gray'
                 }`}
@@ -741,7 +791,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16">
-          <div className="grid grid-cols-4 h-full">
+          <div className="grid grid-cols-5 h-full">
             <button
               onClick={() => { setActiveTab('dashboard'); setSelectedAuditId(null); }}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -749,7 +799,17 @@ export default function App() {
               }`}
             >
               <BarChart3 className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Dashboard</span>
+              <span className="text-[9px] tracking-wide">Beranda</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('analytics'); setSelectedAuditId(null); }}
+              className={`flex flex-col items-center justify-center gap-1 transition ${
+                activeTab === 'analytics' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span className="text-[9px] tracking-wide">Analitik</span>
             </button>
 
             <button

@@ -33,7 +33,6 @@ CREATE TABLE audits (
   fiscal_year TEXT NOT NULL,
   auditor_name TEXT NOT NULL,
   audit_date DATE NOT NULL,
-  budget NUMERIC NOT NULL,
   status TEXT NOT NULL,
   progress NUMERIC DEFAULT 0,
   categories JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -73,3 +72,34 @@ CREATE TRIGGER on_templates_updated
   FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
 ALTER TABLE templates DISABLE ROW LEVEL SECURITY;
+
+-- 4. Create Target Entities table for Wilayah Pengawasan
+CREATE TABLE target_entities (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('OPD', 'Desa', 'Sekolah', 'Puskesmas', 'Lainnya')),
+  head_name TEXT,
+  contact TEXT,
+  address TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE target_entities DISABLE ROW LEVEL SECURITY;
+
+-- 5. Seed Target Entities Data untuk IRBAN IV
+INSERT INTO target_entities (name, type) VALUES 
+('Badan Keuangan dan Aset Daerah', 'OPD'),
+('Badan Pendapatan Daerah', 'OPD'),
+('Dinas Kesehatan', 'OPD'),
+('Dinas Sosial', 'OPD'),
+('Dinas Perikanan', 'OPD'),
+('Dinas Peternakan dan Kesehatan Hewan', 'OPD'),
+('Bagian Perekonomian dan SDA', 'OPD'),
+('Bagian Protokol dan Komunikasi Pimpinan', 'OPD'),
+('Bagian Pemerintahan', 'OPD'),
+('Kecamatan Loli', 'OPD'),
+('SD, SMP, se Kecamatan Loli', 'Sekolah'),
+('Desa/Kelurahan se Kecamatan Loli', 'Desa'),
+('Puskesmas Tanarara', 'Puskesmas'),
+('Puskesmas Wee Karou', 'Puskesmas');
+

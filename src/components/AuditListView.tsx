@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditStatus, KKATemplate } from '../types';
+import { OpdAudit, AuditStatus, KKATemplate, UserProfile } from '../types';
 import { 
   Plus, 
   Search, 
@@ -32,7 +32,6 @@ interface AuditListViewProps {
     opdType: 'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya', 
     fiscalYear: string, 
     auditorName: string, 
-    budget: number,
     teamMembers: string[],
     templateId: string
   ) => void;
@@ -41,6 +40,7 @@ interface AuditListViewProps {
   isDriveConnected: boolean;
   userRole?: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur';
   defaultAuditorName?: string;
+  userProfiles: UserProfile[];
 }
 
 export default function AuditListView({
@@ -52,7 +52,8 @@ export default function AuditListView({
   onSyncToDrive,
   isDriveConnected,
   userRole = 'Auditor',
-  defaultAuditorName = ''
+  defaultAuditorName = '',
+  userProfiles = []
 }: AuditListViewProps) {
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,8 +67,7 @@ export default function AuditListView({
   const [newSchoolType, setNewSchoolType] = useState<'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya'>('SD');
   const [newFiscalYear, setNewFiscalYear] = useState('2026');
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
-  const [newBosBudget, setNewBosBudget] = useState('150000000');
-  const [newTeamMembers, setNewTeamMembers] = useState('');
+  const [newTeamMembers, setNewTeamMembers] = useState<string[]>([]);
   const [newTemplateId, setNewTemplateId] = useState(templates.length > 0 ? templates[0].id : '');
 
   // Prefill auditor name when context is ready or modal is launched
@@ -148,8 +148,7 @@ export default function AuditListView({
       newSchoolType,
       newFiscalYear,
       newAuditorName,
-      parseFloat(newBosBudget) || 0,
-      newTeamMembers.split(',').map(s => s.trim()).filter(Boolean),
+      newTeamMembers,
       newTemplateId
     );
 
@@ -459,47 +458,42 @@ export default function AuditListView({
                 </select>
               </div>
 
-              {/* Pagu Kemendikbud */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Total Alokasi Pagu Anggaran (IDR)</label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-xs text-dark-gray/50 font-mono pointer-events-none font-bold">
-                    Rp
-                  </span>
-                  <input
-                    type="number"
-                    required
-                    placeholder="Contoh: 150000000"
-                    value={newBosBudget}
-                    onChange={e => setNewBosBudget(e.target.value)}
-                    className="w-full text-xs font-mono font-bold border border-dark-gray/15 pl-9 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
-                  />
-                </div>
               </div>
 
               {/* Nama Pemeriksa / Ketua Tim */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Nama Auditor / Ketua Tim Pemeriksa</label>
-                <input
-                  type="text"
+                <select
                   required
-                  placeholder="Misal: Drs. Suhendra, Ak."
                   value={newAuditorName}
                   onChange={e => setNewAuditorName(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
-                />
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
+                >
+                  <option value="" disabled>Pilih Ketua Tim</option>
+                  {userProfiles.map(p => (
+                    <option key={p.id} value={p.full_name || p.email}>{p.full_name || p.email} ({p.role})</option>
+                  ))}
+                  {/* Fallback if user is not in profiles */}
+                  {!userProfiles.some(p => (p.full_name || p.email) === newAuditorName) && newAuditorName && (
+                    <option value={newAuditorName}>{newAuditorName}</option>
+                  )}
+                </select>
               </div>
 
               {/* Anggota Tim */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Anggota Tim (Pisahkan dengan koma)</label>
-                <input
-                  type="text"
-                  placeholder="Misal: Budi, Cici, Dedi"
+                <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Anggota Tim (Pilih Beberapa)</label>
+                <select
+                  multiple
                   value={newTeamMembers}
-                  onChange={e => setNewTeamMembers(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
-                />
+                  onChange={e => setNewTeamMembers(Array.from(e.target.selectedOptions, option => option.value))}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent min-h-[80px]"
+                >
+                  {userProfiles.map(p => (
+                    <option key={p.id} value={p.full_name || p.email}>{p.full_name || p.email} ({p.role})</option>
+                  ))}
+                </select>
+                <p className="text-[9.5px] text-dark-gray/50 italic">Tahan tombol Ctrl (Windows) atau Cmd (Mac) untuk memilih lebih dari satu.</p>
               </div>
 
               {/* Action buttons */}
