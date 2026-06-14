@@ -8,7 +8,7 @@ interface HomeViewProps {
   onSelectAudit?: (audit: OpdAudit) => void;
 }
 
-const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Puskesmas', 'Lainnya'] as const;
+const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'] as const;
 
 const OPD_TYPE_COLORS: Record<string, string> = {
   Dinas: 'bg-blue-100 text-blue-800 border-blue-200',

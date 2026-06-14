@@ -537,7 +537,7 @@ export default function AuditWorkspaceView({
                       onChange={e => setMetaOpdType(e.target.value as OpdAudit['opdType'])}
                       className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray font-bold outline-none"
                     >
-                      {['SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'Puskesmas', 'Lainnya'].map(t => (
+                      {['SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'].map(t => (
                         <option key={t} value={t}>{t}</option>
                       ))}
                     </select>

@@ -48,7 +48,7 @@ export interface AuditCategory {
 export interface OpdAudit {
   id: string;
   opdName: string; // Nama Instansi / OPD / OPD
-  opdType: 'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Desa' | 'Kelurahan' | 'Puskesmas' | 'Lainnya';
+  opdType: 'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Desa' | 'Kelurahan' | 'Puskesmas' | 'Sekretariat Daerah' | 'Lainnya';
   auditType: AuditType;
   fiscalYear: string;
   auditorName: string;

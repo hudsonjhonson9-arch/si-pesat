@@ -251,6 +251,7 @@ export default function AuditListView({
               <option value="Desa">Desa</option>
               <option value="Kelurahan">Kelurahan</option>
               <option value="Puskesmas">Puskesmas</option>
+              <option value="Sekretariat Daerah">Sekretariat Daerah</option>
               <option value="Lainnya">Lainnya</option>
             </select>
           </div>
