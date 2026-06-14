@@ -41,6 +41,7 @@ export interface AuditCategory {
   teamMembers?: string[];
   fiscalYear?: string;
   auditDate?: string;
+  status?: AuditStatus;
 }
 
 export interface OpdAudit {

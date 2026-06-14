@@ -114,6 +114,7 @@ export default function AuditWorkspaceView({
   const [editCatAuditorName, setEditCatAuditorName] = useState('');
   const [editCatTeamMembers, setEditCatTeamMembers] = useState<string[]>([]);
   const [editCatFiscalYear, setEditCatFiscalYear] = useState('');
+  const [editCatStatus, setEditCatStatus] = useState<AuditStatus>('Draft');
   const [isEditCatAuditorDropdownOpen, setIsEditCatAuditorDropdownOpen] = useState(false);
   const [editCatAuditorSearchQuery, setEditCatAuditorSearchQuery] = useState('');
   const [isEditCatTeamDropdownOpen, setIsEditCatTeamDropdownOpen] = useState(false);
@@ -270,6 +271,7 @@ export default function AuditWorkspaceView({
       auditorName: newCatAuditorName,
       teamMembers: newCatTeamMembers,
       fiscalYear: audit.fiscalYear,
+      status: 'Draft',
       items: masterCat.items.map(item => ({
         ...item,
         id: `item_custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -297,6 +299,7 @@ export default function AuditWorkspaceView({
     setEditCatAuditorName(activeCategory.auditorName || audit.auditorName || '');
     setEditCatTeamMembers(activeCategory.teamMembers || []);
     setEditCatFiscalYear(activeCategory.fiscalYear || audit.fiscalYear);
+    setEditCatStatus(activeCategory.status || 'Draft');
     setIsEditingCategoryTeam(true);
   };
 
@@ -310,7 +313,8 @@ export default function AuditWorkspaceView({
           ...cat,
           auditorName: editCatAuditorName,
           teamMembers: editCatTeamMembers,
-          fiscalYear: editCatFiscalYear
+          fiscalYear: editCatFiscalYear,
+          status: editCatStatus
         };
       }
       return cat;
@@ -607,6 +611,16 @@ export default function AuditWorkspaceView({
                     {activeCategory.description}
                   </p>
                   <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold uppercase tracking-wider ${
+                        activeCategory.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                        activeCategory.status === 'Direview' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                        activeCategory.status === 'Sedang Berjalan' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                        'bg-slate-100 text-slate-500 border-slate-200'
+                      }`}>
+                        {activeCategory.status || 'Draft'}
+                      </span>
+                    </div>
                     <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Ketua Tim: <span className="text-white font-normal">{activeCategory.auditorName || 'Belum diatur'}</span></div>
                     <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Anggota Tim: <span className="text-white font-normal">{activeCategory.teamMembers && activeCategory.teamMembers.length > 0 ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></div>
 
@@ -1124,6 +1138,20 @@ export default function AuditWorkspaceView({
                     </div>
                   </div>
                 )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Status Jenis Audit</label>
+                <select
+                  value={editCatStatus}
+                  onChange={e => setEditCatStatus(e.target.value as AuditStatus)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent"
+                >
+                  <option value="Draft">Draft</option>
+                  <option value="Sedang Berjalan">Sedang Berjalan</option>
+                  <option value="Direview">Direview</option>
+                  <option value="Selesai">Selesai</option>
+                </select>
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-dark-gray/10">

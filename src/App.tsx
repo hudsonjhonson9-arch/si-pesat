@@ -473,6 +473,7 @@ export default function App() {
         id: tempCat.id,
         name: tempCat.name,
         description: tempCat.description,
+        status: 'Draft',
         items: tempCat.items.map(tempItem => {
           return {
             id: tempItem.id,
