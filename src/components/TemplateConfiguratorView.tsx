@@ -88,8 +88,8 @@ export default function TemplateConfiguratorView({
       categories: [
         {
           id: `cat_temp_${Date.now()}`,
-          name: 'Kategori Default',
-          description: 'Deskripsi kategori',
+          name: 'Jenis Audit Default',
+          description: 'Deskripsi jenis audit',
           items: []
         }
       ]
@@ -153,10 +153,10 @@ export default function TemplateConfiguratorView({
   // Delete category from master template
   const handleDeleteCategory = (catId: string) => {
     if (template.categories.length <= 1) {
-      alert('Template master harus memiliki minimal satu kategori pengawasan.');
+      alert('Template master harus memiliki minimal satu jenis audit pengawasan.');
       return;
     }
-    const confirmed = window.confirm('Apakah Anda yakin ingin menghapus kategori ini? Semua kriteria default di dalamnya akan ikut dihapus.');
+    const confirmed = window.confirm('Apakah Anda yakin ingin menghapus jenis audit ini? Semua kriteria default di dalamnya akan ikut dihapus.');
     if (!confirmed) return;
 
     const updatedCategories = template.categories.filter(c => c.id !== catId);
@@ -205,7 +205,7 @@ export default function TemplateConfiguratorView({
   const handleDeleteItem = (itemId: string) => {
     if (!selectedCatId || !activeCategory) return;
     if (activeCategory.items.length <= 1) {
-      alert('Kategori Jenis Audit harus menyimpan minimal satu kriteria pemeriksaan.');
+      alert('Jenis Audit harus menyimpan minimal satu kriteria pemeriksaan.');
       return;
     }
     const confirmed = window.confirm('Apakah Anda yakin ingin menghapus kriteria pemeriksaan default ini dari template master?');
@@ -300,7 +300,7 @@ export default function TemplateConfiguratorView({
           <span className="font-extrabold text-dark-gray">Konfigurasi Jenis Audit Pemeriksaan Dinamis (A.2)</span>
         </div>
         <p className="leading-relaxed font-semibold text-dark-gray/90">
-          Kriteria dan Kategori di halaman ini adalah <strong>master jenis audit default</strong>. Setiap kali Anda menekan tombol <strong>"Mulai Audit Baru"</strong> di beranda, struktur daftar periksa akan disalin langsung dari apa yang Anda atur di bawah ini. Audit yang sudah berjalan tidak akan terpengaruh.
+          Kriteria dan Jenis Audit di halaman ini adalah <strong>master jenis audit default</strong>. Setiap kali Anda menekan tombol <strong>"Mulai Audit Baru"</strong> di beranda, struktur daftar periksa akan disalin langsung dari apa yang Anda atur di bawah ini. Audit yang sudah berjalan tidak akan terpengaruh.
         </p>
       </div>
 
@@ -408,7 +408,7 @@ export default function TemplateConfiguratorView({
                       value={editCatName}
                       onChange={e => setEditCatName(e.target.value)}
                       className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded bg-white text-dark-gray outline-none focus:border-dark-gray/30"
-                      placeholder="Nama Kategori"
+                      placeholder="Nama Jenis Audit"
                     />
                     <textarea
                       value={editCatDesc}
@@ -578,7 +578,7 @@ export default function TemplateConfiguratorView({
             </div>
           ) : (
             <div className="text-center p-12 select-none bg-baby-blue/30 rounded-xl border border-dashed border-dark-gray/15 text-dark-gray">
-              <span className="text-xs font-bold text-dark-gray/60">Silakan pilih kategori di sebelah kiri untuk melihat dokumen.</span>
+              <span className="text-xs font-bold text-dark-gray/60">Silakan pilih jenis audit di sebelah kiri untuk melihat dokumen.</span>
             </div>
           )}
         </div>
@@ -589,7 +589,7 @@ export default function TemplateConfiguratorView({
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-dark-gray/10 text-dark-gray">
             <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Tambah Kategori Jenis Audit Baru (A.1)</span>
+              <span className="font-extrabold text-xs tracking-wide">Tambah Jenis Audit Baru (A.1)</span>
               <button onClick={() => setIsAddingCategory(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleAddCategory} className="p-4 space-y-3.5 text-xs">

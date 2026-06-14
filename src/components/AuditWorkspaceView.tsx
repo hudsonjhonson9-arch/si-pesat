@@ -419,63 +419,7 @@ export default function AuditWorkspaceView({
         </button>
 
         <div className="flex items-center gap-2">
-          {/* Action buttons based on Role and Status */}
-          {userRole === 'Auditor' && (audit.status === 'Draft' || audit.status === 'Sedang Berjalan') && (
-            <button
-              onClick={() => {
-                const confirmed = window.confirm('Apakah Anda yakin ingin mengajukan LHP ini untuk direview oleh pimpinan?');
-                if (confirmed) {
-                  onUpdates({ 
-                    ...audit, 
-                    status: 'Direview',
-                    categories: audit.categories.map(c => ({ ...c, status: 'Direview' }))
-                  });
-                  alert('Notifikasi: LHP telah diajukan ke Irban untuk direview.');
-                }
-              }}
-              className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-blue-500 text-white border-blue-600 hover:bg-blue-600 shadow-xs"
-            >
-              Ajukan Review
-            </button>
-          )}
-
-          {isReviewerPanelVisible && (
-            <>
-              <button
-                onClick={() => {
-                  const confirmed = window.confirm('Apakah Anda menyetujui LHP ini menjadi Selesai?');
-                  if (confirmed) {
-                    onUpdates({ 
-                      ...audit, 
-                      status: 'Selesai',
-                      categories: audit.categories.map(c => ({ ...c, status: 'Selesai' }))
-                    });
-                    alert('Notifikasi: LHP telah disetujui. Auditor akan mendapatkan notifikasi.');
-                  }
-                }}
-                className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-xs"
-              >
-                <CheckCircle className="w-4 h-4" /> Setujui LHP
-              </button>
-              <button
-                onClick={() => {
-                  const confirmed = window.confirm('Apakah Anda ingin mengembalikan KKA ini ke Auditor untuk direvisi?');
-                  if (confirmed) {
-                    onUpdates({ 
-                      ...audit, 
-                      status: 'Sedang Berjalan',
-                      categories: audit.categories.map(c => ({ ...c, status: 'Sedang Berjalan' }))
-                    });
-                    alert('Notifikasi: LHP dikembalikan. Auditor akan mendapatkan notifikasi revisi.');
-                  }
-                }}
-                className="text-xs px-3 py-1.5 rounded-lg font-extrabold inline-flex items-center gap-1.5 transition-all cursor-pointer border bg-rose-500 text-white border-rose-600 hover:bg-rose-600 shadow-xs"
-              >
-                <AlertTriangle className="w-4 h-4" /> Revisi Lapangan
-              </button>
-            </>
-          )}
-
+          {/* Global action buttons removed. Actions are now per-category. */}
         </div>
       </div>
 
@@ -679,7 +623,7 @@ export default function AuditWorkspaceView({
                   <h3 className="text-base font-extrabold tracking-tight text-white leading-tight flex items-center gap-2">
                     {activeCategory.name}
                     {currentUserName === activeCategory.auditorName && (
-                      <button onClick={openEditCategoryTeam} className="p-1 hover:bg-white/10 rounded cursor-pointer transition-colors" title="Edit Tim & Tahun Kategori">
+                      <button onClick={openEditCategoryTeam} className="p-1 hover:bg-white/10 rounded cursor-pointer transition-colors" title="Edit Tim & Tahun Jenis Audit">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                     )}
@@ -700,7 +644,58 @@ export default function AuditWorkspaceView({
                     </div>
                     <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Ketua Tim: <span className="text-white font-normal">{activeCategory.auditorName || 'Belum diatur'}</span></div>
                     <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Anggota Tim: <span className="text-white font-normal">{activeCategory.teamMembers && activeCategory.teamMembers.length > 0 ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></div>
+                    
+                    {/* Per-Category Action Buttons */}
+                    <div className="mt-3 flex items-center gap-2">
+                      {currentUserName === activeCategory.auditorName && (!activeCategory.status || activeCategory.status === 'Draft' || activeCategory.status === 'Sedang Berjalan') && (
+                        <button
+                          onClick={() => {
+                            const confirmed = window.confirm('Apakah Anda yakin ingin mengajukan Jenis Audit ini untuk direview oleh pimpinan?');
+                            if (confirmed) {
+                              const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Direview' as any } : c);
+                              const newAuditStatus = newCategories.some(c => c.status === 'Direview') ? 'Direview' : audit.status;
+                              onUpdates({ ...audit, status: newAuditStatus, categories: newCategories });
+                              alert('Notifikasi: Jenis Audit telah diajukan ke Irban untuk direview.');
+                            }
+                          }}
+                          className="text-[10px] px-2 py-1 rounded-md font-extrabold inline-flex items-center gap-1 transition-all cursor-pointer border bg-blue-500 text-white border-blue-600 hover:bg-blue-600 shadow-xs"
+                        >
+                          Ajukan Review
+                        </button>
+                      )}
 
+                      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && activeCategory.status === 'Direview' && (
+                        <>
+                          <button
+                            onClick={() => {
+                              const confirmed = window.confirm('Apakah Anda menyetujui Jenis Audit ini menjadi Selesai?');
+                              if (confirmed) {
+                                const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Selesai' as any } : c);
+                                const allSelesai = newCategories.every(c => c.status === 'Selesai');
+                                onUpdates({ ...audit, status: allSelesai ? 'Selesai' : audit.status, categories: newCategories });
+                                alert('Notifikasi: Jenis Audit telah disetujui. Auditor akan mendapatkan notifikasi.');
+                              }
+                            }}
+                            className="text-[10px] px-2 py-1 rounded-md font-extrabold inline-flex items-center gap-1 transition-all cursor-pointer border bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-xs"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" /> Setujui
+                          </button>
+                          <button
+                            onClick={() => {
+                              const confirmed = window.confirm('Apakah Anda ingin mengembalikan Jenis Audit ini ke Auditor untuk direvisi?');
+                              if (confirmed) {
+                                const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Sedang Berjalan' as any } : c);
+                                onUpdates({ ...audit, categories: newCategories });
+                                alert('Notifikasi: Jenis Audit dikembalikan. Auditor akan mendapatkan notifikasi revisi.');
+                              }
+                            }}
+                            className="text-[10px] px-2 py-1 rounded-md font-extrabold inline-flex items-center gap-1 transition-all cursor-pointer border bg-rose-500 text-white border-rose-600 hover:bg-rose-600 shadow-xs"
+                          >
+                            <AlertTriangle className="w-3.5 h-3.5" /> Kembalikan Revisi
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1107,7 +1102,7 @@ export default function AuditWorkspaceView({
         <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray">
             <div className="bg-dark-gray text-white rounded-t-2xl px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Edit Tim Kategori</span>
+              <span className="font-extrabold text-xs tracking-wide">Edit Tim Jenis Audit</span>
               <button onClick={() => setIsEditingCategoryTeam(false)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <form onSubmit={handleSaveCategoryTeam} className="p-4 space-y-3.5 text-xs">
