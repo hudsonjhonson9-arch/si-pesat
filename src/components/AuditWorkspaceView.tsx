@@ -52,7 +52,8 @@ export default function AuditWorkspaceView({
   isSyncing,
   userRole = 'Auditor',
   accessToken = null,
-  userProfiles = []
+  userProfiles = [],
+  templates = []
 }: AuditWorkspaceViewProps) {
   
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
