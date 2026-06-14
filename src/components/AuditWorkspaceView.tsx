@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, UserProfile } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
+import EvidencePanel from './EvidencePanel';
 import { 
   ArrowLeft, 
   Save, 
@@ -859,90 +860,23 @@ export default function AuditWorkspaceView({
                     </div>
                   )}
 
-                  {/* SPESIFIKASI BUKTI (Attachment Dokumen Google Drive) */}
-                  <div className="mt-4 pt-3.5 border-t border-dark-gray/10 space-y-2.5 text-dark-gray">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="space-y-0.5">
-                        <span className="font-extrabold text-dark-gray text-[10.5px] block uppercase tracking-wide">
-                          📎 Spesifikasi Bukti Dokumen (Google Drive)
-                        </span>
-                        <p className="text-[9.5px] text-dark-gray/60 font-semibold">Bukti pertanggungjawaban fisik berupa tautan Google Drive berkas PDF/Excel/Docx.</p>
-                      </div>
-                      {item.evidenceLink ? (
-                        <a 
-                          href={item.evidenceLink} 
-                          target="_blank" 
-                          referrerPolicy="no-referrer"
-                          rel="noopener noreferrer"
-                          className="bg-white hover:bg-peach-accent text-dark-gray border border-dark-gray/15 px-2.5 py-1 text-[10px] rounded font-extrabold inline-flex items-center gap-1 cursor-pointer transition-colors"
-                        >
-                          <span>📂 Buka Dokumen:</span>
-                          <span className="underline max-w-[120px] truncate font-mono">{item.evidenceName || 'Lihat Bukti'}</span>
-                        </a>
-                      ) : (
-                        <span className="text-[10px] text-dark-gray/50 italic bg-white/30 px-2 py-1 rounded border border-dark-gray/5">Belum dilampirkan</span>
-                      )}
-                    </div>
-
-                    {/* Links pasting and direct upload tools (Only for Auditor role) */}
-                    {userRole === 'Auditor' && !isReadOnly && (
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-2 pt-1.5 border-t border-dark-gray/10">
-                        <div className="md:col-span-6">
-                          <div className="flex gap-2">
-                            <input 
-                              type="text"
-                              placeholder="Tempel tautan Google Drive disini..."
-                              value={item.evidenceLink || ''}
-                              onChange={(e) => handleFindingDetailChange(item.id, 'evidenceLink', e.target.value)}
-                              className="w-full text-[10px] font-bold border border-dark-gray/15 p-2 rounded bg-white/70 focus:bg-white text-dark-gray outline-none"
-                            />
-                            {item.evidenceLink && item.evidenceLink.includes('drive.google.com') && (
-                              <button
-                                onClick={() => handleDirectCopy(item.id, item.evidenceLink as string, item.evidenceName || '')}
-                                disabled={copyingIds[item.id]}
-                                className="text-[9px] font-extrabold whitespace-nowrap px-2 rounded border bg-baby-blue border-dark-gray/20 text-dark-gray hover:bg-peach-accent cursor-pointer"
-                                title="Tarik dan salin file dari link ini ke Drive Pusat"
-                              >
-                                {copyingIds[item.id] ? 'Menarik...' : '⬇️ Salin ke Pusat'}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        <div className="md:col-span-3">
-                          <input 
-                            type="text"
-                            placeholder="Nama atau Nomor berkas..."
-                            value={item.evidenceName || ''}
-                            onChange={(e) => handleFindingDetailChange(item.id, 'evidenceName', e.target.value)}
-                            className="w-full text-[10px] font-bold border border-dark-gray/15 p-2 rounded bg-white/70 focus:bg-white text-dark-gray outline-none"
-                          />
-                        </div>
-                        <div className="md:col-span-3 flex">
-                          <label className={`w-full text-center text-[10.5px] font-black py-2 px-1.5 border rounded transition flex items-center justify-center ${
-                            uploadingIds[item.id]
-                              ? 'bg-white/30 border-dark-gray/10 text-dark-gray/50 cursor-wait'
-                              : 'bg-peach-accent border-dark-gray/10 text-dark-gray shadow-xs cursor-pointer hover:brightness-95'
-                          }`}
-                          title="Pilih berkas dari perangkat Anda untuk diupload langsung ke Google Drive">
-                            <span>{uploadingIds[item.id] ? 'Mengunggah...' : '📤 Unggah Langsung'}</span>
-                            <input 
-                              type="file"
-                              accept=".pdf,.xlsx,.xls,.docx,.doc,image/*"
-                              disabled={!!uploadingIds[item.id]}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  handleDirectUpload(item.id, file);
-                                  e.target.value = '';
-                                }
-                              }}
-                              className="hidden"
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* SPESIFIKASI BUKTI — delegated to EvidencePanel */}
+                  <EvidencePanel
+                    evidenceLink={item.evidenceLink}
+                    evidenceName={item.evidenceName}
+                    isReadOnly={isReadOnly}
+                    isAuditor={userRole === 'Auditor'}
+                    isUploading={!!uploadingIds[item.id]}
+                    isCopying={!!copyingIds[item.id]}
+                    onUploadFile={async (file) => handleDirectUpload(item.id, file)}
+                    onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
+                    onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
+                    onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
+                    onClear={() => {
+                      handleFindingDetailChange(item.id, 'evidenceLink', '');
+                      handleFindingDetailChange(item.id, 'evidenceName', '');
+                    }}
+                  />
 
                   {/* CATATAN REVIEW / EVALUASI (Inspektur Pembantu / Inspektur) */}
                   <div className="mt-3.5 bg-amber-100/45 border border-amber-200/50 rounded-xl p-3 space-y-2 text-xs">
