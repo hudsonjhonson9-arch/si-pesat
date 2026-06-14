@@ -111,8 +111,9 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                       className="hover:bg-slate-50/50 transition-colors cursor-pointer"
                       onClick={() => onSelectAudit && onSelectAudit(audit)}
                     >
-                      <td className="p-3.5 font-bold text-slate-800">
-                        {audit.opdName}
+                      <td className="p-3.5">
+                        <div className="font-bold text-slate-800">{audit.opdName}</div>
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">TA. {audit.fiscalYear}</div>
                       </td>
                       <td className="p-3.5">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
