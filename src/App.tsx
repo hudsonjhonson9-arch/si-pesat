@@ -566,6 +566,7 @@ export default function App() {
           isSyncing={isSyncing}
           userRole={userRole}
           userProfiles={userProfiles}
+          currentUserName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
         />
       );
     }

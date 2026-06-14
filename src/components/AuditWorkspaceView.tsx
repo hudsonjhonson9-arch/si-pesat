@@ -41,6 +41,7 @@ interface AuditWorkspaceViewProps {
   accessToken?: string | null;
   userProfiles: UserProfile[];
   templates: KKATemplate[];
+  currentUserName?: string;
 }
 
 export default function AuditWorkspaceView({
@@ -53,7 +54,8 @@ export default function AuditWorkspaceView({
   userRole = 'Auditor',
   accessToken = null,
   userProfiles = [],
-  templates = []
+  templates = [],
+  currentUserName = '',
 }: AuditWorkspaceViewProps) {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
@@ -74,7 +76,7 @@ export default function AuditWorkspaceView({
         name: res.name,
         link: res.webViewLink,
         uploadedAt: new Date().toISOString(),
-        uploadedBy: audit.auditorName || 'Auditor'
+        uploadedBy: currentUserName || audit.auditorName || 'Auditor'
       };
       handleFindingDetailsUpdate(itemId, {
         evidenceLink: res.webViewLink,
@@ -103,7 +105,7 @@ export default function AuditWorkspaceView({
         name: res.name,
         link: res.webViewLink,
         uploadedAt: new Date().toISOString(),
-        uploadedBy: audit.auditorName || 'Auditor'
+        uploadedBy: currentUserName || audit.auditorName || 'Auditor'
       };
       handleFindingDetailsUpdate(itemId, {
         evidenceLink: res.webViewLink,
