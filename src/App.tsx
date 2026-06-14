@@ -528,7 +528,6 @@ export default function App() {
           isDriveConnected={true}
           isSyncing={isSyncing}
           userRole={userRole}
-          accessToken={googleAccessToken}
           userProfiles={userProfiles}
         />
       );
@@ -632,153 +631,106 @@ export default function App() {
         />
       ) : (
         /* Main Container Wrapper */
-        <div className="flex flex-1 relative bg-cream-bg text-dark-gray">
+        <div className="flex flex-col flex-1 relative bg-cream-bg text-dark-gray h-screen">
           
-          {/* Desktop Sidebar (Left Draw - hidden on mobile) */}
-          <aside className="hidden md:flex flex-col w-64 bg-baby-blue text-dark-gray border-r border-dark-gray/10 flex-shrink-0">
-            {/* Sidebar Header Title */}
-            <div className="p-5 border-b border-dark-gray/10 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-peach-accent text-dark-gray flex items-center justify-center font-bold text-sm shadow-xs border border-dark-gray/10">
+          {/* Top Navigation Header */}
+          <header className="bg-baby-blue border-b border-dark-gray/10 px-4 md:px-8 py-3 sticky top-0 z-40 flex items-center justify-between shadow-xs">
+            {/* Logo Left */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-peach-accent text-dark-gray flex items-center justify-center font-extrabold text-sm shadow-xs border border-dark-gray/10">
                 I
               </div>
               <div>
-                <h1 className="font-extrabold text-sm text-dark-gray tracking-tight">SI-PESAT Audit</h1>
-                <span className="text-[9px] uppercase tracking-wider text-dark-gray/70 font-bold block leading-none">Inspektorat Daerah</span>
+                <h1 className="font-extrabold text-sm md:text-base text-dark-gray tracking-tight">SI-PESAT Audit</h1>
+                <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-dark-gray/70 font-bold block leading-none">Inspektorat Daerah</span>
               </div>
             </div>
 
-            {/* Active Role Indicator Badge */}
-            <div className="px-4 py-3 mx-4 my-3 bg-white/40 rounded-2xl border border-dark-gray/10 text-xs shadow-inner">
-              <span className="text-[9px] font-bold text-dark-gray/60 uppercase block tracking-wider mb-1">Peran Aktif</span>
-              <div className="flex items-center gap-1.5 font-extrabold text-dark-gray text-xs">
-                <span>
-                  {userRole === 'Auditor' && '🕵️ Auditor'}
-                  {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
-                  {userRole === 'Inspektur' && '👑 Inspektur'}
-                </span>
-                <span className="text-[9px] bg-peach-accent px-1.5 py-0.5 rounded-sm font-black text-dark-gray animate-pulse">Sesi</span>
-              </div>
-              <div className="mt-1.5 text-[9px] text-dark-gray/80 leading-normal font-medium">
-                {userRole === 'Auditor' && 'Pemeriksa penyusun kertas kerja audit & dokumen bukti.'}
-                {userRole === 'Inspektur Pembantu' && 'Reviewer ulasan temuan audit & juknis bukti.'}
-                {userRole === 'Inspektur' && 'Pimpinan penandatangan sertifikasi LHP Selesai.'}
-              </div>
-            </div>
-
-            {/* Navigation link elements */}
-            <nav className="flex-1 p-4 space-y-1.5 text-xs font-bold">
+            {/* Desktop Center Navigation Menu */}
+            <nav className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => { setActiveTab('dashboard'); setSelectedAuditId(null); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                   activeTab === 'dashboard' && !selectedAuditId
-                    ? 'bg-peach-accent text-dark-gray font-extrabold shadow-sm border border-dark-gray/5' 
-                    : 'hover:bg-white/40 text-dark-gray/75 hover:text-dark-gray'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                 }`}
               >
                 <BarChart3 className="w-4 h-4" /> Beranda
               </button>
-
               <button
                 onClick={() => { setActiveTab('analytics'); setSelectedAuditId(null); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                   activeTab === 'analytics' && !selectedAuditId
-                    ? 'bg-peach-accent text-dark-gray font-extrabold shadow-sm border border-dark-gray/5' 
-                    : 'hover:bg-white/40 text-dark-gray/75 hover:text-dark-gray'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                 }`}
               >
-                <BarChart3 className="w-4 h-4" /> Dashboard Analitik
+                <BarChart3 className="w-4 h-4" /> Analitik
               </button>
-
               <button
                 onClick={() => { setActiveTab('audits'); setSelectedAuditId(null); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                   activeTab === 'audits' || selectedAuditId
-                    ? 'bg-peach-accent text-dark-gray font-extrabold shadow-sm border border-dark-gray/5' 
-                    : 'hover:bg-white/40 text-dark-gray/75 hover:text-dark-gray'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                 }`}
               >
-                <School className="w-4 h-4" /> Kertas Kerja Audit (KKA)
+                <School className="w-4 h-4" /> Pemeriksaan
               </button>
-
               <button
                 onClick={() => { setActiveTab('template'); setSelectedAuditId(null); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                   activeTab === 'template' && !selectedAuditId
-                    ? 'bg-peach-accent text-dark-gray font-extrabold shadow-sm border border-dark-gray/5' 
-                    : 'hover:bg-white/40 text-dark-gray/75 hover:text-dark-gray'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                 }`}
               >
-                <Settings className="w-4 h-4" /> Konfigurasi Template
+                <Settings className="w-4 h-4" /> Template
               </button>
-
               <button
                 onClick={() => { setActiveTab('sync'); setSelectedAuditId(null); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                   activeTab === 'sync' && !selectedAuditId
-                    ? 'bg-peach-accent text-dark-gray font-extrabold shadow-sm border border-dark-gray/5' 
-                    : 'hover:bg-white/40 text-dark-gray/75 hover:text-dark-gray'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                 }`}
               >
-                <Cloud className="w-4 h-4" /> Google Drive Sync
-              </button>
-
-              <button
-                onClick={handleSessionLogout}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-rose-700/80 hover:bg-rose-50/50 hover:text-rose-700 mt-6 pt-2 border-t border-dark-gray/10 cursor-pointer"
-              >
-                <X className="w-4 h-4" /> Log out SI-PESAT
+                <Cloud className="w-4 h-4" /> Drive
               </button>
             </nav>
 
-            {/* Sidebar profile footer */}
-            {(user || customAuditorName) && (
-              <div className="p-4 border-t border-dark-gray/10 flex items-center gap-2.5 bg-white/20">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="Profile" className="w-9 h-9 rounded-full border border-dark-gray/20" referrerPolicy="no-referrer" />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-peach-accent text-dark-gray text-xs flex items-center justify-center font-bold border border-dark-gray/10">
-                    {customAuditorName ? customAuditorName.slice(0, 2).toUpperCase() : 'AU'}
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-dark-gray truncate leading-tight">{user?.displayName || customAuditorName}</p>
-                  <span className="text-[9px] text-dark-gray/65 font-mono">Status: Connected</span>
-                </div>
-              </div>
-            )}
-          </aside>
-
-          {/* Content View pane wrapper */}
-          <main className="flex-1 flex flex-col min-w-0 bg-cream-bg overflow-y-auto">
-            {/* Top Sticky Header */}
-            <header className="bg-white border-b border-dark-gray/10 px-4 py-2.5 sticky top-0 z-20 flex md:hidden items-center justify-between shadow-xs">
-              {/* Logo */}
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded bg-peach-accent text-dark-gray font-extrabold flex items-center justify-center text-xs border border-dark-gray/10">
-                  I
-                </div>
-                <div>
-                  <h1 className="text-xs font-bold text-dark-gray">SI-PESAT Audit</h1>
-                  <span className="text-[8px] uppercase tracking-wide text-dark-gray/60 font-bold block leading-none">Inspektorat Daerah</span>
-                </div>
-              </div>
-
-              {/* Compact role indicator and logout for mobile view */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-1 rounded-md border border-dark-gray/10 shadow-xs">
+            {/* Right Profile & Role */}
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex flex-col items-end mr-2">
+                <span className="text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-0.5 rounded-sm border border-dark-gray/10 shadow-xs uppercase tracking-wider mb-0.5">
                   {userRole === 'Auditor' && '🕵️ Auditor'}
                   {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
                   {userRole === 'Inspektur' && '👑 Inspektur'}
                 </span>
-                <button
-                  onClick={handleSessionLogout}
-                  className="p-1 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-md text-[10px] font-bold"
-                  title="Keluar Sesi"
-                >
-                  Log out SI-PESAT
-                </button>
+                <span className="text-xs font-bold text-dark-gray">{user?.displayName || customAuditorName || 'Auditor'}</span>
               </div>
-            </header>
+              
+              {/* Mobile compact role */}
+              <span className="md:hidden text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-1 rounded-md border border-dark-gray/10 shadow-xs">
+                {userRole === 'Auditor' && '🕵️ Auditor'}
+                {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
+                {userRole === 'Inspektur' && '👑 Inspektur'}
+              </span>
+
+              <button
+                onClick={handleSessionLogout}
+                className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-[10px] font-bold flex items-center justify-center transition-colors"
+                title="Keluar Sesi"
+              >
+                <X className="w-4 h-4 md:hidden" />
+                <span className="hidden md:inline">Keluar</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Content View pane wrapper */}
+          <main className="flex-1 flex flex-col min-w-0 bg-cream-bg overflow-y-auto w-full relative">
 
             {/* Core Body Container Frame */}
             <div className="flex-1 p-4 md:p-6 lg:p-8 max-w-5xl mx-auto w-full transition-all">

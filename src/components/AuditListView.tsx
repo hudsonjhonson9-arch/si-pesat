@@ -155,8 +155,8 @@ export default function AuditListView({
     // Reset and close
     setNewSchoolName('');
     setNewAuditorName('');
+    setNewAuditorName('');
     setNewTeamMembers('');
-    setNewBosBudget('150000000');
     setIsCreateModalOpen(false);
   };
 
@@ -303,20 +303,6 @@ export default function AuditListView({
                         <span className="truncate">Anggota: {audit.teamMembers.join(', ')}</span>
                       </div>
                     )}
-                  </div>
-
-                  {/* BOS budget and findings summary */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-dark-gray/10 text-[11px] font-bold">
-                    <div>
-                      <span className="text-dark-gray/60 uppercase tracking-wide block text-[9px] font-bold">Pagu Anggaran</span>
-                      <span className="font-mono text-dark-gray font-bold block">{formatIDR(audit.budget)}</span>
-                    </div>
-                    <div>
-                      <span className="text-rose-700 uppercase tracking-wide block text-[9px] font-bold">Kertas Kerja Temuan</span>
-                      <span className="font-mono text-rose-700 font-bold block truncate">
-                        {totalFindingsVal > 0 ? formatIDR(totalFindingsVal) : 'Sesuai (Rp 0)'}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
@@ -484,7 +470,7 @@ export default function AuditListView({
                 <select
                   multiple
                   value={newTeamMembers}
-                  onChange={e => setNewTeamMembers(Array.from(e.target.selectedOptions, option => option.value))}
+                  onChange={e => setNewTeamMembers(Array.from(e.target.selectedOptions, (option: HTMLOptionElement) => option.value))}
                   className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden focus:border-peach-accent min-h-[80px]"
                 >
                   {userProfiles.map(p => (
