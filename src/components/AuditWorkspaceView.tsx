@@ -888,19 +888,9 @@ export default function AuditWorkspaceView({
                             {item.evidenceLink && item.evidenceLink.includes('drive.google.com') && (
                               <button
                                 onClick={() => handleDirectCopy(item.id, item.evidenceLink as string, item.evidenceName || '')}
-                                disabled={!isDriveConnected || !audit.googleDriveFolderId || copyingIds[item.id]}
-                                className={`text-[9px] font-extrabold whitespace-nowrap px-2 rounded border ${
-                                  isDriveConnected && audit.googleDriveFolderId
-                                    ? 'bg-baby-blue border-dark-gray/20 text-dark-gray hover:bg-peach-accent cursor-pointer'
-                                    : 'bg-white/20 border-dark-gray/5 text-dark-gray/40 cursor-not-allowed'
-                                }`}
-                                title={
-                                  !isDriveConnected 
-                                    ? 'Koneksikan Google Drive di dashboard terlebih dahulu' 
-                                    : !audit.googleDriveFolderId 
-                                      ? 'Folder Drive belum ada. Klik "Kirim Ke Drive"' 
-                                      : 'Tarik dan salin file dari link ini ke Drive Pusat'
-                                }
+                                disabled={copyingIds[item.id]}
+                                className="text-[9px] font-extrabold whitespace-nowrap px-2 rounded border bg-baby-blue border-dark-gray/20 text-dark-gray hover:bg-peach-accent cursor-pointer"
+                                title="Tarik dan salin file dari link ini ke Drive Pusat"
                               >
                                 {copyingIds[item.id] ? 'Menarik...' : '⬇️ Salin ke Pusat'}
                               </button>
@@ -917,27 +907,22 @@ export default function AuditWorkspaceView({
                           />
                         </div>
                         <div className="md:col-span-3 flex">
-                          <label className={`w-full text-center text-[10.5px] font-black py-2 px-1.5 border rounded cursor-pointer transition flex items-center justify-center ${
-                            isDriveConnected && audit.googleDriveFolderId 
-                              ? 'bg-peach-accent border-dark-gray/10 text-dark-gray shadow-xs' 
-                              : 'bg-white/20 border-dark-gray/5 text-dark-gray/40 cursor-not-allowed'
+                          <label className={`w-full text-center text-[10.5px] font-black py-2 px-1.5 border rounded transition flex items-center justify-center ${
+                            uploadingIds[item.id]
+                              ? 'bg-white/30 border-dark-gray/10 text-dark-gray/50 cursor-wait'
+                              : 'bg-peach-accent border-dark-gray/10 text-dark-gray shadow-xs cursor-pointer hover:brightness-95'
                           }`}
-                          title={
-                            !isDriveConnected 
-                              ? 'Koneksikan Google Drive di dashboard terlebih dahulu' 
-                              : !audit.googleDriveFolderId 
-                                ? 'Folder Drive belum ada. Klik "Kirim Ke Drive" terlebih dahulu' 
-                                : 'Pilih berkas dari perangkat Anda untuk diupload langsung ke Drive'
-                          }>
+                          title="Pilih berkas dari perangkat Anda untuk diupload langsung ke Google Drive">
                             <span>{uploadingIds[item.id] ? 'Mengunggah...' : '📤 Unggah Langsung'}</span>
                             <input 
                               type="file"
                               accept=".pdf,.xlsx,.xls,.docx,.doc,image/*"
-                              disabled={!isDriveConnected || !audit.googleDriveFolderId || !!uploadingIds[item.id]}
+                              disabled={!!uploadingIds[item.id]}
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
                                   handleDirectUpload(item.id, file);
+                                  e.target.value = '';
                                 }
                               }}
                               className="hidden"
