@@ -151,14 +151,13 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
               <thead className="sticky top-0 bg-slate-50 z-10 shadow-xs">
                 <tr className="border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                   <th className="p-3.5">Nama Objek</th>
-                  <th className="p-3.5 w-24">Status</th>
                   <th className="p-3.5 w-16"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredAudits.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="p-8 text-center text-slate-400">
+                    <td colSpan={2} className="p-8 text-center text-slate-400">
                       <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       {typeFilter === 'Semua' ? 'Belum ada KKA.' : `Tidak ada KKA untuk tipe "${typeFilter}".`}
                     </td>
@@ -180,16 +179,6 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit }:
                             </span>
                           )}
                         </div>
-                      </td>
-                      <td className="p-3.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${audit.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                          audit.status === 'Direview' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                            audit.status === 'Sedang Berjalan' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                              'bg-slate-100 text-slate-800 border-slate-200'
-                          }`}>
-                          {audit.status}
-                        </span>
-                      </td>
                       <td className="p-3.5 text-right">
                         <div className="px-3 py-1.5 bg-peach-accent text-dark-gray text-[10px] font-bold rounded-md hover:opacity-90 transition inline-flex items-center gap-1 ml-auto">
                           <FolderOpen className="w-3.5 h-3.5" /> Buka
