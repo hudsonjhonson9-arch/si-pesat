@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile, KKATemplate } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
+import { supabase } from '../lib/supabase';
 import EvidencePanel from './EvidencePanel';
 import CoverDocumentGenerator from './CoverDocumentGenerator';
 import {
@@ -68,13 +69,16 @@ export default function AuditWorkspaceView({
     initialCategoryId || (audit.categories.length > 0 ? audit.categories[0].id : '')
   );
 
+  const [searchQuery, setSearchQuery] = useState('');
+
 
   const [uploadingIds, setUploadingIds] = useState<Record<string, boolean>>({});
 
-  const handleDirectUpload = async (itemId: string, file: File) => {
+  const handleDirectUpload = async (itemId: string, file: File, newName?: string) => {
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
-      const res = await uploadEvidenceFile(file, audit.fiscalYear, audit.opdName, audit.auditType);
+      const fileToUpload = newName ? new File([file], newName, { type: file.type }) : file;
+      const res = await uploadEvidenceFile(fileToUpload, audit.fiscalYear, audit.opdName, audit.auditType);
       // Find existing evidence history for this item
       const existingItem = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
       const prevHistory = existingItem?.evidenceHistory || [];
@@ -168,6 +172,16 @@ export default function AuditWorkspaceView({
     return audit.categories.find(c => c.id === selectedCategoryId);
   }, [audit.categories, selectedCategoryId]);
 
+  const filteredItems = useMemo(() => {
+    if (!activeCategory) return [];
+    if (!searchQuery.trim()) return activeCategory.items;
+    const query = searchQuery.toLowerCase();
+    return activeCategory.items.filter(item => 
+      item.name.toLowerCase().includes(query) || 
+      (item.description && item.description.toLowerCase().includes(query))
+    );
+  }, [activeCategory, searchQuery]);
+
   const currentTemplate = useMemo(() => {
     return templates?.find(t => t.name === audit.auditType);
   }, [templates, audit.auditType]);
@@ -211,8 +225,28 @@ export default function AuditWorkspaceView({
   };
 
   // Quick state toggling for individual criteria items
-  const handleItemStatusChange = (itemId: string, status: FindingStatus) => {
+  const handleItemStatusChange = async (itemId: string, status: FindingStatus) => {
     if (isReadOnly) return;
+
+    // Conflict Check: Verifikasi dengan data terbaru di server sebelum mengubah
+    if (navigator.onLine) {
+      try {
+        const { data, error } = await supabase.from('audits').select('categories').eq('id', audit.id).single();
+        if (data && data.categories) {
+          const remoteItem = data.categories.flatMap((c: any) => c.items).find((i: any) => i.id === itemId);
+          const localItem = activeCategory?.items.find(i => i.id === itemId);
+          
+          if (remoteItem && localItem && remoteItem.status !== localItem.status) {
+            alert('Perubahan ditolak! Data item ini telah diubah oleh pengguna lain (Konflik). Halaman akan dimuat ulang untuk mensinkronkan data terbaru.');
+            window.location.reload();
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check conflict', err);
+      }
+    }
+
     const updatedCategories = audit.categories.map(cat => {
       return {
         ...cat,
@@ -745,13 +779,26 @@ export default function AuditWorkspaceView({
           <div className="space-y-4">
 
             {/* Header Checklist & Action to trigger ADD item */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
-
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 text-dark-gray/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Cari spesifikasi..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-3 py-1.5 border border-dark-gray/20 rounded-lg text-sm w-full sm:w-64 focus:ring-1 focus:ring-slate-800 focus:border-slate-800 transition-colors bg-white/50"
+                />
+              </div>
             </div>
 
             {/* Checklists items */}
-            {activeCategory && activeCategory.items.map((item, idx) => {
+            {filteredItems.map((item, idx) => {
               const hasFinding = item.status === 'Temuan';
               return (
                 <div
@@ -906,7 +953,7 @@ export default function AuditWorkspaceView({
                     isAuditor={userRole === 'Auditor'}
                     isUploading={!!uploadingIds[item.id]}
                     isCopying={!!copyingIds[item.id]}
-                    onUploadFile={async (file) => handleDirectUpload(item.id, file)}
+                    onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
                     onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
                     onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
                     onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
@@ -944,7 +991,7 @@ export default function AuditWorkspaceView({
                   <div className="mt-3.5 bg-amber-100/45 border border-amber-200/50 rounded-xl p-3 space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-extrabold text-amber-950 text-[10px] tracking-tight uppercase flex items-center gap-1">
-                        ⭐ Catatan Review Pengendalian Mutu (Pimpinan)
+                        ✍️ Catatan Review Pengendalian Mutu (Pimpinan)
                       </span>
                       {item.catatanReview && (
                         <span className="text-[9px] bg-amber-200 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded font-mono uppercase font-black">
@@ -953,16 +1000,39 @@ export default function AuditWorkspaceView({
                       )}
                     </div>
 
+                    {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (item.status === 'Temuan' || item.status === 'Sesuai') && (
+                      <div className="bg-blue-50 border border-blue-200 rounded p-2 flex items-start gap-2 mt-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-blue-800 font-semibold leading-relaxed">
+                          Status saat ini: <strong className="uppercase">{item.status}</strong>. 
+                          Pemberitahuan: Jika Anda memberikan review atau mengubah status, pastikan untuk berkoordinasi dengan Auditor untuk menghindari konflik pembaruan data.
+                        </p>
+                      </div>
+                    )}
+
                     {userRole === 'Auditor' || (isReadOnly && audit.status === 'Selesai') ? (
                       <p className="text-[11px] text-amber-900 bg-white/20 p-2 border border-amber-200/40 rounded italic font-bold leading-relaxed">
-                        {item.catatanReview || 'Belum ada catatan pembinaan/evaluasi dari pimpinan (Inspektur atau Irban).'}
+                        {item.catatanReview || 'Belum ada catatan review dari pimpinan.'}
                       </p>
                     ) : (
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5 mt-2">
                         <textarea
                           placeholder="Tulis ulasan review, koreksi bukti SPESIFIKASI, arahan revisi angka temuan, atau persetujuan di sini..."
                           value={item.catatanReview || ''}
                           onChange={(e) => handleFindingDetailChange(item.id, 'catatanReview', e.target.value)}
+                          onBlur={async () => {
+                            // Conflict check on blur for review notes
+                            if (!navigator.onLine || !item.catatanReview) return;
+                            try {
+                              const { data } = await supabase.from('audits').select('categories').eq('id', audit.id).single();
+                              if (data && data.categories) {
+                                const remoteItem = data.categories.flatMap((c: any) => c.items).find((i: any) => i.id === item.id);
+                                if (remoteItem && remoteItem.catatanReview && remoteItem.catatanReview !== item.catatanReview && item.catatanReview.length < remoteItem.catatanReview.length) {
+                                   alert('Peringatan: Pengguna lain mungkin telah memodifikasi catatan ini.');
+                                }
+                              }
+                            } catch (err) {}
+                          }}
                           rows={3}
                           className="w-full min-h-[70px] text-xs font-bold border border-amber-200/50 p-2.5 rounded-lg bg-white/80 focus:bg-white outline-none text-dark-gray shadow-xs"
                         />

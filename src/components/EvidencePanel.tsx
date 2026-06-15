@@ -20,7 +20,7 @@ interface EvidencePanelProps {
   evidenceHistory?: EvidenceHistoryEntry[];
   isReadOnly?: boolean;
   isAuditor?: boolean;
-  onUploadFile: (file: File) => Promise<void>;
+  onUploadFile: (file: File, newName?: string) => Promise<void>;
   onCopyFromUrl: (url: string, name: string) => Promise<void>;
   onChangeLink: (link: string) => void;
   onChangeName: (name: string) => void;
@@ -92,6 +92,10 @@ export default function EvidencePanel({
   const [tab, setTab] = useState<'upload' | 'link'>('upload');
   const [isRenamingDoc, setIsRenamingDoc] = useState(false);
   const [renameValue, setRenameValue] = useState('');
+  
+  const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null);
+  const [pendingUploadName, setPendingUploadName] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasEvidence = !!(evidenceLink);
@@ -100,12 +104,36 @@ export default function EvidencePanel({
   const fileInfo = getFileIcon(evidenceName, evidenceLink);
   const FileIcon = fileInfo.icon;
 
+  const initiateUpload = (file: File) => {
+    setPendingUploadFile(file);
+    const dotIndex = file.name.lastIndexOf('.');
+    const nameWithoutExt = dotIndex > 0 ? file.name.substring(0, dotIndex) : file.name;
+    setPendingUploadName(nameWithoutExt);
+  };
+
+  const confirmUpload = () => {
+    if (pendingUploadFile) {
+      const dotIndex = pendingUploadFile.name.lastIndexOf('.');
+      const ext = dotIndex > 0 ? pendingUploadFile.name.substring(dotIndex) : '';
+      const finalName = pendingUploadName.trim() ? `${pendingUploadName.trim()}${ext}` : pendingUploadFile.name;
+      onUploadFile(pendingUploadFile, finalName);
+      setPendingUploadFile(null);
+      setPendingUploadName('');
+    }
+  };
+
+  const cancelUpload = () => {
+    setPendingUploadFile(null);
+    setPendingUploadName('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file) onUploadFile(file);
-  }, [onUploadFile]);
+    if (file) initiateUpload(file);
+  }, []);
 
   const handleCopyLink = () => {
     if (!evidenceLink) return;
@@ -412,7 +440,7 @@ export default function EvidencePanel({
                     disabled={isUploading}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) { onUploadFile(file); e.target.value = ''; }
+                      if (file) { initiateUpload(file); }
                     }}
                     className="hidden"
                   />
@@ -563,6 +591,44 @@ export default function EvidencePanel({
                 </a>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Rename before upload modal */}
+      {pendingUploadFile && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-5 animate-fade-in-up">
+            <div className="flex items-center gap-2 mb-2 text-slate-800">
+              <Pencil className="w-4 h-4" />
+              <h3 className="font-bold text-sm">Ganti Nama Dokumen</h3>
+            </div>
+            <p className="text-[10px] text-slate-500 mb-4 font-medium leading-relaxed">
+              Silakan ubah nama dokumen sebelum mengunggah. (Ekstensi <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">{pendingUploadFile.name.substring(pendingUploadFile.name.lastIndexOf('.'))}</code> akan dipertahankan otomatis).
+            </p>
+            <input 
+              type="text" 
+              className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-xs font-bold text-slate-800 mb-5 focus:ring-2 focus:ring-peach-accent focus:border-peach-accent outline-none"
+              value={pendingUploadName}
+              onChange={e => setPendingUploadName(e.target.value)}
+              autoFocus
+              onKeyDown={e => e.key === 'Enter' && confirmUpload()}
+            />
+            <div className="flex gap-2 justify-end">
+              <button 
+                onClick={cancelUpload} 
+                className="px-4 py-2 text-[10px] font-extrabold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={confirmUpload} 
+                className="px-4 py-2 text-[10px] font-extrabold text-white bg-slate-800 rounded-lg hover:bg-slate-900 flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Konfirmasi & Unggah
+              </button>
+            </div>
           </div>
         </div>
       )}
