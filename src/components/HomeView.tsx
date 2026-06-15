@@ -112,7 +112,13 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
+      <div 
+        className="rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden bg-slate-900 bg-center bg-cover"
+        style={{ backgroundImage: "url('/header-bg.jpg')" }}
+      >
+        {/* Overlay gradient so text is readable over the background image */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-800/70 to-slate-800/40" />
+        
         <div className="absolute right-0 top-0 -mr-10 -mt-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute left-1/4 bottom-0 -mb-10 w-40 h-40 bg-peach-accent/20 rounded-full blur-2xl pointer-events-none" />
 
