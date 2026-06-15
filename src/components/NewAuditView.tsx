@@ -36,7 +36,7 @@ interface NewAuditViewProps {
   ) => void;
 }
 
-const OPD_TYPES: OpdAudit['opdType'][] = ['SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'];
+const OPD_TYPES: OpdAudit['opdType'][] = ['SD', 'SMP', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'];
 const FISCAL_YEARS = ['2026', '2025', '2024', '2023'];
 
 export default function NewAuditView({

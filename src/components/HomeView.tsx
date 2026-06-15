@@ -9,7 +9,7 @@ interface HomeViewProps {
   userRole?: string;
 }
 
-const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'SMA', 'SMK', 'SLB', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'] as const;
+const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'] as const;
 
 const OPD_TYPE_COLORS: Record<string, string> = {
   Dinas: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -19,9 +19,6 @@ const OPD_TYPE_COLORS: Record<string, string> = {
   Kelurahan: 'bg-teal-100 text-teal-800 border-teal-200',
   SD: 'bg-amber-100 text-amber-800 border-amber-200',
   SMP: 'bg-orange-100 text-orange-800 border-orange-200',
-  SMA: 'bg-rose-100 text-rose-800 border-rose-200',
-  SMK: 'bg-pink-100 text-pink-800 border-pink-200',
-  SLB: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
   Puskesmas: 'bg-cyan-100 text-cyan-800 border-cyan-200',
   Lainnya: 'bg-slate-100 text-slate-800 border-slate-200',
 };

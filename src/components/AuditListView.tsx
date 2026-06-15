@@ -69,7 +69,7 @@ export default function AuditListView({
 
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
-  const [newSchoolType, setNewSchoolType] = useState<'SD' | 'SMP' | 'SMA' | 'SMK' | 'SLB' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya'>('SD');
+  const [newSchoolType, setNewSchoolType] = useState<'SD' | 'SMP' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya'>('SD');
   const [newFiscalYear, setNewFiscalYear] = useState('2026');
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
   const [newTeamMembers, setNewTeamMembers] = useState<string[]>([]);
@@ -233,9 +233,6 @@ export default function AuditListView({
               <option value="all">Semua Tipe</option>
               <option value="SD">SD</option>
               <option value="SMP">SMP</option>
-              <option value="SMA">SMA</option>
-              <option value="SMK">SMK</option>
-              <option value="SLB">SLB</option>
               <option value="Dinas">Dinas</option>
               <option value="Badan">Badan</option>
               <option value="Kecamatan">Kecamatan</option>
