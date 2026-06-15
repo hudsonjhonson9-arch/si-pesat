@@ -206,9 +206,9 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
     try {
       const opt = {
         margin:       0,
-        filename:     `Surat_Tugas_${audit.opdName.replace(/\s+/g, '_')}.pdf`,
+        filename:     `Surat_Tugas_${auditName.replace(/\s+/g, '_')}_${audit.opdName.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2, windowWidth: 794 },
+        html2canvas:  { scale: 2, windowWidth: 794, useCORS: true },
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const },
         pagebreak:    { mode: 'avoid-all' }
       };
