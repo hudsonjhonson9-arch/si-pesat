@@ -11,6 +11,7 @@ interface EvidenceHistoryEntry {
   link: string;
   uploadedAt: string;
   uploadedBy: string;
+  action?: 'diunggah' | 'ditautkan' | 'dihapus' | 'diubah';
 }
 
 interface EvidencePanelProps {
@@ -24,6 +25,7 @@ interface EvidencePanelProps {
   onChangeLink: (link: string) => void;
   onChangeName: (name: string) => void;
   onClear: () => void;
+  onAddHistory?: (action: 'diunggah' | 'ditautkan' | 'dihapus' | 'diubah', name: string, link: string) => void;
   isUploading?: boolean;
   isCopying?: boolean;
 }
@@ -78,6 +80,7 @@ export default function EvidencePanel({
   onChangeLink,
   onChangeName,
   onClear,
+  onAddHistory,
   isUploading = false,
   isCopying = false,
 }: EvidencePanelProps) {
@@ -118,6 +121,8 @@ export default function EvidencePanel({
     onChangeLink(url);
     if (url.includes('drive.google.com')) {
       await onCopyFromUrl(url, evidenceName || '');
+    } else {
+      if (onAddHistory) onAddHistory('ditautkan', evidenceName || 'Tautan Eksternal', url);
     }
     setPasteUrl('');
   };
@@ -134,7 +139,10 @@ export default function EvidencePanel({
   };
 
   const saveRename = () => {
-    if (renameValue.trim()) onChangeName(renameValue.trim());
+    if (renameValue.trim()) {
+      onChangeName(renameValue.trim());
+      if (onAddHistory) onAddHistory('diubah', renameValue.trim(), evidenceLink || '');
+    }
     setIsRenamingDoc(false);
   };
 
@@ -186,26 +194,47 @@ export default function EvidencePanel({
             <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
               {[...evidenceHistory].reverse().map((entry, idx) => {
                 const entryFileInfo = getFileIcon(entry.name);
-                const EntryIcon = entryFileInfo.icon;
+                const EntryIcon = entry.action === 'dihapus' ? X : entryFileInfo.icon;
+                const bgClass = entry.action === 'dihapus' ? 'bg-red-50' : entryFileInfo.bg;
+                const colorClass = entry.action === 'dihapus' ? 'text-red-500' : entryFileInfo.color;
+
                 return (
-                  <div key={idx} className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-white transition-colors">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${entryFileInfo.bg}`}>
-                      <EntryIcon className={`w-3.5 h-3.5 ${entryFileInfo.color}`} />
+                  <div key={idx} className={`flex items-start gap-2.5 px-3 py-2.5 hover:bg-white transition-colors ${entry.action === 'dihapus' ? 'opacity-75' : ''}`}>
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${bgClass}`}>
+                      <EntryIcon className={`w-3.5 h-3.5 ${colorClass}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <a
-                        href={entry.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-bold text-blue-700 hover:underline truncate block"
-                      >
-                        {entry.name || 'Dokumen Tanpa Nama'}
-                      </a>
-                      <p className="text-[9px] text-slate-400 font-medium mt-0.5">
-                        {formatDateTime(entry.uploadedAt)} · {entry.uploadedBy}
-                      </p>
+                      {entry.action === 'dihapus' || !entry.link ? (
+                        <span className={`text-[10px] font-bold truncate block ${entry.action === 'dihapus' ? 'text-red-700 line-through' : 'text-slate-700'}`}>
+                          {entry.name || 'Dokumen Tanpa Nama'}
+                        </span>
+                      ) : (
+                        <a
+                          href={entry.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-bold text-blue-700 hover:underline truncate block"
+                        >
+                          {entry.name || 'Dokumen Tanpa Nama'}
+                        </a>
+                      )}
+                      <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
+                        <p className="text-[9px] text-slate-400 font-medium">
+                          {formatDateTime(entry.uploadedAt)} · {entry.uploadedBy}
+                        </p>
+                        {entry.action && (
+                          <span className={`text-[8px] font-bold px-1.5 rounded uppercase tracking-wider ${
+                            entry.action === 'diunggah' ? 'bg-emerald-100 text-emerald-700' :
+                            entry.action === 'ditautkan' ? 'bg-blue-100 text-blue-700' :
+                            entry.action === 'dihapus' ? 'bg-red-100 text-red-700' :
+                            'bg-slate-100 text-slate-700'
+                          }`}>
+                            {entry.action}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {idx === 0 && (
+                    {idx === 0 && entry.action !== 'dihapus' && (
                       <span className="text-[8px] font-black text-emerald-700 bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded-full shrink-0">
                         TERKINI
                       </span>

@@ -29,7 +29,7 @@ export interface AuditItem {
   rekomendasi: string;
   evidenceLink?: string; // Tautan dokumen Google Drive (pdf, excel, docx)
   evidenceName?: string; // Nama berkas bukti
-  evidenceHistory?: { name: string; link: string; uploadedAt: string; uploadedBy: string }[]; // Riwayat dokumen
+  evidenceHistory?: { name: string; link: string; uploadedAt: string; uploadedBy: string; action?: 'diunggah' | 'ditautkan' | 'dihapus' | 'diubah' }[]; // Riwayat dokumen
   catatanReview?: string; // Catatan review dari Inspektur Pembantu / Inspektur
 }
 

@@ -80,7 +80,8 @@ export default function AuditWorkspaceView({
         name: res.name,
         link: res.webViewLink,
         uploadedAt: new Date().toISOString(),
-        uploadedBy: currentUserName || audit.auditorName || 'Auditor'
+        uploadedBy: currentUserName || audit.auditorName || 'Auditor',
+        action: 'diunggah' as const
       };
       handleFindingDetailsUpdate(itemId, {
         evidenceLink: res.webViewLink,
@@ -109,7 +110,8 @@ export default function AuditWorkspaceView({
         name: res.name,
         link: res.webViewLink,
         uploadedAt: new Date().toISOString(),
-        uploadedBy: currentUserName || audit.auditorName || 'Auditor'
+        uploadedBy: currentUserName || audit.auditorName || 'Auditor',
+        action: 'ditautkan' as const
       };
       handleFindingDetailsUpdate(itemId, {
         evidenceLink: res.webViewLink,
@@ -898,9 +900,31 @@ export default function AuditWorkspaceView({
                     onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
                     onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
                     onClear={() => {
+                      const prevHistory = item.evidenceHistory || [];
+                      const historyEntry = {
+                        name: item.evidenceName || 'Dokumen',
+                        link: item.evidenceLink || '',
+                        uploadedAt: new Date().toISOString(),
+                        uploadedBy: currentUserName || audit.auditorName || 'Auditor',
+                        action: 'dihapus' as const
+                      };
                       handleFindingDetailsUpdate(item.id, {
                         evidenceLink: '',
-                        evidenceName: ''
+                        evidenceName: '',
+                        evidenceHistory: [...prevHistory, historyEntry]
+                      });
+                    }}
+                    onAddHistory={(action, name, link) => {
+                      const prevHistory = item.evidenceHistory || [];
+                      const historyEntry = {
+                        name,
+                        link,
+                        uploadedAt: new Date().toISOString(),
+                        uploadedBy: currentUserName || audit.auditorName || 'Auditor',
+                        action
+                      };
+                      handleFindingDetailsUpdate(item.id, {
+                        evidenceHistory: [...prevHistory, historyEntry]
                       });
                     }}
                   />
