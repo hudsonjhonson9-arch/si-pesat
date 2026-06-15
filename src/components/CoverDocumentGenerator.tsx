@@ -106,7 +106,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           }
           @page {
             size: A4 portrait;
-            margin: 0;
+            margin: 25mm;
           }
           @media print {
             html, body { 
@@ -120,14 +120,15 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             #clip-container {
               display: block !important;
               overflow: visible !important;
+              width: auto !important;
             }
             .page-wrapper {
               transform: none !important;
             }
             .page { 
-              width: 100% !important;
+              width: auto !important;
               min-height: auto !important;
-              padding: 20mm !important; 
+              padding: 0 !important; 
               box-shadow: none !important; 
               margin: 0 !important;
             }
