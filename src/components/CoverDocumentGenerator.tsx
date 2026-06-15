@@ -69,12 +69,12 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
   const htmlContent = useMemo(() => {
     const teamListHTML = finalTeamList.length > 0 
       ? finalTeamList.map((name, i) => `
-        <div class="team-item">
-          <div class="team-num">${i + 1}.</div>
-          <div>${name}</div>
+        <div style="margin-bottom: 4px; overflow: hidden; clear: both;">
+          <div style="float: left; width: 25px;">${i + 1}.</div>
+          <div style="float: left; width: 350px;">${name}</div>
         </div>
       `).join('')
-      : `<div class="team-item">(Belum ada tim pemeriksa)</div>`;
+      : `<div style="margin-bottom: 4px;">(Belum ada tim pemeriksa)</div>`;
 
     return `
       <!DOCTYPE html>
@@ -116,13 +116,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
           .line-short { width: 1.5px; background-color: black; height: 100px; margin-top: 25px; }
           .line-long { width: 1.5px; background-color: black; height: 150px; }
-          .info-list { width: 100%; margin-top: 40px; font-size: ${fontSizeTable}pt; line-height: 1.4; }
-          .info-row { position: relative; padding-left: 240px; margin-bottom: 8px; min-height: 1.4em; }
-          .col-label { position: absolute; left: 0; top: 0; width: 220px; }
-          .col-colon { position: absolute; left: 220px; top: 0; width: 20px; text-align: center; }
-          .col-value { width: 100%; }
-          .team-item { position: relative; padding-left: 25px; margin-bottom: 4px; }
-          .team-num { position: absolute; left: 0; top: 0; width: 25px; }
+
         </style>
       </head>
       <body>
@@ -141,33 +135,33 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           <div class="line-long"></div>
           <div class="line-short"></div>
         </div>
-        <div class="info-list">
-          <div class="info-row">
-            <div class="col-label">PADA</div>
-            <div class="col-colon">:</div>
-            <div class="col-value">${pada}</div>
-          </div>
-          <div class="info-row">
-            <div class="col-label">KECAMATAN</div>
-            <div class="col-colon">:</div>
-            <div class="col-value">${kecamatan}</div>
-          </div>
-          <div class="info-row">
-            <div class="col-label">KABUPATEN</div>
-            <div class="col-colon">:</div>
-            <div class="col-value">${kabupaten}</div>
-          </div>
-          <div class="info-row">
-            <div class="col-label">TANGGAL</div>
-            <div class="col-colon">:</div>
-            <div class="col-value">${tanggal}</div>
-          </div>
-          <div class="info-row">
-            <div class="col-label">TIM PEMERIKSA</div>
-            <div class="col-colon">:</div>
-            <div class="col-value">${teamListHTML}</div>
-          </div>
-        </div>
+        <table style="width: 650px; margin-top: 40px; font-size: ${fontSizeTable}pt; line-height: 1.4; border-collapse: collapse;">
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 4px 0;">PADA</td>
+            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+            <td style="vertical-align: top; padding: 4px 0;">${pada}</td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 4px 0;">KECAMATAN</td>
+            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+            <td style="vertical-align: top; padding: 4px 0;">${kecamatan}</td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 4px 0;">KABUPATEN</td>
+            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+            <td style="vertical-align: top; padding: 4px 0;">${kabupaten}</td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 4px 0;">TANGGAL</td>
+            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+            <td style="vertical-align: top; padding: 4px 0;">${tanggal}</td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 4px 0;">TIM PEMERIKSA</td>
+            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+            <td style="vertical-align: top; padding: 4px 0;">${teamListHTML}</td>
+          </tr>
+        </table>
         </div>
         </div>
         </div>
