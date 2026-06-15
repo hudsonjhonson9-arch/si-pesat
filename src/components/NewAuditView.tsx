@@ -44,6 +44,7 @@ export default function NewAuditView({
   audits,
   templates,
   userProfiles,
+  targetEntities = [],
   defaultAuditorName = '',
   onBack,
   onCreateAudit,
