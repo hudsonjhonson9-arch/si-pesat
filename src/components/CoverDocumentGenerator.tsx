@@ -80,7 +80,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Cetak Sampul KKP - ${pada}</title>
+        <title>Cetak Sampul KKP - ${pada} - ${judul2}</title>
         <style>
           body { 
             font-family: "Times New Roman", Times, serif; 
@@ -241,7 +241,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
     try {
       const opt = {
         margin:       0,
-        filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
+        filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}_${judul2.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2, windowWidth: 794 },
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
