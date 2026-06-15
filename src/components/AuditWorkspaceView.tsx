@@ -48,6 +48,7 @@ interface AuditWorkspaceViewProps {
   templates: KKATemplate[];
   currentUserName?: string;
   initialCategoryId?: string | null;
+  onShowToast?: (message: string, type: 'error' | 'info' | 'success') => void;
 }
 
 export default function AuditWorkspaceView({
@@ -63,6 +64,7 @@ export default function AuditWorkspaceView({
   templates = [],
   currentUserName = '',
   initialCategoryId = null,
+  onShowToast
 }: AuditWorkspaceViewProps) {
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
@@ -236,6 +238,8 @@ export default function AuditWorkspaceView({
   // Helper untuk mengecek konflik data sebelum melakukan aksi kritis
   const checkConflict = async (itemId: string, actionName: string = 'Perubahan'): Promise<boolean> => {
     if (!navigator.onLine) return false;
+    if (isSyncing) return false; // Ignore checks if we are actively saving (prevents false positives on rapid clicking)
+
     try {
       const { data, error } = await supabase.from('audits').select('categories').eq('id', audit.id).single();
       if (data && data.categories) {
@@ -247,8 +251,11 @@ export default function AuditWorkspaceView({
           const hasEvidenceConflict = remoteItem.evidenceLink !== localItem.evidenceLink || (remoteItem.evidenceHistory?.length || 0) !== (localItem.evidenceHistory?.length || 0);
           
           if (hasStatusConflict || hasEvidenceConflict) {
-            alert(`${actionName} ditolak! Data item ini telah dimodifikasi oleh pengguna lain (Konflik). Halaman akan dimuat ulang untuk mensinkronkan data terbaru.`);
-            window.location.reload();
+            onShowToast?.(`${actionName} ditolak. Data telah dimodifikasi pengguna lain. Menyelaraskan data terbaru...`, 'error');
+            
+            // Seamlessly sync with the remote data instead of reloading the page
+            onUpdates({ ...audit, categories: data.categories });
+            
             return true;
           }
         }
