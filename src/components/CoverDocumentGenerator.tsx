@@ -69,9 +69,9 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
   const htmlContent = useMemo(() => {
     const teamListHTML = finalTeamList.length > 0 
       ? finalTeamList.map((name, i) => `
-        <div style="margin-bottom: 4px; overflow: hidden; clear: both;">
-          <div style="float: left; width: 25px;">${i + 1}.</div>
-          <div style="float: left; width: 350px;">${name}</div>
+        <div style="margin-bottom: 4px;">
+          <span style="display: inline-block; width: 25px; vertical-align: top;">${i + 1}.</span>
+          <span style="display: inline-block; width: 350px; vertical-align: top;">${name}</span>
         </div>
       `).join('')
       : `<div style="margin-bottom: 4px;">(Belum ada tim pemeriksa)</div>`;
