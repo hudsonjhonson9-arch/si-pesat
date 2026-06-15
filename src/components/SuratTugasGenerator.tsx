@@ -91,7 +91,7 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
     `).join('');
 
     return `
-      <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
+      <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 15mm 30mm 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
