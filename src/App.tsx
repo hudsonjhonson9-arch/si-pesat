@@ -611,6 +611,7 @@ export default function App() {
           isSyncing={isSyncing}
           userRole={userRole}
           userProfiles={userProfiles}
+          onShowToast={showToast}
           currentUserName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
           initialCategoryId={selectedCategoryId}
         />
