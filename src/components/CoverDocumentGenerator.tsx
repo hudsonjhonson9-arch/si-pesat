@@ -184,31 +184,52 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
   }, [instansi, lembaga, alamat, judul1, judul2, pada, kecamatan, kabupaten, tanggal, finalTeamList, fontSizeKop, fontSizeTable]);
 
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(true);
 
-  const handlePrint = async () => {
-    setIsSaving(true);
-    setErrorMsg(null);
-    try {
-      const opt = {
-        margin:       0,
-        filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
-        image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2, windowWidth: 794 },
-        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
-      };
-      
-      const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
-      if (!lib) throw new Error("Library pembuat PDF tidak ditemukan.");
+  useEffect(() => {
+    let isMounted = true;
+    setIsGeneratingPdf(true);
+    
+    const timer = setTimeout(async () => {
+      try {
+        const opt = {
+          margin:       0,
+          filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
+          image:        { type: 'jpeg' as const, quality: 0.98 },
+          html2canvas:  { scale: 2, windowWidth: 794 },
+          jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
+        };
+        const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
+        if (!lib) return;
+        const pdfBlob = await lib().set(opt).from(htmlContent).output('blob');
+        if (isMounted) {
+          const url = URL.createObjectURL(pdfBlob);
+          setPdfPreviewUrl(prev => {
+            if (prev) URL.revokeObjectURL(prev);
+            return url;
+          });
+        }
+      } catch (err) {
+        console.error("Failed to generate live PDF:", err);
+      } finally {
+        if (isMounted) setIsGeneratingPdf(false);
+      }
+    }, 600);
 
-      const pdfBlob = await lib().set(opt).from(htmlContent).output('blob');
-      
-      const url = URL.createObjectURL(pdfBlob);
-      setPdfPreviewUrl(url);
-    } catch (err: any) {
-      console.error(err);
-      setErrorMsg("Gagal membuat Pratinjau PDF: " + err.message);
-    } finally {
-      setIsSaving(false);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [htmlContent, pada]);
+
+  const handleDownloadPdf = () => {
+    if (pdfPreviewUrl) {
+      const a = document.createElement('a');
+      a.href = pdfPreviewUrl;
+      a.download = `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   };
 
@@ -404,15 +425,23 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
 
           {/* Right Preview Panel */}
           <div className="w-full md:w-1/2 bg-slate-200 p-4 flex flex-col relative">
-            <div className="absolute top-2 right-2 text-[10px] font-bold text-slate-500 uppercase bg-white/50 px-2 py-1 rounded backdrop-blur-sm z-10 pointer-events-none">
-              Pratinjau Langsung
+            <div className="absolute top-2 right-2 flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase bg-white/70 px-2 py-1 rounded backdrop-blur-sm z-10 pointer-events-none">
+              {isGeneratingPdf ? <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div> : null}
+              Live PDF Preview
             </div>
             <div className="flex-1 bg-slate-200 overflow-hidden relative rounded border border-slate-300">
-              <iframe 
-                srcDoc={htmlContent} 
-                className="w-full h-full border-none pointer-events-auto"
-                title="Preview"
-              />
+              {pdfPreviewUrl ? (
+                <iframe 
+                  src={pdfPreviewUrl} 
+                  className="w-full h-full border-none pointer-events-auto"
+                  title="Preview"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                  <div className="w-8 h-8 border-4 border-slate-300 border-t-slate-500 rounded-full animate-spin mb-4"></div>
+                  <p className="text-xs font-bold uppercase tracking-wide">Menyiapkan PDF...</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -422,36 +451,17 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             Batal
           </button>
           {onSaveAsDokumen1 && (
-            <button onClick={handleSaveToDokumen1} disabled={isSaving} className="flex items-center gap-2 px-5 py-2 bg-blue-100 text-blue-800 font-black text-xs rounded-lg border border-blue-200 hover:bg-blue-200 transition-colors cursor-pointer shadow-sm disabled:opacity-50">
+            <button onClick={handleSaveToDokumen1} disabled={isSaving || isGeneratingPdf} className="flex items-center gap-2 px-5 py-2 bg-blue-100 text-blue-800 font-black text-xs rounded-lg border border-blue-200 hover:bg-blue-200 transition-colors cursor-pointer shadow-sm disabled:opacity-50">
               <Save className="w-3.5 h-3.5" />
               {isSaving ? 'Menyimpan...' : 'Simpan ke Dokumen 1'}
             </button>
           )}
-          <button onClick={handlePrint} disabled={isSaving} className="flex items-center gap-2 px-5 py-2 bg-peach-accent text-dark-gray font-black text-xs rounded-lg border border-dark-gray/10 hover:opacity-90 transition-opacity cursor-pointer shadow-sm disabled:opacity-50">
+          <button onClick={handleDownloadPdf} disabled={isSaving || isGeneratingPdf || !pdfPreviewUrl} className="flex items-center gap-2 px-5 py-2 bg-peach-accent text-dark-gray font-black text-xs rounded-lg border border-dark-gray/10 hover:opacity-90 transition-opacity cursor-pointer shadow-sm disabled:opacity-50">
             <Printer className="w-3.5 h-3.5" />
-            Pratinjau & Cetak PDF
+            Unduh PDF
           </button>
         </div>
       </div>
-
-      {pdfPreviewUrl && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-dark-gray/80 p-4 backdrop-blur-md">
-          <div className="bg-white rounded-3xl w-full max-w-5xl h-[95vh] overflow-hidden shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-dark-gray/10 bg-slate-50 shrink-0">
-              <h2 className="font-black text-sm tracking-wide uppercase text-dark-gray">Pratinjau PDF (Siap Cetak & Unduh)</h2>
-              <button 
-                onClick={() => { URL.revokeObjectURL(pdfPreviewUrl); setPdfPreviewUrl(null); }} 
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-dark-gray/10 text-dark-gray/60 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden bg-slate-200 p-2 md:p-4">
-               <iframe src={pdfPreviewUrl} className="w-full h-full border-none rounded shadow-sm" title="PDF Preview" />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
