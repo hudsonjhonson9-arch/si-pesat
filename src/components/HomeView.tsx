@@ -148,9 +148,10 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
 
           <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden relative min-h-[220px] z-10 rounded-xl flex-1">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126130.65487777717!2d119.34005886470355!3d-9.610667794353723!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c4cac4b998cfb27%3A0x6b30f73f278d65de!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1714545000000!5m2!1sid!2sid"
+              src="https://maps.google.com/maps?q=Loli,%20Kabupaten%20Sumba%20Barat&t=&z=11&ie=UTF8&iwloc=&output=embed"
               className="absolute inset-0 w-full h-full border-0"
               allowFullScreen
+              loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             ></iframe>
           </div>
