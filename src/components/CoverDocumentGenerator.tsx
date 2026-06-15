@@ -82,20 +82,30 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       <head>
         <title>Cetak Sampul KKP - ${pada}</title>
         <style>
-          @media print {
-            @page { size: A4; margin: 0; }
-            body { padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; }
-            .page { padding: 2.5cm !important; width: 21cm; min-height: 29.7cm; box-sizing: border-box; margin: 0; border: none; box-shadow: none; }
-          }
           body { 
             font-family: "Times New Roman", Times, serif; 
             margin: 0; 
-            padding: 2.5cm; 
-            background: white;
+            padding: 20px 0; 
+            background: transparent;
             color: black;
-            width: 21cm;
-            min-height: 29.7cm;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+          }
+          .page-wrapper {
+            transform-origin: top center;
+          }
+          .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 25mm;
             box-sizing: border-box;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+          }
+          @media print {
+            body { padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; }
+            .page { padding: 25mm !important; box-shadow: none; margin: 0; }
           }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
@@ -115,7 +125,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         </style>
       </head>
       <body>
-        <div class="text-center">
+        <div class="page-wrapper" id="page-wrapper">
+        <div class="page" id="pdf-content">
           <div class="header-instansi">${instansi}</div>
           <div class="header-lembaga">${lembaga}</div>
           <div class="header-alamat">${alamat.replace(/\n/g, '<br/>')}</div>
@@ -138,7 +149,22 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             <td><table class="team-table">${teamListHTML}</table></td>
           </tr>
         </table>
+        </div>
+        </div>
         <script>
+          function adjustScale() {
+            var wrapper = document.getElementById('page-wrapper');
+            var containerWidth = window.innerWidth;
+            var scale = 1;
+            if (containerWidth < 794) {
+              scale = (containerWidth - 20) / 794;
+            }
+            wrapper.style.transform = 'scale(' + scale + ')';
+            var rect = wrapper.getBoundingClientRect();
+            document.body.style.minHeight = (rect.height + 40) + 'px';
+          }
+          window.addEventListener('resize', adjustScale);
+          adjustScale();
           window.onafterprint = function() { window.close(); };
         </script>
       </body>
@@ -370,10 +396,10 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             <div className="absolute top-2 right-2 text-[10px] font-bold text-slate-500 uppercase bg-white/50 px-2 py-1 rounded backdrop-blur-sm z-10 pointer-events-none">
               Pratinjau Langsung
             </div>
-            <div className="flex-1 bg-slate-200 overflow-auto flex justify-center p-4 lg:p-8">
+            <div className="flex-1 bg-slate-200 overflow-hidden relative rounded border border-slate-300">
               <iframe 
                 srcDoc={htmlContent} 
-                className="w-[21cm] min-h-[29.7cm] bg-white shadow-xl border border-slate-300 pointer-events-auto"
+                className="w-full h-full border-none pointer-events-auto"
                 title="Preview"
               />
             </div>
