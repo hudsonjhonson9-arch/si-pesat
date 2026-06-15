@@ -167,7 +167,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
             <div>
               <h3 className="font-bold text-dark-gray text-base">Daftar Objek Audit</h3>
               <p className="text-xs text-dark-gray/60 mt-0.5">
-                Pemantauan KKA Irban IV.
+                Penatausahaan KKA Irban IV.
               </p>
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -197,13 +197,13 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
                   onClick={() => setTypeFilter(type)}
                   className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                     typeFilter === type
-                      ? 'bg-dark-gray text-white border-dark-gray shadow-sm'
+                      ? (OPD_COLORS[type] || 'bg-slate-800 text-white border-slate-800') + ' shadow-sm'
                       : 'bg-white text-dark-gray/60 border-dark-gray/15 hover:border-dark-gray/30 hover:text-dark-gray'
                   }`}
                 >
                   {type}
                   {type !== 'Semua' && count > 0 && (
-                    <span className={`ml-1 ${typeFilter === type ? 'text-white/70' : 'text-dark-gray/40'}`}>
+                    <span className={`ml-1 ${typeFilter === type ? 'opacity-70' : 'text-dark-gray/40'}`}>
                       ({count})
                     </span>
                   )}
