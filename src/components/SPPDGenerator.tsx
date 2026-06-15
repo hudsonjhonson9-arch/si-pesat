@@ -16,7 +16,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
   const [alamat] = useState('Jalan Basuki Rahmat Nomor : 12 Waikabubak, Provinsi Nusa Tenggara Timur Telp.(0387) 21165, Fax.(0387) 21165, Email: inspektoratsumbabarat2026@gmail.com');
   
   const [nomorSurat, setNomorSurat] = useState('425 / SPPD / 2026');
-  const [maksud, setMaksud] = useState('Melakukan Audit Ketaatan');
+  const auditName = activeCategory?.name || 'Audit Ketaatan';
+  const [maksud, setMaksud] = useState(`Melakukan ${auditName}`);
   const [tempatTujuan, setTempatTujuan] = useState(audit.opdName);
   const [lamanya, setLamanya] = useState('Selama 8 (delapan) hari');
   const [tglBerangkat, setTglBerangkat] = useState('11 Mei 2026');
@@ -69,12 +70,19 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
       <div style="width: 210mm; min-height: 297mm; padding: 25mm 20mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; ${idx > 0 ? 'page-break-before: always;' : ''}">
         
         <!-- KOP SURAT -->
-        <div style="text-align: center; border-bottom: 3px solid black; padding-bottom: 15px; margin-bottom: 25px; position: relative;">
-          <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="position: absolute; left: 0; top: 0; width: 75px; height: auto;" />
-          <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
-          <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
-          <div style="font-size: 10pt;">${alamat}</div>
-        </div>
+        <table style="width: 100%; border-bottom: 3px solid black; margin-bottom: 25px; padding-bottom: 10px;">
+          <tr>
+            <td style="width: 90px; text-align: center; vertical-align: middle;">
+              <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
+            </td>
+            <td style="text-align: center; vertical-align: middle;">
+              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
+              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
+              <div style="font-size: 10pt;">${alamat}</div>
+            </td>
+            <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
+          </tr>
+        </table>
 
         <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
           <table style="width: 300px;">
@@ -287,13 +295,25 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                           onChange={(e) => {
                             const profile = userProfiles.find(p => p.id === e.target.value);
                             if (profile) {
-                              handleUpdateTeam(member.id, 'nama', profile.full_name || profile.email || '');
+                              const profileName = profile.full_name || profile.email || '';
+                              const exists = teamList.some(t => t.id !== member.id && t.nama.toLowerCase() === profileName.toLowerCase());
+                              if (exists) {
+                                alert('Personil ini sudah ada dalam tim!');
+                                e.target.value = '';
+                                return;
+                              }
+                              handleUpdateTeam(member.id, 'nama', profileName);
                               handleUpdateTeam(member.id, 'nip', profile.nip || '-');
                             }
+                            // Reset select after picking so they can pick again if needed (or keep it as quick-fill)
+                            e.target.value = '';
                           }}
+                          value=""
                         >
-                          <option value="">-- Pilih dari daftar user --</option>
-                          {userProfiles.map(p => (
+                          <option value="" disabled>-- Pilih dari daftar user --</option>
+                          {userProfiles
+                            .filter(p => !teamList.some(t => t.nama.toLowerCase() === (p.full_name || p.email || '').toLowerCase()))
+                            .map(p => (
                             <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                           ))}
                         </select>

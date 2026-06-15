@@ -19,7 +19,8 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
   const [dasar1, setDasar1] = useState('Keputusan Bupati Sumba Barat Nomor : KEP/HK/305/2026 tanggal 12 Maret 2026 tentang Perubahan atas Lampiran Keputusan Bupati Sumba Barat Nomor : KEP/HK/7/2026 tentang Program Kerja Pengawasan Tahunan Inspektorat Kabupaten Sumba Barat Tahun 2026;');
   const [dasar2, setDasar2] = useState('Nota Dinas dari Inspektur Pembantu Wilayah IV Nomor : 10/IK.IPW IV/V/2026 tanggal 06 Mei 2026;');
   
-  const [untuk, setUntuk] = useState(`Melakukan Audit Ketaatan pada ${audit.opdName} selama 8 (delapan) hari mulai tanggal 11 Mei 2026 sampai dengan 25 Mei 2026 sesuai PKPT tahun 2026.`);
+  const auditName = activeCategory?.name || 'Audit Ketaatan';
+  const [untuk, setUntuk] = useState(`Melakukan ${auditName} pada ${audit.opdName} selama 8 (delapan) hari mulai tanggal 11 Mei 2026 sampai dengan 25 Mei 2026 sesuai PKPT tahun 2026.`);
   
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -93,12 +94,19 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
       <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm 20mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
-        <div style="text-align: center; border-bottom: 3px solid black; padding-bottom: 15px; margin-bottom: 25px; position: relative;">
-          <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="position: absolute; left: 0; top: 0; width: 75px; height: auto;" />
-          <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
-          <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
-          <div style="font-size: 10pt;">${alamat}</div>
-        </div>
+        <table style="width: 100%; border-bottom: 3px solid black; margin-bottom: 25px; padding-bottom: 10px;">
+          <tr>
+            <td style="width: 90px; text-align: center; vertical-align: middle;">
+              <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
+            </td>
+            <td style="text-align: center; vertical-align: middle;">
+              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
+              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
+              <div style="font-size: 10pt;">${alamat}</div>
+            </td>
+            <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
+          </tr>
+        </table>
 
         <!-- JUDUL -->
         <div style="text-align: center; margin-bottom: 25px;">
@@ -275,13 +283,25 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
                           onChange={(e) => {
                             const profile = userProfiles.find(p => p.id === e.target.value);
                             if (profile) {
-                              handleUpdateTeam(member.id, 'nama', profile.full_name || profile.email || '');
+                              const profileName = profile.full_name || profile.email || '';
+                              const exists = teamList.some(t => t.id !== member.id && t.nama.toLowerCase() === profileName.toLowerCase());
+                              if (exists) {
+                                alert('Personil ini sudah ada dalam tim!');
+                                e.target.value = '';
+                                return;
+                              }
+                              handleUpdateTeam(member.id, 'nama', profileName);
                               handleUpdateTeam(member.id, 'nip', profile.nip || '-');
                             }
+                            // Reset select after picking so they can pick again if needed (or keep it as quick-fill)
+                            e.target.value = '';
                           }}
+                          value=""
                         >
-                          <option value="">-- Pilih dari daftar user --</option>
-                          {userProfiles.map(p => (
+                          <option value="" disabled>-- Pilih dari daftar user --</option>
+                          {userProfiles
+                            .filter(p => !teamList.some(t => t.nama.toLowerCase() === (p.full_name || p.email || '').toLowerCase()))
+                            .map(p => (
                             <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                           ))}
                         </select>

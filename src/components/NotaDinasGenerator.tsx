@@ -20,9 +20,10 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
   const [nomorSurat, setNomorSurat] = useState('10/IK.IPW IV/V/2026');
   const [tanggal, setTanggal] = useState('06 Mei 2026');
   const [lampiran, setLampiran] = useState('--');
-  const [perihal, setPerihal] = useState('Melakukan Audit Ketaatan');
+  const auditName = activeCategory?.name || 'Audit Ketaatan';
+  const [perihal, setPerihal] = useState(`Melakukan ${auditName}`);
   
-  const [pembuka, setPembuka] = useState('Sesuai Rencana Program Kerja Pengawasan Tahunan di Kabupaten Sumba Barat Tahun 2026, maka bersama ini kami mengajukan Rencana Audit Ketaatan dengan rincian sebagai berikut :');
+  const [pembuka, setPembuka] = useState(`Sesuai Rencana Program Kerja Pengawasan Tahunan di Kabupaten Sumba Barat Tahun 2026, maka bersama ini kami mengajukan Rencana ${auditName} dengan rincian sebagai berikut :`);
   const [waktu, setWaktu] = useState('Waktu Pemeriksaan direncanakan selama 8 (delapan) hari kerja yaitu tanggal 11 Mei s/d 25 Mei 2026');
   
   const [pengendaliNama, setPengendaliNama] = useState('Abdullah Daud, S.E');
@@ -77,12 +78,19 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
       <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm 20mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
-        <div style="text-align: center; border-bottom: 3px solid black; padding-bottom: 15px; margin-bottom: 25px; position: relative;">
-          <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="position: absolute; left: 0; top: 0; width: 75px; height: auto;" />
-          <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
-          <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
-          <div style="font-size: 10pt;">${alamat}</div>
-        </div>
+        <table style="width: 100%; border-bottom: 3px solid black; margin-bottom: 25px; padding-bottom: 10px;">
+          <tr>
+            <td style="width: 90px; text-align: center; vertical-align: middle;">
+              <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
+            </td>
+            <td style="text-align: center; vertical-align: middle;">
+              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
+              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
+              <div style="font-size: 10pt;">${alamat}</div>
+            </td>
+            <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
+          </tr>
+        </table>
 
         <div style="text-align: center; font-size: 14pt; font-weight: bold; text-decoration: underline; margin-bottom: 25px;">
           NOTA DINAS
@@ -274,12 +282,24 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
                           onChange={(e) => {
                             const profile = userProfiles.find(p => p.id === e.target.value);
                             if (profile) {
-                              handleUpdateTeam(member.id, 'nama', profile.full_name || profile.email || '');
+                              const profileName = profile.full_name || profile.email || '';
+                              const exists = teamList.some(t => t.id !== member.id && t.nama.toLowerCase() === profileName.toLowerCase());
+                              if (exists) {
+                                alert('Personil ini sudah ada dalam tim!');
+                                e.target.value = '';
+                                return;
+                              }
+                              handleUpdateTeam(member.id, 'nama', profileName);
                             }
+                            // Reset select after picking so they can pick again if needed (or keep it as quick-fill)
+                            e.target.value = '';
                           }}
+                          value=""
                         >
-                          <option value="">-- Pilih dari daftar user --</option>
-                          {userProfiles.map(p => (
+                          <option value="" disabled>-- Pilih dari daftar user --</option>
+                          {userProfiles
+                            .filter(p => !teamList.some(t => t.nama.toLowerCase() === (p.full_name || p.email || '').toLowerCase()))
+                            .map(p => (
                             <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                           ))}
                         </select>
