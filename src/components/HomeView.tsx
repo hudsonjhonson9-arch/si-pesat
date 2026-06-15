@@ -197,7 +197,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
                   onClick={() => setTypeFilter(type)}
                   className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                     typeFilter === type
-                      ? (OPD_COLORS[type] || 'bg-slate-800 text-white border-slate-800') + ' shadow-sm'
+                      ? (OPD_TYPE_COLORS[type] || 'bg-slate-800 text-white border-slate-800') + ' shadow-sm'
                       : 'bg-white text-dark-gray/60 border-dark-gray/15 hover:border-dark-gray/30 hover:text-dark-gray'
                   }`}
                 >
