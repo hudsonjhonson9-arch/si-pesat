@@ -140,7 +140,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
               margin: 0 !important;
             }
           }
-          .text-center { text-align: center; padding-top: 120px; }
+          .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
           .header-instansi { font-size: ${fontSizeKop}pt; margin-bottom: 5px; }
           .header-lembaga { font-size: ${fontSizeKop + 2}pt; margin-bottom: 10px; }
@@ -151,8 +151,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         </style>
         <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center;">
           <div class="page-wrapper" id="page-wrapper">
-          <div class="page" id="pdf-content">
-          <div class="text-center">
+          <div class="page" id="pdf-content" style="font-family: 'Times New Roman', Times, serif; color: black;">
+          <div class="text-center" style="padding-top: 60px;">
             <div class="header-instansi"><b>${instansi}</b></div>
             <div class="header-lembaga"><b>${lembaga}</b></div>
             <div class="header-alamat">${alamat.replace(/\n/g, '<br/>')}</div>
@@ -253,7 +253,15 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
       if (!lib) throw new Error("Library pembuat PDF tidak ditemukan.");
 
-      const pdfBlob = await lib().set(opt).from(htmlContent).output('blob');
+      // Attempt to grab the perfectly styled DOM element directly from the preview iframe
+      const iframe = document.querySelector('iframe[title="Preview"]') as HTMLIFrameElement;
+      const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
+      const element = iframeDoc?.getElementById('pdf-content');
+      
+      // Fallback to raw string if iframe is inaccessible
+      const source = element || htmlContent;
+
+      const pdfBlob = await lib().set(opt).from(source).output('blob');
       
       const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
       await onSaveAsDokumen1(file);
