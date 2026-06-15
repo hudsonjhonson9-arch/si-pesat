@@ -742,7 +742,7 @@ export default function App() {
                     : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                 }`}
               >
-                <School className="w-4 h-4" /> Pemeriksaan
+                <School className="w-4 h-4" /> Audit
               </button>
               {['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) && (
                 <button
@@ -831,7 +831,7 @@ export default function App() {
               }`}
             >
               <School className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Pemeriksaan</span>
+              <span className="text-[9px] tracking-wide">Audit</span>
             </button>
 
             <button
