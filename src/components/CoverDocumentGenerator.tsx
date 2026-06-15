@@ -102,7 +102,10 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             box-sizing: border-box;
             background: white;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+          }
+          #pdf-content, #pdf-content * {
             font-family: "Times New Roman", Times, serif !important;
+            color: black !important;
           }
           @page {
             size: A4 portrait;
