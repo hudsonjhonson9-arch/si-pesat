@@ -720,7 +720,7 @@ export default function App() {
               </div>
               <div>
                 <h1 className="font-extrabold text-sm md:text-base text-dark-gray tracking-tight">SI-PESAT Audit</h1>
-                <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-dark-gray/70 font-bold block leading-none">Inspektorat Daerah</span>
+                <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-dark-gray/70 font-bold block leading-none">Inspektorat Kabupaten Sumba Barat</span>
               </div>
             </div>
 
