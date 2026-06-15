@@ -102,6 +102,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             box-sizing: border-box;
             background: white;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            font-family: "Times New Roman", Times, serif !important;
           }
           @media print {
             body { padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; }
@@ -109,13 +110,13 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
-          .header-instansi { font-size: ${fontSizeKop}pt; font-weight: bold; margin-bottom: 5px; }
-          .header-lembaga { font-size: ${fontSizeKop + 2}pt; font-weight: bold; margin-bottom: 10px; }
+          .header-instansi { font-size: ${fontSizeKop}pt; margin-bottom: 5px; }
+          .header-lembaga { font-size: ${fontSizeKop + 2}pt; margin-bottom: 10px; }
           .header-alamat { font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px; }
-          .judul { font-size: ${fontSizeKop - 2}pt; font-weight: bold; margin-bottom: 10px; }
+          .judul { font-size: ${fontSizeKop - 2}pt; margin-bottom: 10px; }
           .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
-          .line-short { width: 1.5px; background-color: black; height: 100px; margin-top: 25px; }
-          .line-long { width: 1.5px; background-color: black; height: 150px; }
+          .line-short { width: 2px; background-color: black; height: 100px; margin-top: 25px; }
+          .line-long { width: 2px; background-color: black; height: 150px; }
 
         </style>
       </head>
@@ -124,11 +125,11 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           <div class="page-wrapper" id="page-wrapper">
           <div class="page" id="pdf-content">
           <div class="text-center">
-            <div class="header-instansi">${instansi}</div>
-            <div class="header-lembaga">${lembaga}</div>
+            <div class="header-instansi"><b>${instansi}</b></div>
+            <div class="header-lembaga"><b>${lembaga}</b></div>
             <div class="header-alamat">${alamat.replace(/\n/g, '<br/>')}</div>
-            <div class="judul">${judul1}</div>
-            <div class="judul">${judul2}</div>
+            <div class="judul"><b>${judul1}</b></div>
+            <div class="judul"><b>${judul2}</b></div>
           </div>
         <div class="center-lines">
           <div class="line-short"></div>
