@@ -503,17 +503,18 @@ export default function AuditWorkspaceView({
         link: res.webViewLink,
         uploadedAt: new Date().toISOString(),
         uploadedBy: currentUserName || audit.auditorName || 'Auditor',
-        action: 'diunggah (Sampul KKP)' as const
+        action: 'diunggah' as const
       };
 
       const newId = `item_sampul_${Date.now()}`;
-      const newItem = {
+      const newItem: AuditItem = {
         id: newId,
-        code: `DOK-COVER`,
-        name: `Sampul KKP`,
+        title: `Sampul KKP`,
         description: `Dokumen Sampul KKP untuk ${targetCategory.name}`,
         status: 'N/A' as const,
-        isCustom: true,
+        nilaiTemuan: 0,
+        uraianTemuan: '',
+        rekomendasi: '',
         evidenceLink: res.webViewLink,
         evidenceName: file.name,
         evidenceHistory: [historyEntry]
