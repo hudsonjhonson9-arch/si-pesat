@@ -188,10 +188,10 @@ export default function AuditWorkspaceView({
     if (!searchQuery.trim()) return activeCategory.items;
     const query = searchQuery.toLowerCase();
     return activeCategory.items.filter(item => 
-      item.name.toLowerCase().includes(query) || 
+      (item.name && item.name.toLowerCase().includes(query)) || 
       (item.description && item.description.toLowerCase().includes(query)) ||
       (item.evidenceName && item.evidenceName.toLowerCase().includes(query)) ||
-      (item.evidenceHistory && item.evidenceHistory.some(h => h.name.toLowerCase().includes(query)))
+      (item.evidenceHistory && item.evidenceHistory.some(h => h.name && h.name.toLowerCase().includes(query)))
     );
   }, [activeCategory, searchQuery]);
 
@@ -489,20 +489,15 @@ export default function AuditWorkspaceView({
     return { totItems, totSesuai, totTemuan, totNA, totVal };
   }, [activeCategory]);
   const handleSaveCoverToDokumen1 = async (file: File) => {
-    const firstCategory = audit.categories[0];
-    const firstItem = firstCategory?.items[0];
-    if (!firstItem) {
-      onShowToast?.("Tidak ada item Kriteria (Dokumen 1) untuk dilampirkan.", "error");
+    const targetCategory = activeCategory || audit.categories[0];
+    if (!targetCategory) {
+      onShowToast?.("Tidak ada jenis audit aktif untuk dilampirkan.", "error");
       return;
     }
 
     try {
-      const hasConflict = await checkConflict(firstItem.id, 'Simpan Sampul ke Dokumen 1');
-      if (hasConflict) return;
-
       const res = await uploadEvidenceFile(file, audit.fiscalYear, audit.opdName, audit.auditType);
       
-      const prevHistory = firstItem.evidenceHistory || [];
       const historyEntry = {
         name: file.name,
         link: res.webViewLink,
@@ -511,21 +506,24 @@ export default function AuditWorkspaceView({
         action: 'diunggah (Sampul KKP)' as const
       };
 
+      const newId = `item_sampul_${Date.now()}`;
+      const newItem = {
+        id: newId,
+        code: `DOK-COVER`,
+        name: `Sampul KKP`,
+        description: `Dokumen Sampul KKP untuk ${targetCategory.name}`,
+        status: 'N/A' as const,
+        isCustom: true,
+        evidenceLink: res.webViewLink,
+        evidenceName: file.name,
+        evidenceHistory: [historyEntry]
+      };
+
       const updatedCategories = audit.categories.map(cat => {
-        if (cat.id !== firstCategory.id) return cat;
+        if (cat.id !== targetCategory.id) return cat;
         return {
           ...cat,
-          items: cat.items.map(item => {
-            if (item.id === firstItem.id) {
-              return {
-                ...item,
-                evidenceLink: res.webViewLink,
-                evidenceName: file.name,
-                evidenceHistory: [...prevHistory, historyEntry]
-              };
-            }
-            return item;
-          })
+          items: [newItem, ...cat.items]
         };
       });
 
@@ -1445,6 +1443,7 @@ export default function AuditWorkspaceView({
       {isCoverModalOpen && (
         <CoverDocumentGenerator 
           audit={audit} 
+          activeCategory={activeCategory}
           userProfiles={userProfiles}
           onClose={() => setIsCoverModalOpen(false)} 
           onSaveAsDokumen1={handleSaveCoverToDokumen1}

@@ -5,17 +5,18 @@ import html2pdf from 'html2pdf.js';
 
 interface CoverDocumentGeneratorProps {
   audit: OpdAudit;
+  activeCategory?: any;
   userProfiles?: UserProfile[];
   onClose: () => void;
   onSaveAsDokumen1?: (file: File) => Promise<void>;
 }
 
-export default function CoverDocumentGenerator({ audit, userProfiles = [], onClose, onSaveAsDokumen1 }: CoverDocumentGeneratorProps) {
+export default function CoverDocumentGenerator({ audit, activeCategory, userProfiles = [], onClose, onSaveAsDokumen1 }: CoverDocumentGeneratorProps) {
   const [instansi, setInstansi] = useState('PEMERINTAH KABUPATEN SUMBA BARAT');
   const [lembaga, setLembaga] = useState('INSPEKTORAT');
   const [alamat, setAlamat] = useState('Jl. Basuki Rahmat Kampung Sawah Kota Waikabubak\nTelp. (0387) 21165 – Email: inspektorat_kabsumbabarat@yahoo.com');
   const [judul1, setJudul1] = useState('KERTAS KERJA PEMERIKSAAN (KKP)');
-  const [judul2, setJudul2] = useState('PEMERIKSAAN REGULER');
+  const [judul2, setJudul2] = useState(activeCategory?.name?.toUpperCase() || 'PEMERIKSAAN REGULER');
   
   const [pada, setPada] = useState(audit.opdName.toUpperCase());
   const [kecamatan, setKecamatan] = useState('LOLI');
@@ -27,11 +28,11 @@ export default function CoverDocumentGenerator({ audit, userProfiles = [], onClo
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchTeam, setSearchTeam] = useState('');
   
-  // Initial team members based on audit names if any, otherwise empty
+  // Initial team members based on audit/category names if any, otherwise empty
   const [selectedNames, setSelectedNames] = useState<string[]>(() => {
     const defaultTeam = [
-      audit.auditorName || '',
-      ...(audit.teamMembers || [])
+      activeCategory?.auditorName || audit.auditorName || '',
+      ...(activeCategory?.teamMembers || audit.teamMembers || [])
     ].map(n => n.toUpperCase()).filter(n => n !== '');
     return Array.from(new Set(defaultTeam)); // deduplicate
   });
