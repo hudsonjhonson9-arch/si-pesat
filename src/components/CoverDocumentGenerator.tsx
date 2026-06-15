@@ -121,9 +121,11 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
               display: block !important;
               overflow: visible !important;
               width: auto !important;
+              height: auto !important;
             }
             .page-wrapper {
               transform: none !important;
+              height: auto !important;
             }
             .page { 
               width: auto !important;
@@ -140,8 +142,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           .header-alamat { font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px; }
           .judul { font-size: ${fontSizeKop - 2}pt; margin-bottom: 10px; }
           .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
-          .line-short { width: 2px; background-color: black; height: 100px; margin-top: 25px; }
-          .line-long { width: 2px; background-color: black; height: 150px; }
+          .line-short { width: 0; border-left: 2px solid black; height: 100px; margin-top: 25px; }
+          .line-long { width: 0; border-left: 2px solid black; height: 150px; }
 
         </style>
       </head>
