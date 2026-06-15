@@ -1051,6 +1051,8 @@ export default function AuditWorkspaceView({
                         evidenceName: '',
                         evidenceHistory: [...prevHistory, historyEntry]
                       });
+                      
+                      onShowToast?.('Dokumen dihapus secara lokal. Memproses sinkronisasi ke server (± 5 detik)...', 'info');
                     }}
                     onAddHistory={(action, name, link) => {
                       const prevHistory = item.evidenceHistory || [];
