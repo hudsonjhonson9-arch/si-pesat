@@ -189,7 +189,9 @@ export default function AuditWorkspaceView({
     const query = searchQuery.toLowerCase();
     return activeCategory.items.filter(item => 
       item.name.toLowerCase().includes(query) || 
-      (item.description && item.description.toLowerCase().includes(query))
+      (item.description && item.description.toLowerCase().includes(query)) ||
+      (item.evidenceName && item.evidenceName.toLowerCase().includes(query)) ||
+      (item.evidenceHistory && item.evidenceHistory.some(h => h.name.toLowerCase().includes(query)))
     );
   }, [activeCategory, searchQuery]);
 
@@ -486,6 +488,57 @@ export default function AuditWorkspaceView({
 
     return { totItems, totSesuai, totTemuan, totNA, totVal };
   }, [activeCategory]);
+  const handleSaveCoverToDokumen1 = async (file: File) => {
+    const firstCategory = audit.categories[0];
+    const firstItem = firstCategory?.items[0];
+    if (!firstItem) {
+      onShowToast?.("Tidak ada item Kriteria (Dokumen 1) untuk dilampirkan.", "error");
+      return;
+    }
+
+    try {
+      const hasConflict = await checkConflict(firstItem.id, 'Simpan Sampul ke Dokumen 1');
+      if (hasConflict) return;
+
+      const res = await uploadEvidenceFile(file, audit.fiscalYear, audit.opdName, audit.auditType);
+      
+      const prevHistory = firstItem.evidenceHistory || [];
+      const historyEntry = {
+        name: file.name,
+        link: res.url,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: currentUserName || audit.auditorName || 'Auditor',
+        action: 'diunggah (Sampul KKP)' as const
+      };
+
+      const updatedCategories = audit.categories.map(cat => {
+        if (cat.id !== firstCategory.id) return cat;
+        return {
+          ...cat,
+          items: cat.items.map(item => {
+            if (item.id === firstItem.id) {
+              return {
+                ...item,
+                evidenceLink: res.url,
+                evidenceName: file.name,
+                evidenceHistory: [...prevHistory, historyEntry]
+              };
+            }
+            return item;
+          })
+        };
+      });
+
+      onUpdates({
+        ...audit,
+        categories: updatedCategories
+      });
+      onShowToast?.('Sampul berhasil disimpan sebagai Dokumen 1!', 'success');
+    } catch (err: any) {
+      console.error(err);
+      onShowToast?.(`Gagal menyimpan sampul: ${err.message}`, 'error');
+    }
+  };
 
   return (
     <div className="space-y-6 text-dark-gray" id="audit-workspace-view">
@@ -806,7 +859,7 @@ export default function AuditWorkspaceView({
           <div className="space-y-4">
 
             {/* Header Checklist & Action to trigger ADD item */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1394,6 +1447,7 @@ export default function AuditWorkspaceView({
           audit={audit} 
           userProfiles={userProfiles}
           onClose={() => setIsCoverModalOpen(false)} 
+          onSaveAsDokumen1={handleSaveCoverToDokumen1}
         />
       )}
 

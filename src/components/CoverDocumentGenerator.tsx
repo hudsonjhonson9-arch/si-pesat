@@ -1,14 +1,16 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { X, Printer, FileText, Search, CheckSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Printer, FileText, Search, CheckSquare, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { OpdAudit, UserProfile } from '../types';
+import html2pdf from 'html2pdf.js';
 
 interface CoverDocumentGeneratorProps {
   audit: OpdAudit;
   userProfiles?: UserProfile[];
   onClose: () => void;
+  onSaveAsDokumen1?: (file: File) => Promise<void>;
 }
 
-export default function CoverDocumentGenerator({ audit, userProfiles = [], onClose }: CoverDocumentGeneratorProps) {
+export default function CoverDocumentGenerator({ audit, userProfiles = [], onClose, onSaveAsDokumen1 }: CoverDocumentGeneratorProps) {
   const [instansi, setInstansi] = useState('PEMERINTAH KABUPATEN SUMBA BARAT');
   const [lembaga, setLembaga] = useState('INSPEKTORAT');
   const [alamat, setAlamat] = useState('Jl. Basuki Rahmat Kampung Sawah Kota Waikabubak\nTelp. (0387) 21165 – Email: inspektorat_kabsumbabarat@yahoo.com');
@@ -138,6 +140,41 @@ export default function CoverDocumentGenerator({ audit, userProfiles = [], onClo
       }, 500);
     } else {
       alert("Gagal membuka jendela cetak. Mohon izinkan pop-up untuk situs ini.");
+    }
+  };
+
+  const [isSaving, setIsSaving] = useState(false);
+  const handleSaveToDokumen1 = async () => {
+    if (!onSaveAsDokumen1) return;
+    setIsSaving(true);
+    try {
+      const container = document.createElement('div');
+      container.innerHTML = htmlContent;
+      // Temporarily append to body so html2canvas can measure it, but hide it
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      document.body.appendChild(container);
+      
+      const opt = {
+        margin:       2.5,
+        filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      const pdfBlob = await html2pdf().set(opt).from(container).output('blob');
+      document.body.removeChild(container);
+      
+      const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
+      await onSaveAsDokumen1(file);
+      onClose();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal membuat PDF: ' + (err as any).message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -307,10 +344,16 @@ export default function CoverDocumentGenerator({ audit, userProfiles = [], onClo
         </div>
 
         <div className="p-4 border-t border-dark-gray/10 bg-white flex justify-end gap-2 shrink-0">
-          <button onClick={onClose} className="px-4 py-2 bg-slate-100 text-dark-gray font-bold text-xs rounded-lg hover:bg-slate-200 transition-colors cursor-pointer">
+          <button onClick={onClose} disabled={isSaving} className="px-4 py-2 bg-slate-100 text-dark-gray font-bold text-xs rounded-lg hover:bg-slate-200 transition-colors cursor-pointer disabled:opacity-50">
             Batal
           </button>
-          <button onClick={handlePrint} className="flex items-center gap-2 px-5 py-2 bg-peach-accent text-dark-gray font-black text-xs rounded-lg border border-dark-gray/10 hover:opacity-90 transition-opacity cursor-pointer shadow-sm">
+          {onSaveAsDokumen1 && (
+            <button onClick={handleSaveToDokumen1} disabled={isSaving} className="flex items-center gap-2 px-5 py-2 bg-blue-100 text-blue-800 font-black text-xs rounded-lg border border-blue-200 hover:bg-blue-200 transition-colors cursor-pointer shadow-sm disabled:opacity-50">
+              <Save className="w-3.5 h-3.5" />
+              {isSaving ? 'Menyimpan...' : 'Simpan ke Dokumen 1'}
+            </button>
+          )}
+          <button onClick={handlePrint} disabled={isSaving} className="flex items-center gap-2 px-5 py-2 bg-peach-accent text-dark-gray font-black text-xs rounded-lg border border-dark-gray/10 hover:opacity-90 transition-opacity cursor-pointer shadow-sm disabled:opacity-50">
             <Printer className="w-3.5 h-3.5" />
             Cetak PDF
           </button>
