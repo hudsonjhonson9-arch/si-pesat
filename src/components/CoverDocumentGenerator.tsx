@@ -116,9 +116,11 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
           .line-short { width: 1.5px; background-color: black; height: 100px; margin-top: 25px; }
           .line-long { width: 1.5px; background-color: black; height: 150px; }
-          .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: ${fontSizeTable}pt; line-height: 1.4; }
-          .info-table td { padding: 4px 0; vertical-align: top; }
-          .col-label { width: 220px; }
+          .info-table { width: 100%; margin-top: 40px; font-size: ${fontSizeTable}pt; line-height: 1.4; }
+          .info-row { display: flex; margin-bottom: 4px; }
+          .col-label { width: 220px; flex-shrink: 0; }
+          .col-colon { width: 20px; flex-shrink: 0; text-align: center; }
+          .col-value { flex-grow: 1; }
           .col-colon { width: 20px; text-align: center; }
           .team-table { border-collapse: collapse; width: 100%; }
           .team-table td { padding: 2px 0; }
@@ -139,17 +141,25 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           <div class="line-long"></div>
           <div class="line-short"></div>
         </div>
-        <table class="info-table">
-          <tr><td class="col-label">PADA</td><td class="col-colon">:</td><td>${pada}</td></tr>
-          <tr><td class="col-label">KECAMATAN</td><td class="col-colon">:</td><td>${kecamatan}</td></tr>
-          <tr><td class="col-label">KABUPATEN</td><td class="col-colon">:</td><td>${kabupaten}</td></tr>
-          <tr><td class="col-label">TANGGAL</td><td class="col-colon">:</td><td>${tanggal}</td></tr>
-          <tr>
-            <td class="col-label">TIM PEMERIKSA</td>
-            <td class="col-colon">:</td>
-            <td><table class="team-table">${teamListHTML}</table></td>
-          </tr>
-        </table>
+        <div class="info-table">
+          <div class="info-row">
+            <div class="col-label">PADA</div><div class="col-colon">:</div><div class="col-value">${pada}</div>
+          </div>
+          <div class="info-row">
+            <div class="col-label">KECAMATAN</div><div class="col-colon">:</div><div class="col-value">${kecamatan}</div>
+          </div>
+          <div class="info-row">
+            <div class="col-label">KABUPATEN</div><div class="col-colon">:</div><div class="col-value">${kabupaten}</div>
+          </div>
+          <div class="info-row">
+            <div class="col-label">TANGGAL</div><div class="col-colon">:</div><div class="col-value">${tanggal}</div>
+          </div>
+          <div class="info-row">
+            <div class="col-label">TIM PEMERIKSA</div>
+            <div class="col-colon">:</div>
+            <div class="col-value"><table class="team-table">${teamListHTML}</table></div>
+          </div>
+        </div>
         </div>
         </div>
         <script>
