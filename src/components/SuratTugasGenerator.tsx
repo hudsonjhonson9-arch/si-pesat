@@ -91,7 +91,15 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
     `).join('');
 
     return `
-      <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 15mm 30mm 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Cetak Surat Tugas - ${audit.opdName}</title>
+      </head>
+      <body style="margin: 0; padding: 0; background: white;">
+        <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: white;">
+          <div id="page-wrapper" style="transform-origin: top center; background: white;">
+            <div id="pdf-content" style="width: 210mm; height: 297mm; max-height: 297mm; overflow: hidden; padding: 15mm 30mm 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
@@ -198,30 +206,43 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
         </div>
 
       </div>
+          </div>
+        </div>
+        <script>
+          function adjustScale() {
+            var wrapper = document.getElementById('page-wrapper');
+            var clipContainer = document.getElementById('clip-container');
+            var containerWidth = window.innerWidth;
+            var scale = 1;
+            if (containerWidth < 794) {
+              scale = (containerWidth - 20) / 794;
+            }
+            wrapper.style.transform = 'scale(' + scale + ')';
+            var rect = wrapper.getBoundingClientRect();
+            clipContainer.style.height = rect.height + 'px';
+          }
+          window.addEventListener('resize', adjustScale);
+          adjustScale();
+          window.onafterprint = function() { window.close(); };
+        </script>
+      </body>
+      </html>
     `;
   }, [instansi, lembaga, alamat, nomorSurat, dasar1, dasar2, teamList, untuk]);
 
-  const handleGeneratePdf = async () => {
-    setIsGeneratingPdf(true);
-    setErrorMsg(null);
-    try {
-      const opt = {
-        margin:       0,
-        filename:     `Surat_Tugas_${auditName.replace(/\s+/g, '_')}_${audit.opdName.replace(/\s+/g, '_')}.pdf`,
-        image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2, windowWidth: 794, useCORS: true },
-        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const },
-        pagebreak:    { mode: 'avoid-all' }
-      };
-      
-      const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
-      const element = document.getElementById('pdf-content');
-      await lib().set(opt).from(element || htmlContent).save();
-    } catch (err: any) {
-      setErrorMsg("Gagal membuat PDF: " + err.message);
-    } finally {
-      setIsGeneratingPdf(false);
+  const handleDownloadPdf = () => {
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) {
+      setErrorMsg("Pop-up diblokir oleh browser. Izinkan pop-up untuk mencetak PDF.");
+      return;
     }
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    };
   };
 
   return (
@@ -328,37 +349,33 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
           </div>
 
           {/* Right Preview Panel */}
-          <div className="w-full md:w-1/2 bg-slate-200/50 flex flex-col p-4">
-            <div className="flex-1 overflow-auto rounded-xl border border-slate-200/60 bg-slate-300/30 p-4 custom-scrollbar text-center whitespace-nowrap">
-              <div className="inline-block text-left align-top" style={{ width: '136.5mm', minHeight: '193.05mm' }}>
-                <div 
-                  className="bg-white shadow-xl"
-                  style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.65)', transformOrigin: 'top left' }}
-                  dangerouslySetInnerHTML={{ __html: htmlContent }}
-                />
-              </div>
+          <div className="w-full md:w-1/2 bg-slate-200/50 p-4 flex flex-col relative">
+            <div className="absolute top-6 right-6 text-[10px] font-bold text-slate-500 uppercase bg-white/70 px-2 py-1 rounded backdrop-blur-sm z-10 pointer-events-none shadow-sm border border-white">
+              PRATINJAU LANGSUNG
+            </div>
+            <div className="flex-1 bg-white overflow-hidden relative rounded-xl border border-slate-300 shadow-inner">
+              <iframe 
+                srcDoc={htmlContent} 
+                className="w-full h-full border-none"
+                title="Preview"
+              />
             </div>
             
             {errorMsg && (
-              <div className="mt-4 p-3 bg-red-100 text-red-700 text-xs rounded-lg border border-red-200">
+              <div className="mt-4 p-3 bg-red-100 text-red-700 text-xs rounded-lg border border-red-200 shrink-0">
                 {errorMsg}
               </div>
             )}
 
-            <div className="mt-4 flex items-center justify-end gap-3">
+            <div className="mt-4 flex items-center justify-end gap-3 shrink-0">
               <button onClick={onClose} className="px-5 py-2.5 text-slate-600 font-bold text-xs hover:bg-slate-200 rounded-xl transition-colors">
                 Batal
               </button>
               <button 
-                onClick={handleGeneratePdf} 
-                disabled={isGeneratingPdf} 
-                className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-black text-xs rounded-xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
+                onClick={handleDownloadPdf} 
+                className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-black text-xs rounded-xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-all active:scale-95"
               >
-                {isGeneratingPdf ? (
-                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Memproses...</>
-                ) : (
-                  <><Printer className="w-4 h-4" /> Download PDF</>
-                )}
+                <Printer className="w-4 h-4" /> Cetak / Simpan PDF
               </button>
             </div>
           </div>
