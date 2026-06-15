@@ -69,12 +69,12 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
   const htmlContent = useMemo(() => {
     const teamListHTML = finalTeamList.length > 0 
       ? finalTeamList.map((name, i) => `
-        <tr>
-          <td style="width: 20px; vertical-align: top;">${i + 1}.</td>
-          <td style="vertical-align: top;">${name}</td>
-        </tr>
+        <div class="team-item">
+          <div class="team-num">${i + 1}.</div>
+          <div>${name}</div>
+        </div>
       `).join('')
-      : `<tr><td>(Belum ada tim pemeriksa)</td></tr>`;
+      : `<div class="team-item">(Belum ada tim pemeriksa)</div>`;
 
     return `
       <!DOCTYPE html>
@@ -116,17 +116,19 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
           .line-short { width: 1.5px; background-color: black; height: 100px; margin-top: 25px; }
           .line-long { width: 1.5px; background-color: black; height: 150px; }
-          .info-table { width: 100%; margin-top: 40px; font-size: ${fontSizeTable}pt; line-height: 1.4; table-layout: fixed; border-collapse: collapse; }
-          .col-label { width: 220px; vertical-align: top; padding: 4px 0; }
-          .col-colon { width: 20px; text-align: center; vertical-align: top; padding: 4px 0; }
-          .col-value { vertical-align: top; padding: 4px 0; }
-          .team-table { border-collapse: collapse; width: 100%; }
-          .team-table td { padding: 2px 0; }
+          .info-list { width: 100%; margin-top: 40px; font-size: ${fontSizeTable}pt; line-height: 1.4; }
+          .info-row { position: relative; padding-left: 240px; margin-bottom: 8px; min-height: 1.4em; }
+          .col-label { position: absolute; left: 0; top: 0; width: 220px; }
+          .col-colon { position: absolute; left: 220px; top: 0; width: 20px; text-align: center; }
+          .col-value { width: 100%; }
+          .team-item { position: relative; padding-left: 25px; margin-bottom: 4px; }
+          .team-num { position: absolute; left: 0; top: 0; width: 25px; }
         </style>
       </head>
       <body>
-        <div class="page-wrapper" id="page-wrapper">
-        <div class="page" id="pdf-content">
+        <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center;">
+          <div class="page-wrapper" id="page-wrapper">
+          <div class="page" id="pdf-content">
           <div class="text-center">
             <div class="header-instansi">${instansi}</div>
             <div class="header-lembaga">${lembaga}</div>
@@ -139,38 +141,40 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           <div class="line-long"></div>
           <div class="line-short"></div>
         </div>
-        <table class="info-table">
-          <tr>
-            <td class="col-label"><div style="width: 220px;">PADA</div></td>
-            <td class="col-colon">:</td>
-            <td class="col-value">${pada}</td>
-          </tr>
-          <tr>
-            <td class="col-label"><div style="width: 220px;">KECAMATAN</div></td>
-            <td class="col-colon">:</td>
-            <td class="col-value">${kecamatan}</td>
-          </tr>
-          <tr>
-            <td class="col-label"><div style="width: 220px;">KABUPATEN</div></td>
-            <td class="col-colon">:</td>
-            <td class="col-value">${kabupaten}</td>
-          </tr>
-          <tr>
-            <td class="col-label"><div style="width: 220px;">TANGGAL</div></td>
-            <td class="col-colon">:</td>
-            <td class="col-value">${tanggal}</td>
-          </tr>
-          <tr>
-            <td class="col-label"><div style="width: 220px;">TIM PEMERIKSA</div></td>
-            <td class="col-colon">:</td>
-            <td class="col-value"><table class="team-table">${teamListHTML}</table></td>
-          </tr>
-        </table>
+        <div class="info-list">
+          <div class="info-row">
+            <div class="col-label">PADA</div>
+            <div class="col-colon">:</div>
+            <div class="col-value">${pada}</div>
+          </div>
+          <div class="info-row">
+            <div class="col-label">KECAMATAN</div>
+            <div class="col-colon">:</div>
+            <div class="col-value">${kecamatan}</div>
+          </div>
+          <div class="info-row">
+            <div class="col-label">KABUPATEN</div>
+            <div class="col-colon">:</div>
+            <div class="col-value">${kabupaten}</div>
+          </div>
+          <div class="info-row">
+            <div class="col-label">TANGGAL</div>
+            <div class="col-colon">:</div>
+            <div class="col-value">${tanggal}</div>
+          </div>
+          <div class="info-row">
+            <div class="col-label">TIM PEMERIKSA</div>
+            <div class="col-colon">:</div>
+            <div class="col-value">${teamListHTML}</div>
+          </div>
+        </div>
+        </div>
         </div>
         </div>
         <script>
           function adjustScale() {
             var wrapper = document.getElementById('page-wrapper');
+            var clipContainer = document.getElementById('clip-container');
             var containerWidth = window.innerWidth;
             var scale = 1;
             if (containerWidth < 794) {
@@ -178,7 +182,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             }
             wrapper.style.transform = 'scale(' + scale + ')';
             var rect = wrapper.getBoundingClientRect();
-            document.body.style.minHeight = (rect.height + 40) + 'px';
+            clipContainer.style.height = rect.height + 'px';
           }
           window.addEventListener('resize', adjustScale);
           adjustScale();
