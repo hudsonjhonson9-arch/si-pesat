@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { KKATemplate, OpdAudit, UserProfile } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { KKATemplate, OpdAudit, UserProfile, TargetEntity } from '../types';
 import {
   ArrowLeft, Plus, Trash2, ChevronDown, FileCheck, Building,
   Calendar, User, Users, ClipboardList, Sparkles, X, Check
@@ -22,6 +22,7 @@ interface NewAuditViewProps {
   audits: OpdAudit[];
   templates: KKATemplate[];
   userProfiles: UserProfile[];
+  targetEntities?: TargetEntity[];
   defaultAuditorName?: string;
   onBack: () => void;
   onCreateAudit: (
@@ -52,6 +53,7 @@ export default function NewAuditView({
   const [fiscalYear, setFiscalYear] = useState('2026');
   const [categories, setCategories] = useState<CategoryDraft[]>([]);
   const [isAddingCat, setIsAddingCat] = useState(false);
+  const [isOpdDropdownOpen, setIsOpdDropdownOpen] = useState(false);
 
   // For the add-category panel
   const [selTemplateId, setSelTemplateId] = useState(templates[0]?.id || '');
@@ -157,17 +159,52 @@ export default function NewAuditView({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* OPD Name */}
-          <div className="md:col-span-2 space-y-1">
+          <div className="md:col-span-2 space-y-1 relative">
             <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wide block">
               Nama Instansi <span className="text-rose-500">*</span>
             </label>
-            <input
-              type="text"
-              value={opdName}
-              onChange={e => setOpdName(e.target.value)}
-              placeholder="Contoh: Dinas Pendidikan Kabupaten Sumba Barat"
-              className="w-full text-sm font-bold border border-dark-gray/15 px-3 py-2.5 rounded-xl bg-white text-dark-gray outline-none focus:border-peach-accent focus:ring-2 focus:ring-peach-accent/20"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={opdName}
+                onChange={e => {
+                  setOpdName(e.target.value);
+                  setIsOpdDropdownOpen(true);
+                }}
+                onFocus={() => setIsOpdDropdownOpen(true)}
+                onBlur={() => setTimeout(() => setIsOpdDropdownOpen(false), 200)}
+                placeholder="Contoh: Dinas Pendidikan Kabupaten Sumba Barat"
+                className="w-full text-sm font-bold border border-dark-gray/15 px-3 py-2.5 rounded-xl bg-white text-dark-gray outline-none focus:border-peach-accent focus:ring-2 focus:ring-peach-accent/20"
+              />
+              {isOpdDropdownOpen && targetEntities && targetEntities.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-dark-gray/15 rounded-xl shadow-xl overflow-hidden max-h-48 flex flex-col">
+                  <div className="overflow-y-auto p-1 space-y-0.5">
+                    {targetEntities.filter(t => t.name.toLowerCase().includes(opdName.toLowerCase())).length > 0 ? (
+                      targetEntities.filter(t => t.name.toLowerCase().includes(opdName.toLowerCase())).map(t => (
+                        <button
+                          key={t.id}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setOpdName(t.name);
+                            setIsOpdDropdownOpen(false);
+                            // Auto map type if matched exactly
+                            const mappedType = OPD_TYPES.find(ot => ot.toLowerCase() === t.type.toLowerCase());
+                            if (mappedType) setOpdType(mappedType);
+                            else if (t.type === 'Sekolah' && t.name.toUpperCase().includes('SD')) setOpdType('SD');
+                            else if (t.type === 'Sekolah' && t.name.toUpperCase().includes('SMP')) setOpdType('SMP');
+                          }}
+                          className="w-full text-left px-3 py-2 rounded text-xs font-bold hover:bg-slate-50 text-dark-gray transition-colors cursor-pointer"
+                        >
+                          {t.name}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-xs text-dark-gray/50 italic">Tidak ada objek audit yang cocok</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* OPD Type */}

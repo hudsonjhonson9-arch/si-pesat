@@ -643,6 +643,7 @@ export default function App() {
             audits={audits}
             templates={templates}
             userProfiles={userProfiles}
+            targetEntities={targetEntities}
             defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
             onBack={() => navigateTo('audits')}
             onCreateAudit={(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId) => {
