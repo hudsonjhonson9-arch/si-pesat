@@ -130,29 +130,35 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
     `;
   }, [instansi, lembaga, alamat, judul1, judul2, pada, kecamatan, kabupaten, tanggal, finalTeamList]);
 
-  const handlePrint = () => {
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    document.body.appendChild(iframe);
-    
-    const iframeDoc = iframe.contentWindow?.document;
-    if (iframeDoc) {
-      iframeDoc.open();
-      iframeDoc.write(htmlContent);
-      iframeDoc.close();
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+
+  const handlePrint = async () => {
+    setIsSaving(true);
+    try {
+      const container = document.createElement('div');
+      container.innerHTML = htmlContent;
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      document.body.appendChild(container);
       
-      iframe.contentWindow?.focus();
-      setTimeout(() => {
-        iframe.contentWindow?.print();
-        setTimeout(() => document.body.removeChild(iframe), 1000);
-      }, 500);
-    } else {
-      alert("Gagal mencetak dokumen.");
+      const opt = {
+        margin:       2.5,
+        filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
+        image:        { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
+      };
+      
+      const pdfBlob = await html2pdf().set(opt).from(container).output('blob');
+      document.body.removeChild(container);
+      
+      const url = URL.createObjectURL(pdfBlob);
+      setPdfPreviewUrl(url);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -185,7 +191,6 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Gagal membuat PDF: ' + (err as any).message);
     } finally {
       setIsSaving(false);
     }
@@ -368,10 +373,29 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           )}
           <button onClick={handlePrint} disabled={isSaving} className="flex items-center gap-2 px-5 py-2 bg-peach-accent text-dark-gray font-black text-xs rounded-lg border border-dark-gray/10 hover:opacity-90 transition-opacity cursor-pointer shadow-sm disabled:opacity-50">
             <Printer className="w-3.5 h-3.5" />
-            Cetak PDF
+            Pratinjau & Cetak PDF
           </button>
         </div>
       </div>
+
+      {pdfPreviewUrl && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-dark-gray/80 p-4 backdrop-blur-md">
+          <div className="bg-white rounded-3xl w-full max-w-5xl h-[95vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-dark-gray/10 bg-slate-50 shrink-0">
+              <h2 className="font-black text-sm tracking-wide uppercase text-dark-gray">Pratinjau PDF (Siap Cetak & Unduh)</h2>
+              <button 
+                onClick={() => { URL.revokeObjectURL(pdfPreviewUrl); setPdfPreviewUrl(null); }} 
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-dark-gray/10 text-dark-gray/60 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden bg-slate-200 p-2 md:p-4">
+               <iframe src={pdfPreviewUrl} className="w-full h-full border-none rounded shadow-sm" title="PDF Preview" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
