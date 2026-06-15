@@ -7,6 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile, KKATemplate } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
 import EvidencePanel from './EvidencePanel';
+import CoverDocumentGenerator from './CoverDocumentGenerator';
 import {
   ArrowLeft,
   Save,
@@ -29,7 +30,8 @@ import {
   Edit2,
   ChevronDown,
   ShieldOff,
-  Lock
+  Lock,
+  FileText
 } from 'lucide-react';
 
 interface AuditWorkspaceViewProps {
@@ -157,6 +159,9 @@ export default function AuditWorkspaceView({
   const [metaAuditType, setMetaAuditType] = useState<AuditType>(audit.auditType || 'Belum Diatur');
   const [metaTeamMembers, setMetaTeamMembers] = useState<string[]>(audit.teamMembers || []);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
+
+  // Cover Generator State
+  const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
 
   // Find the currently selected category
   const activeCategory = useMemo(() => {
@@ -433,7 +438,13 @@ export default function AuditWorkspaceView({
         </button>
 
         <div className="flex items-center gap-2">
-          {/* Global action buttons removed. Actions are now per-category. */}
+          <button 
+            onClick={() => setIsCoverModalOpen(true)}
+            className="inline-flex items-center gap-1.5 text-xs bg-white border border-dark-gray/15 hover:bg-slate-50 text-dark-gray font-extrabold px-3 py-1.5 rounded-lg shadow-sm transition-colors cursor-pointer"
+          >
+            <FileText className="w-3.5 h-3.5 text-peach-accent" />
+            Cetak Sampul
+          </button>
         </div>
       </div>
 
@@ -1274,6 +1285,11 @@ export default function AuditWorkspaceView({
             </form>
           </div>
         </div>
+      )}
+
+      {/* Cover Document Generator Modal */}
+      {isCoverModalOpen && (
+        <CoverDocumentGenerator audit={audit} onClose={() => setIsCoverModalOpen(false)} />
       )}
 
     </div>
