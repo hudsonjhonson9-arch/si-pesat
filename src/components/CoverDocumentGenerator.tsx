@@ -87,7 +87,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           <div id="page-wrapper" style="transform-origin: top center; background: white;">
             <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000;">
               
-              <div style="text-align: center; margin-top: 150px;">
+              <div style="text-align: center; margin-top: 100px;">
                 <div style="font-size: ${fontSizeKop}pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
                 <div style="font-size: ${fontSizeKop + 2}pt; font-weight: bold; margin-bottom: 10px;">${lembaga}</div>
                 <div style="font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px;">${alamat.replace(/\n/g, '<br/>')}</div>
