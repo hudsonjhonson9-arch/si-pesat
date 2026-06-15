@@ -152,14 +152,14 @@ export default function NewAuditView({
       <div className="bg-white rounded-2xl border border-dark-gray/10 shadow-sm p-6 space-y-4">
         <h2 className="text-sm font-black text-dark-gray flex items-center gap-2">
           <Building className="w-4 h-4 text-peach-accent" />
-          Informasi Objek Audit (OPD)
+          Informasi Instansi Audit
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* OPD Name */}
           <div className="md:col-span-2 space-y-1">
             <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wide block">
-              Nama OPD / Instansi <span className="text-rose-500">*</span>
+              Nama Instansi <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -173,7 +173,7 @@ export default function NewAuditView({
           {/* OPD Type */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wide block">
-              <Building className="w-3 h-3 inline mr-1" />Tipe OPD
+              <Building className="w-3 h-3 inline mr-1" />Tipe Instansi
             </label>
             <select
               value={opdType}
