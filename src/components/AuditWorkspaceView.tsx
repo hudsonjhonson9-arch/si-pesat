@@ -549,16 +549,6 @@ export default function AuditWorkspaceView({
         >
           <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar
         </button>
-
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setIsCoverModalOpen(true)}
-            className="inline-flex items-center gap-1.5 text-xs bg-white border border-dark-gray/15 hover:bg-slate-50 text-dark-gray font-extrabold px-3 py-1.5 rounded-lg shadow-sm transition-colors cursor-pointer"
-          >
-            <FileText className="w-3.5 h-3.5 text-peach-accent" />
-            Cetak Sampul
-          </button>
-        </div>
       </div>
 
       {/* Access Denied Banner for Auditors not in any team */}
@@ -784,7 +774,14 @@ export default function AuditWorkspaceView({
                     <div className="text-[10px] text-white/60 font-bold uppercase tracking-wide">Anggota Tim: <span className="text-white font-normal">{activeCategory.teamMembers && activeCategory.teamMembers.length > 0 ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></div>
                     
                     {/* Per-Category Action Buttons */}
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      <button 
+                        onClick={() => setIsCoverModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 text-[10px] bg-white border border-dark-gray/15 hover:bg-slate-50 text-dark-gray font-extrabold px-2 py-1 rounded-md shadow-xs transition-colors cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-peach-accent" />
+                        Cetak Sampul
+                      </button>
                       {currentUserName === activeCategory.auditorName && (!activeCategory.status || activeCategory.status === 'Draft' || activeCategory.status === 'Sedang Berjalan') && (
                         <button
                           onClick={() => {
