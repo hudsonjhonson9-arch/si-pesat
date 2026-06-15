@@ -9,6 +9,9 @@ import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive'
 import { supabase } from '../lib/supabase';
 import EvidencePanel from './EvidencePanel';
 import CoverDocumentGenerator from './CoverDocumentGenerator';
+import SuratTugasGenerator from './SuratTugasGenerator';
+import NotaDinasGenerator from './NotaDinasGenerator';
+import SPPDGenerator from './SPPDGenerator';
 import {
   ArrowLeft,
   Save,
@@ -177,6 +180,9 @@ export default function AuditWorkspaceView({
 
   // Cover Generator State
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
+  const [isSuratTugasModalOpen, setIsSuratTugasModalOpen] = useState(false);
+  const [isNotaDinasModalOpen, setIsNotaDinasModalOpen] = useState(false);
+  const [isSPPDModalOpen, setIsSPPDModalOpen] = useState(false);
 
   // Find the currently selected category
   const activeCategory = useMemo(() => {
@@ -775,13 +781,37 @@ export default function AuditWorkspaceView({
                     
                     {/* Per-Category Action Buttons */}
                     <div className="mt-3 flex items-center gap-2 flex-wrap">
-                      <button 
-                        onClick={() => setIsCoverModalOpen(true)}
-                        className="inline-flex items-center gap-1.5 text-[10px] bg-white border border-dark-gray/15 hover:bg-slate-50 text-dark-gray font-extrabold px-2 py-1 rounded-md shadow-xs transition-colors cursor-pointer"
-                      >
-                        <FileText className="w-3.5 h-3.5 text-peach-accent" />
-                        Cetak Sampul
-                      </button>
+                      <div className="flex items-center gap-1.5 border border-white/10 p-1 rounded-lg bg-white/5">
+                        <button 
+                          onClick={() => setIsCoverModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 text-[10px] bg-white border border-dark-gray/15 hover:bg-slate-50 text-dark-gray font-extrabold px-2 py-1 rounded-md shadow-xs transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-peach-accent" />
+                          Sampul
+                        </button>
+                        <button 
+                          onClick={() => setIsNotaDinasModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 text-[10px] bg-white border border-dark-gray/15 hover:bg-slate-50 text-dark-gray font-extrabold px-2 py-1 rounded-md shadow-xs transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                          Nota Dinas
+                        </button>
+                        <button 
+                          onClick={() => setIsSuratTugasModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 text-[10px] bg-white border border-dark-gray/15 hover:bg-slate-50 text-dark-gray font-extrabold px-2 py-1 rounded-md shadow-xs transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-blue-600" />
+                          Surat Tugas
+                        </button>
+                        <button 
+                          onClick={() => setIsSPPDModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 text-[10px] bg-white border border-dark-gray/15 hover:bg-slate-50 text-dark-gray font-extrabold px-2 py-1 rounded-md shadow-xs transition-colors cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-purple-600" />
+                          SPPD
+                        </button>
+                      </div>
+                      
                       {currentUserName === activeCategory.auditorName && (!activeCategory.status || activeCategory.status === 'Draft' || activeCategory.status === 'Sedang Berjalan') && (
                         <button
                           onClick={() => {
@@ -1443,13 +1473,39 @@ export default function AuditWorkspaceView({
       {isCoverModalOpen && (
         <CoverDocumentGenerator 
           audit={audit} 
-          activeCategory={activeCategory}
+          activeCategory={activeCategory} 
           userProfiles={userProfiles}
           onClose={() => setIsCoverModalOpen(false)} 
           onSaveAsDokumen1={handleSaveCoverToDokumen1}
         />
       )}
 
+      {isSuratTugasModalOpen && (
+        <SuratTugasGenerator 
+          audit={audit} 
+          activeCategory={activeCategory} 
+          userProfiles={userProfiles}
+          onClose={() => setIsSuratTugasModalOpen(false)} 
+        />
+      )}
+
+      {isNotaDinasModalOpen && (
+        <NotaDinasGenerator 
+          audit={audit} 
+          activeCategory={activeCategory} 
+          userProfiles={userProfiles}
+          onClose={() => setIsNotaDinasModalOpen(false)} 
+        />
+      )}
+
+      {isSPPDModalOpen && (
+        <SPPDGenerator 
+          audit={audit} 
+          activeCategory={activeCategory} 
+          userProfiles={userProfiles}
+          onClose={() => setIsSPPDModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }
