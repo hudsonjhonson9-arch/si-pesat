@@ -69,8 +69,10 @@ export default function AuditListView({
 
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
-  const [newSchoolType, setNewSchoolType] = useState<'SD' | 'SMP' | 'Dinas' | 'Badan' | 'Kecamatan' | 'Puskesmas' | 'Lainnya'>('SD');
+  const [newSchoolType, setNewSchoolType] = useState<OpdAudit['opdType']>('SD');
   const [newFiscalYear, setNewFiscalYear] = useState('2026');
+  const [selectedCatId, setSelectedCatId] = useState<string>('');
+  const [isNewSchoolDropdownOpen, setIsNewSchoolDropdownOpen] = useState(false);
   const [newAuditorName, setNewAuditorName] = useState(defaultAuditorName);
   const [newTeamMembers, setNewTeamMembers] = useState<string[]>([]);
   const [newTemplateId, setNewTemplateId] = useState<string>(templates.length > 0 ? templates[0].id : '');
@@ -436,16 +438,52 @@ export default function AuditListView({
             {/* Form */}
             <form onSubmit={handleSubmitNewAudit} className="p-5 space-y-4 overflow-y-auto text-dark-gray">
               {/* Nama OPD */}
-              <div className="space-y-1">
+              <div className="space-y-1 relative">
                 <label className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider block">Nama Instansi / OPD / OPD</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Misal: Dinas Kesehatan, SDN 04 Palmerah, Kecamatan Palmerah"
-                  value={newSchoolName}
-                  onChange={e => setNewSchoolName(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Misal: Dinas Kesehatan, SDN 04 Palmerah, Kecamatan Palmerah"
+                    value={newSchoolName}
+                    onChange={e => {
+                      setNewSchoolName(e.target.value);
+                      setIsNewSchoolDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsNewSchoolDropdownOpen(true)}
+                    onBlur={() => setTimeout(() => setIsNewSchoolDropdownOpen(false), 200)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white/70 hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent text-dark-gray"
+                  />
+                  {isNewSchoolDropdownOpen && targetEntities && targetEntities.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-dark-gray/15 rounded-xl shadow-xl overflow-hidden max-h-48 flex flex-col">
+                      <div className="overflow-y-auto p-1 space-y-0.5">
+                        {targetEntities.filter(t => t.name.toLowerCase().includes(newSchoolName.toLowerCase())).length > 0 ? (
+                          targetEntities.filter(t => t.name.toLowerCase().includes(newSchoolName.toLowerCase())).map(t => (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setNewSchoolName(t.name);
+                                setIsNewSchoolDropdownOpen(false);
+                                // Auto map type if matched exactly
+                                const mappedType = ['SD', 'SMP', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'].find(ot => ot.toLowerCase() === t.type.toLowerCase());
+                                if (mappedType) setNewSchoolType(mappedType as any);
+                                else if (t.type === 'Sekolah' && t.name.toUpperCase().includes('SD')) setNewSchoolType('SD');
+                                else if (t.type === 'Sekolah' && t.name.toUpperCase().includes('SMP')) setNewSchoolType('SMP');
+                              }}
+                              className="w-full text-left px-3 py-2 rounded text-xs font-bold hover:bg-slate-50 text-dark-gray transition-colors cursor-pointer"
+                            >
+                              {t.name}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-xs text-dark-gray/50 italic">Tidak ada objek audit yang cocok</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Jenjang Dan TA */}
