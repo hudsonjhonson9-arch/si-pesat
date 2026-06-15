@@ -141,9 +141,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           .header-lembaga { font-size: ${fontSizeKop + 2}pt; margin-bottom: 10px; }
           .header-alamat { font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px; }
           .judul { font-size: ${fontSizeKop - 2}pt; margin-bottom: 10px; }
-          .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
-          .line-short { width: 2px; border-left: 2px solid black; height: 100px; margin-top: 25px; background: black; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .line-long { width: 2px; border-left: 2px solid black; height: 150px; background: black; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
 
         </style>
       </head>
@@ -158,10 +156,12 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             <div class="judul"><b>${judul1}</b></div>
             <div class="judul"><b>${judul2}</b></div>
           </div>
-        <div class="center-lines">
-          <div class="line-short"></div>
-          <div class="line-long"></div>
-          <div class="line-short"></div>
+        <div style="display: flex; justify-content: center; margin: 60px 0; height: 150px;">
+          <svg width="46" height="150" viewBox="0 0 46 150" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="25" width="2" height="100" fill="black" />
+            <rect x="22" y="0" width="2" height="150" fill="black" />
+            <rect x="44" y="25" width="2" height="100" fill="black" />
+          </svg>
         </div>
         <table style="width: 650px; margin-top: 40px; font-size: ${fontSizeTable}pt; line-height: 1.4; border-collapse: collapse;">
           <tr>
