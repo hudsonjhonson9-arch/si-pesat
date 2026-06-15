@@ -68,14 +68,14 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
   const htmlContent = useMemo(() => {
     const teamRows = teamList.map((member, i) => `
       <tr>
-        <td style="border: 1px solid black; padding: 4px 8px; text-align: center;">${i + 1}</td>
-        <td style="border: 1px solid black; padding: 4px 8px;">${member.nama}</td>
-        <td style="border: 1px solid black; padding: 4px 8px; text-align: center;">${member.jabatan}</td>
+        <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">${i + 1}</td>
+        <td style="border: 1px solid black; padding: 8px 10px;">${member.nama}</td>
+        <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">${member.jabatan}</td>
       </tr>
     `).join('');
 
     return `
-      <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
+      <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 15mm 30mm 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
@@ -153,23 +153,23 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
         
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
           <tr style="background-color: #f0f0f0;">
-            <th style="border: 1px solid black; padding: 5px; width: 40px;">No</th>
-            <th style="border: 1px solid black; padding: 5px;">Pelaksana Kegiatan</th>
-            <th style="border: 1px solid black; padding: 5px; width: 150px;">Keterangan</th>
+            <th style="border: 1px solid black; padding: 8px 10px; width: 40px;">No</th>
+            <th style="border: 1px solid black; padding: 8px 10px;">Pelaksana Kegiatan</th>
+            <th style="border: 1px solid black; padding: 8px 10px; width: 150px;">Keterangan</th>
           </tr>
           <tr>
-            <td style="border: 1px solid black; padding: 4px 8px; text-align: center;">1</td>
-            <td style="border: 1px solid black; padding: 4px 8px;">${pengendaliNama}</td>
-            <td style="border: 1px solid black; padding: 4px 8px; text-align: center;">Pengendali Teknis</td>
+            <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">1</td>
+            <td style="border: 1px solid black; padding: 8px 10px;">${pengendaliNama}</td>
+            <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">Pengendali Teknis</td>
           </tr>
         </table>
 
         <div style="margin-bottom: 5px; font-style: italic;">Anggota Tim Pemeriksa:</div>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
           <tr style="background-color: #f0f0f0;">
-            <th style="border: 1px solid black; padding: 5px; width: 40px;">No</th>
-            <th style="border: 1px solid black; padding: 5px;">Pelaksana Kegiatan</th>
-            <th style="border: 1px solid black; padding: 5px; width: 150px;">Keterangan</th>
+            <th style="border: 1px solid black; padding: 8px 10px; width: 40px;">No</th>
+            <th style="border: 1px solid black; padding: 8px 10px;">Pelaksana Kegiatan</th>
+            <th style="border: 1px solid black; padding: 8px 10px; width: 150px;">Keterangan</th>
           </tr>
           ${teamRows}
         </table>
