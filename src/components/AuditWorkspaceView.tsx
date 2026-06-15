@@ -505,7 +505,7 @@ export default function AuditWorkspaceView({
       const prevHistory = firstItem.evidenceHistory || [];
       const historyEntry = {
         name: file.name,
-        link: res.url,
+        link: res.webViewLink,
         uploadedAt: new Date().toISOString(),
         uploadedBy: currentUserName || audit.auditorName || 'Auditor',
         action: 'diunggah (Sampul KKP)' as const
@@ -519,7 +519,7 @@ export default function AuditWorkspaceView({
             if (item.id === firstItem.id) {
               return {
                 ...item,
-                evidenceLink: res.url,
+                evidenceLink: res.webViewLink,
                 evidenceName: file.name,
                 evidenceHistory: [...prevHistory, historyEntry]
               };
