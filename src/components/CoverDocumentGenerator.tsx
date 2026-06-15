@@ -127,12 +127,13 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       <body>
         <div class="page-wrapper" id="page-wrapper">
         <div class="page" id="pdf-content">
-          <div class="header-instansi">${instansi}</div>
-          <div class="header-lembaga">${lembaga}</div>
-          <div class="header-alamat">${alamat.replace(/\n/g, '<br/>')}</div>
-          <div class="judul">${judul1}</div>
-          <div class="judul">${judul2}</div>
-        </div>
+          <div class="text-center">
+            <div class="header-instansi">${instansi}</div>
+            <div class="header-lembaga">${lembaga}</div>
+            <div class="header-alamat">${alamat.replace(/\n/g, '<br/>')}</div>
+            <div class="judul">${judul1}</div>
+            <div class="judul">${judul2}</div>
+          </div>
         <div class="center-lines">
           <div class="line-short"></div>
           <div class="line-long"></div>
