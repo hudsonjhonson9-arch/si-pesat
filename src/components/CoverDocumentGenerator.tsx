@@ -281,7 +281,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         <div className="flex items-center justify-between p-4 border-b border-dark-gray/10 bg-slate-50 shrink-0">
           <div className="flex items-center gap-2 text-dark-gray">
             <FileText className="w-5 h-5 text-peach-accent" />
-            <h2 className="font-black text-sm tracking-wide uppercase">Cetak Sampul KKP</h2>
+            <h2 className="font-black text-sm tracking-wide uppercase">Cetak Sampul KKP - {judul2}</h2>
           </div>
           {errorMsg && <div className="text-xs text-red-500 font-bold bg-red-50 px-3 py-1 rounded">{errorMsg}</div>}
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-dark-gray/10 text-dark-gray/60 transition-colors cursor-pointer">
