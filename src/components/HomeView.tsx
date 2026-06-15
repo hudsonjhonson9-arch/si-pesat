@@ -121,11 +121,10 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
             <Building className="w-3.5 h-3.5" /> Inspektorat Daerah
           </span>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-2">
-            Inspektur Pembantu Wilayah IV
+            SI-PESAT IRBAN IV
           </h1>
           <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            Mempunyai tugas pokok melaksanakan pengawasan internal terhadap kinerja dan keuangan
-            pada OPD, Kecamatan, Desa, Sekolah, dan Puskesmas di wilayah kerja Irban 4.
+            Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi Inspektur Pembantu Wilayah IV
           </p>
         </div>
       </div>
