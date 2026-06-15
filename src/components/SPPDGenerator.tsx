@@ -67,7 +67,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
 
   const htmlContent = useMemo(() => {
     const pages = teamList.map((member, idx) => `
-      <div style="width: 210mm; height: 297mm; max-height: 297mm; overflow: hidden; padding: 15mm 30mm 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; ${idx > 0 ? 'page-break-before: always;' : ''}">
+      <div style="width: 210mm; min-height: 297mm; padding: 15mm 30mm 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; ${idx > 0 ? 'page-break-before: always;' : ''}">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
