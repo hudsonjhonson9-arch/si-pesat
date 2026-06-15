@@ -90,20 +90,12 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           body { 
             font-family: "Times New Roman", Times, serif; 
             margin: 0; 
-            padding: 20px 0; 
+            padding: 2.5cm; 
             background: white;
             color: black;
-            display: flex;
-            justify-content: center;
-          }
-          .page {
             width: 21cm;
             min-height: 29.7cm;
-            padding: 2.5cm;
             box-sizing: border-box;
-            background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin: 20px 0;
           }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
@@ -116,14 +108,13 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           .line-long { width: 1.5px; background-color: black; height: 150px; }
           .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: ${fontSizeTable}pt; line-height: 1.4; }
           .info-table td { padding: 4px 0; vertical-align: top; }
-          .col-label { width: 160px; }
-          .col-colon { width: 20px; text-align: center; }
+          .col-label { width: 130px; }
+          .col-colon { width: 15px; text-align: center; }
           .team-table { border-collapse: collapse; width: 100%; }
           .team-table td { padding: 2px 0; }
         </style>
       </head>
       <body>
-        <div class="page" id="pdf-content">
         <div class="text-center">
           <div class="header-instansi">${instansi}</div>
           <div class="header-lembaga">${lembaga}</div>
@@ -147,7 +138,6 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             <td><table class="team-table">${teamListHTML}</table></td>
           </tr>
         </table>
-        </div>
         <script>
           window.onafterprint = function() { window.close(); };
         </script>
@@ -380,10 +370,10 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             <div className="absolute top-2 right-2 text-[10px] font-bold text-slate-500 uppercase bg-white/50 px-2 py-1 rounded backdrop-blur-sm z-10 pointer-events-none">
               Pratinjau Langsung
             </div>
-            <div className="flex-1 bg-white shadow-lg rounded overflow-hidden border border-slate-300">
+            <div className="flex-1 bg-slate-200 overflow-auto flex justify-center p-4 lg:p-8">
               <iframe 
                 srcDoc={htmlContent} 
-                className="w-full h-full border-none pointer-events-auto"
+                className="w-[21cm] min-h-[29.7cm] bg-white shadow-xl border border-slate-300 pointer-events-auto"
                 title="Preview"
               />
             </div>
