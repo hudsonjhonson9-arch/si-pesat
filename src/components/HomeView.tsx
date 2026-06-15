@@ -196,14 +196,16 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
                   key={type}
                   onClick={() => setTypeFilter(type)}
                   className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                    OPD_TYPE_COLORS[type] || 'bg-slate-100 text-slate-800 border-slate-200'
+                  } ${
                     typeFilter === type
-                      ? (OPD_TYPE_COLORS[type] || 'bg-slate-800 text-white border-slate-800') + ' shadow-sm'
-                      : 'bg-white text-dark-gray/60 border-dark-gray/15 hover:border-dark-gray/30 hover:text-dark-gray'
+                      ? 'shadow-md scale-105 ring-2 ring-offset-1 ring-slate-400 opacity-100'
+                      : 'opacity-70 hover:opacity-100 hover:shadow-sm'
                   }`}
                 >
                   {type}
                   {type !== 'Semua' && count > 0 && (
-                    <span className={`ml-1 ${typeFilter === type ? 'opacity-70' : 'text-dark-gray/40'}`}>
+                    <span className={`ml-1 ${typeFilter === type ? 'opacity-100' : 'opacity-60'}`}>
                       ({count})
                     </span>
                   )}
