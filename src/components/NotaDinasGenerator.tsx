@@ -75,7 +75,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
     `).join('');
 
     return `
-      <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm 20mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
+      <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
         <table style="width: 100%; border-bottom: 3px solid black; margin-bottom: 25px; padding-bottom: 10px;">
@@ -326,8 +326,8 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
           <div className="w-full md:w-1/2 bg-slate-200/50 flex flex-col p-4">
             <div className="flex-1 overflow-auto flex justify-center items-start rounded-xl border border-slate-200/60 bg-slate-300/30 p-4 custom-scrollbar">
               <div 
-                className="bg-white shadow-xl origin-top transition-transform"
-                style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.85)' }}
+                className="bg-white shadow-xl"
+                style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.65)', transformOrigin: 'top center', marginBottom: '-35%' }}
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
               />
             </div>
