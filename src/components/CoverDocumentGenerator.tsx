@@ -25,6 +25,10 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
   const [tanggal, setTanggal] = useState('25 Agustus 2025 s/d 8 September 2025 (10 HARI KERJA)');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
+  // Font Size Customizations
+  const [fontSizeKop, setFontSizeKop] = useState(14);
+  const [fontSizeTable, setFontSizeTable] = useState(11);
+  
   // Custom multi-select searchable dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchTeam, setSearchTeam] = useState('');
@@ -103,14 +107,14 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
-          .header-instansi { font-size: 14pt; font-weight: bold; margin-bottom: 5px; }
-          .header-lembaga { font-size: 16pt; font-weight: bold; margin-bottom: 10px; }
-          .header-alamat { font-size: 10pt; margin-bottom: 40px; }
-          .judul { font-size: 12pt; font-weight: bold; margin-bottom: 10px; }
+          .header-instansi { font-size: ${fontSizeKop}pt; font-weight: bold; margin-bottom: 5px; }
+          .header-lembaga { font-size: ${fontSizeKop + 2}pt; font-weight: bold; margin-bottom: 10px; }
+          .header-alamat { font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px; }
+          .judul { font-size: ${fontSizeKop - 2}pt; font-weight: bold; margin-bottom: 10px; }
           .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
           .line-short { width: 1.5px; background-color: black; height: 100px; margin-top: 25px; }
           .line-long { width: 1.5px; background-color: black; height: 150px; }
-          .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: 11pt; line-height: 1.4; }
+          .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: ${fontSizeTable}pt; line-height: 1.4; }
           .info-table td { padding: 4px 0; vertical-align: top; }
           .col-label { width: 160px; }
           .col-colon { width: 20px; text-align: center; }
@@ -150,7 +154,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       </body>
       </html>
     `;
-  }, [instansi, lembaga, alamat, judul1, judul2, pada, kecamatan, kabupaten, tanggal, finalTeamList]);
+  }, [instansi, lembaga, alamat, judul1, judul2, pada, kecamatan, kabupaten, tanggal, finalTeamList, fontSizeKop, fontSizeTable]);
 
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
 
@@ -357,6 +361,14 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-dark-gray/70 uppercase">Judul Bawah</label>
                     <input type="text" value={judul2} onChange={e => setJudul2(e.target.value)} className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-dark-gray/70 uppercase">Ukuran Font Kop (pt)</label>
+                    <input type="number" min="8" max="24" value={fontSizeKop} onChange={e => setFontSizeKop(Number(e.target.value))} className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-dark-gray/70 uppercase">Ukuran Font Isi (pt)</label>
+                    <input type="number" min="8" max="20" value={fontSizeTable} onChange={e => setFontSizeTable(Number(e.target.value))} className="w-full text-xs border border-dark-gray/15 p-1.5 rounded bg-white text-dark-gray outline-none" />
                   </div>
                 </div>
               </details>
