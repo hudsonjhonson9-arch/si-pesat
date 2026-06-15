@@ -188,25 +188,21 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
     `;
   }, [instansi, lembaga, alamat, judul1, judul2, pada, kecamatan, kabupaten, tanggal, finalTeamList, fontSizeKop, fontSizeTable]);
 
-  const handleDownloadPdf = async () => {
-    setIsGeneratingPdf(true);
-    try {
-      const opt = {
-        margin:       0,
-        filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
-        image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2, windowWidth: 794 },
-        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
-      };
-      const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
-      if (!lib) throw new Error("Library pembuat PDF tidak ditemukan.");
-      await lib().set(opt).from(htmlContent).save();
-    } catch (err: any) {
-      console.error(err);
-      setErrorMsg("Gagal mengunduh dokumen: " + err.message);
-    } finally {
-      setIsGeneratingPdf(false);
+  const handleDownloadPdf = () => {
+    // Use browser's native print dialog which renders identically to preview
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) {
+      setErrorMsg("Pop-up diblokir oleh browser. Izinkan pop-up untuk mencetak PDF.");
+      return;
     }
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    // Wait for content to load before printing
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+    };
   };
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -425,9 +421,9 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
               {isSaving ? 'Menyimpan...' : 'Simpan ke Dokumen 1'}
             </button>
           )}
-          <button onClick={handleDownloadPdf} disabled={isSaving || isGeneratingPdf} className="flex items-center gap-2 px-5 py-2 bg-peach-accent text-dark-gray font-black text-xs rounded-lg border border-dark-gray/10 hover:opacity-90 transition-opacity cursor-pointer shadow-sm disabled:opacity-50">
-            {isGeneratingPdf ? <div className="w-3.5 h-3.5 border-2 border-dark-gray border-t-transparent rounded-full animate-spin"></div> : <Printer className="w-3.5 h-3.5" />}
-            {isGeneratingPdf ? 'Memproses...' : 'Unduh PDF'}
+          <button onClick={handleDownloadPdf} disabled={isSaving} className="flex items-center gap-2 px-5 py-2 bg-peach-accent text-dark-gray font-black text-xs rounded-lg border border-dark-gray/10 hover:opacity-90 transition-opacity cursor-pointer shadow-sm disabled:opacity-50">
+            <Printer className="w-3.5 h-3.5" />
+            Cetak / Simpan PDF
           </button>
         </div>
       </div>
