@@ -124,7 +124,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
 
         <div className="relative z-10">
           <span className="bg-white/20 backdrop-blur-md border border-white/10 text-[10px] px-3 py-1 rounded-full font-bold inline-flex items-center gap-1.5 uppercase tracking-wider mb-3">
-            <Building className="w-3.5 h-3.5" /> Inspektorat Daerah
+            <Building className="w-3.5 h-3.5" /> Inspektorat Kabupaten Sumba Barat
           </span>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-2">
             SI-PESAT IRBAN IV
