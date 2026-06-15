@@ -131,32 +131,17 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
     `;
   }, [instansi, lembaga, alamat, judul1, judul2, pada, kecamatan, kabupaten, tanggal, finalTeamList]);
 
-  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
-
-  const handlePrint = async () => {
-    setIsSaving(true);
-    setErrorMsg(null);
-    try {
-      const opt = {
-        margin:       2.5,
-        filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
-        image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
-      };
-      
-      const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
-      if (!lib) throw new Error("Library pembuat PDF tidak ditemukan.");
-
-      const pdfBlob = await lib().set(opt).from(htmlContent).output('blob');
-      
-      const url = URL.createObjectURL(pdfBlob);
-      setPdfPreviewUrl(url);
-    } catch (err: any) {
-      console.error(err);
-      setErrorMsg("Gagal membuat Pratinjau PDF: " + err.message);
-    } finally {
-      setIsSaving(false);
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    } else {
+      alert("Gagal membuka jendela cetak. Mohon izinkan pop-up untuk situs ini.");
     }
   };
 
@@ -368,29 +353,10 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           )}
           <button onClick={handlePrint} disabled={isSaving} className="flex items-center gap-2 px-5 py-2 bg-peach-accent text-dark-gray font-black text-xs rounded-lg border border-dark-gray/10 hover:opacity-90 transition-opacity cursor-pointer shadow-sm disabled:opacity-50">
             <Printer className="w-3.5 h-3.5" />
-            Pratinjau & Cetak PDF
+            Cetak
           </button>
         </div>
       </div>
-
-      {pdfPreviewUrl && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-dark-gray/80 p-4 backdrop-blur-md">
-          <div className="bg-white rounded-3xl w-full max-w-5xl h-[95vh] overflow-hidden shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-dark-gray/10 bg-slate-50 shrink-0">
-              <h2 className="font-black text-sm tracking-wide uppercase text-dark-gray">Pratinjau PDF (Siap Cetak & Unduh)</h2>
-              <button 
-                onClick={() => { URL.revokeObjectURL(pdfPreviewUrl); setPdfPreviewUrl(null); }} 
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-dark-gray/10 text-dark-gray/60 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden bg-slate-200 p-2 md:p-4">
-               <iframe src={pdfPreviewUrl} className="w-full h-full border-none rounded shadow-sm" title="PDF Preview" />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
