@@ -81,6 +81,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       <html>
       <head>
         <title>Cetak Sampul KKP - ${pada} - ${judul2}</title>
+      </head>
+      <body>
         <style>
           body { 
             font-family: "Times New Roman", Times, serif; 
@@ -138,7 +140,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
               margin: 0 !important;
             }
           }
-          .text-center { text-align: center; }
+          .text-center { text-align: center; padding-top: 120px; }
           .font-bold { font-weight: bold; }
           .header-instansi { font-size: ${fontSizeKop}pt; margin-bottom: 5px; }
           .header-lembaga { font-size: ${fontSizeKop + 2}pt; margin-bottom: 10px; }
@@ -147,8 +149,6 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
 
 
         </style>
-      </head>
-      <body>
         <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center;">
           <div class="page-wrapper" id="page-wrapper">
           <div class="page" id="pdf-content">
