@@ -85,7 +85,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       <body style="margin: 0; padding: 0; background: white;">
         <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: white;">
           <div id="page-wrapper" style="transform-origin: top center; background: white;">
-            <div id="pdf-content" style="width: 210mm; height: 297mm; max-height: 297mm; overflow: hidden; padding: 25mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000;">
+            <div id="pdf-content" style="width: 210mm; height: 295mm; max-height: 295mm; overflow: hidden; padding: 25mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000;">
               
               <div style="text-align: center; margin-top: 40px;">
                 <div style="font-size: ${fontSizeKop}pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
@@ -185,7 +185,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}_${judul2.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2, windowWidth: 794 },
-        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
+        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak:    { mode: 'avoid-all' }
       };
       
       const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
