@@ -47,12 +47,18 @@ function doPost(e) {
     try {
       rootFolder = DriveApp.getFolderById(UPLOAD_FOLDER_ID);
     } catch (err) {
-      // Folder ID tidak valid, cari atau buat folder root berdasarkan nama
-      const existingFolders = DriveApp.getFoldersByName(ROOT_FOLDER_NAME);
-      if (existingFolders.hasNext()) {
-        rootFolder = existingFolders.next();
-      } else {
-        rootFolder = DriveApp.createFolder(ROOT_FOLDER_NAME);
+      // Gunakan LockService untuk mencegah duplikasi folder jika diakses bersamaan
+      const lock = LockService.getScriptLock();
+      lock.waitLock(10000); // Tunggu hingga 10 detik
+      try {
+        const existingFolders = DriveApp.getFoldersByName(ROOT_FOLDER_NAME);
+        if (existingFolders.hasNext()) {
+          rootFolder = existingFolders.next();
+        } else {
+          rootFolder = DriveApp.createFolder(ROOT_FOLDER_NAME);
+        }
+      } finally {
+        lock.releaseLock();
       }
     }
 
@@ -60,11 +66,18 @@ function doPost(e) {
     function getOrCreateFolder(parent, folderName) {
       if (!folderName) return parent;
       const sanitized = folderName.replace(/[\/\\:*?"<>|]/g, '_').trim();
-      const folders = parent.getFoldersByName(sanitized);
-      if (folders.hasNext()) {
-        return folders.next();
-      } else {
-        return parent.createFolder(sanitized);
+      
+      const lock = LockService.getScriptLock();
+      lock.waitLock(10000);
+      try {
+        const folders = parent.getFoldersByName(sanitized);
+        if (folders.hasNext()) {
+          return folders.next();
+        } else {
+          return parent.createFolder(sanitized);
+        }
+      } finally {
+        lock.releaseLock();
       }
     }
 
