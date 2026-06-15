@@ -102,7 +102,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
           .line-short { width: 2px; background-color: black; height: 100px; margin-top: 25px; }
           .line-long { width: 2px; background-color: black; height: 150px; }
-          .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; }
+          .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: 12pt; }
           .info-table td { padding: 5px 0; vertical-align: top; }
           .col-label { width: 180px; }
           .col-colon { width: 20px; }
