@@ -94,17 +94,17 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
       <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
-        <table style="width: 100%; border-bottom: 3px solid black; margin-bottom: 25px; padding-bottom: 10px;">
+        <table style="width: 100%; border-bottom: 3px solid black; margin-bottom: 25px;">
           <tr>
-            <td style="width: 90px; text-align: center; vertical-align: middle;">
+            <td style="width: 90px; text-align: center; vertical-align: middle; padding-bottom: 15px;">
               <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
             </td>
-            <td style="text-align: center; vertical-align: middle;">
+            <td style="text-align: center; vertical-align: middle; padding-bottom: 15px;">
               <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
               <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
-              <div style="font-size: 10pt;">${alamat}</div>
+              <div style="font-size: 10pt; line-height: 1.2;">${alamat}</div>
             </td>
-            <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
+            <td style="width: 90px; padding-bottom: 15px;"></td> <!-- Dummy cell for centering -->
           </tr>
         </table>
 
@@ -328,12 +328,14 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
 
           {/* Right Preview Panel */}
           <div className="w-full md:w-1/2 bg-slate-200/50 flex flex-col p-4">
-            <div className="flex-1 overflow-auto flex justify-center items-start rounded-xl border border-slate-200/60 bg-slate-300/30 p-4 custom-scrollbar">
-              <div 
-                className="bg-white shadow-xl"
-                style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.65)', transformOrigin: 'top center', marginBottom: '-35%' }}
-                dangerouslySetInnerHTML={{ __html: htmlContent }}
-              />
+            <div className="flex-1 overflow-auto rounded-xl border border-slate-200/60 bg-slate-300/30 p-4 custom-scrollbar text-center whitespace-nowrap">
+              <div className="inline-block text-left align-top" style={{ width: '136.5mm', minHeight: '193.05mm' }}>
+                <div 
+                  className="bg-white shadow-xl"
+                  style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.65)', transformOrigin: 'top left' }}
+                  dangerouslySetInnerHTML={{ __html: htmlContent }}
+                />
+              </div>
             </div>
             
             {errorMsg && (
