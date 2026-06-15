@@ -82,119 +82,57 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       <head>
         <title>Cetak Sampul KKP - ${pada} - ${judul2}</title>
       </head>
-      <body>
-        <style>
-          body { 
-            font-family: "Times New Roman", Times, serif; 
-            margin: 0; 
-            padding: 20px 0; 
-            background: transparent;
-            color: black;
-            display: flex;
-            justify-content: center;
-            overflow-x: hidden;
-          }
-          .page-wrapper {
-            transform-origin: top center;
-          }
-          .page {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 25mm;
-            box-sizing: border-box;
-            background: white;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-          }
-          #pdf-content, #pdf-content * {
-            font-family: "Times New Roman", Times, serif !important;
-            color: black !important;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 25mm;
-          }
-          @media print {
-            html, body { 
-              margin: 0 !important; 
-              padding: 0 !important; 
-              background: white !important;
-              display: block !important;
-              overflow: visible !important;
-              -webkit-print-color-adjust: exact;
-            }
-            #clip-container {
-              display: block !important;
-              overflow: visible !important;
-              width: auto !important;
-              height: auto !important;
-            }
-            .page-wrapper {
-              transform: none !important;
-              height: auto !important;
-            }
-            .page { 
-              width: auto !important;
-              min-height: auto !important;
-              padding: 0 !important; 
-              box-shadow: none !important; 
-              margin: 0 !important;
-            }
-          }
-          .text-center { text-align: center; }
-          .font-bold { font-weight: bold; }
-          .header-instansi { font-size: ${fontSizeKop}pt; margin-bottom: 5px; }
-          .header-lembaga { font-size: ${fontSizeKop + 2}pt; margin-bottom: 10px; }
-          .header-alamat { font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px; }
-          .judul { font-size: ${fontSizeKop - 2}pt; margin-bottom: 10px; }
+      <body style="margin: 0; padding: 0; background: white;">
+        <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: white;">
+          <div id="page-wrapper" style="transform-origin: top center; background: white;">
+            <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 25mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000;">
+              
+              <div style="text-align: center; margin-top: 150px;">
+                <div style="font-size: ${fontSizeKop}pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
+                <div style="font-size: ${fontSizeKop + 2}pt; font-weight: bold; margin-bottom: 10px;">${lembaga}</div>
+                <div style="font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px;">${alamat.replace(/\n/g, '<br/>')}</div>
+                <div style="font-size: ${fontSizeKop - 2}pt; font-weight: bold; margin-bottom: 10px;">${judul1}</div>
+                <div style="font-size: ${fontSizeKop - 2}pt; font-weight: bold; margin-bottom: 10px;">${judul2}</div>
+              </div>
 
+              <div style="display: flex; justify-content: center; margin: 60px 0; height: 150px;">
+                <svg width="46" height="150" viewBox="0 0 46 150" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="0" y="25" width="2" height="100" fill="#000000" />
+                  <rect x="22" y="0" width="2" height="150" fill="#000000" />
+                  <rect x="44" y="25" width="2" height="100" fill="#000000" />
+                </svg>
+              </div>
 
-        </style>
-        <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center;">
-          <div class="page-wrapper" id="page-wrapper">
-          <div class="page" id="pdf-content" style="font-family: 'Times New Roman', Times, serif; color: black;">
-          <div class="text-center" style="padding-top: 60px;">
-            <div class="header-instansi"><b>${instansi}</b></div>
-            <div class="header-lembaga"><b>${lembaga}</b></div>
-            <div class="header-alamat">${alamat.replace(/\n/g, '<br/>')}</div>
-            <div class="judul"><b>${judul1}</b></div>
-            <div class="judul"><b>${judul2}</b></div>
+              <table style="width: 650px; margin-top: 40px; font-size: ${fontSizeTable}pt; line-height: 1.4; border-collapse: collapse; font-family: 'Times New Roman', Times, serif; color: #000000;">
+                <tr>
+                  <td style="width: 220px; vertical-align: top; padding: 4px 0;">PADA</td>
+                  <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${pada}</td>
+                </tr>
+                <tr>
+                  <td style="width: 220px; vertical-align: top; padding: 4px 0;">KECAMATAN</td>
+                  <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${kecamatan}</td>
+                </tr>
+                <tr>
+                  <td style="width: 220px; vertical-align: top; padding: 4px 0;">KABUPATEN</td>
+                  <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${kabupaten}</td>
+                </tr>
+                <tr>
+                  <td style="width: 220px; vertical-align: top; padding: 4px 0;">TANGGAL</td>
+                  <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${tanggal}</td>
+                </tr>
+                <tr>
+                  <td style="width: 220px; vertical-align: top; padding: 4px 0;">TIM PEMERIKSA</td>
+                  <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${teamListHTML}</td>
+                </tr>
+              </table>
+
+            </div>
           </div>
-        <div style="display: flex; justify-content: center; margin: 60px 0; height: 150px;">
-          <svg width="46" height="150" viewBox="0 0 46 150" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0" y="25" width="2" height="100" fill="black" />
-            <rect x="22" y="0" width="2" height="150" fill="black" />
-            <rect x="44" y="25" width="2" height="100" fill="black" />
-          </svg>
-        </div>
-        <table style="width: 650px; margin-top: 40px; font-size: ${fontSizeTable}pt; line-height: 1.4; border-collapse: collapse;">
-          <tr>
-            <td style="width: 220px; vertical-align: top; padding: 4px 0;">PADA</td>
-            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-            <td style="vertical-align: top; padding: 4px 0;">${pada}</td>
-          </tr>
-          <tr>
-            <td style="width: 220px; vertical-align: top; padding: 4px 0;">KECAMATAN</td>
-            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-            <td style="vertical-align: top; padding: 4px 0;">${kecamatan}</td>
-          </tr>
-          <tr>
-            <td style="width: 220px; vertical-align: top; padding: 4px 0;">KABUPATEN</td>
-            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-            <td style="vertical-align: top; padding: 4px 0;">${kabupaten}</td>
-          </tr>
-          <tr>
-            <td style="width: 220px; vertical-align: top; padding: 4px 0;">TANGGAL</td>
-            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-            <td style="vertical-align: top; padding: 4px 0;">${tanggal}</td>
-          </tr>
-          <tr>
-            <td style="width: 220px; vertical-align: top; padding: 4px 0;">TIM PEMERIKSA</td>
-            <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-            <td style="vertical-align: top; padding: 4px 0;">${teamListHTML}</td>
-          </tr>
-        </table>
-        </div>
-        </div>
         </div>
         <script>
           function adjustScale() {
