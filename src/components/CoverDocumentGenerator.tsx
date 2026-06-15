@@ -108,8 +108,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
           .line-long { width: 1.5px; background-color: black; height: 150px; }
           .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: ${fontSizeTable}pt; line-height: 1.4; }
           .info-table td { padding: 4px 0; vertical-align: top; }
-          .col-label { width: 130px; }
-          .col-colon { width: 15px; text-align: center; }
+          .col-label { width: 220px; }
+          .col-colon { width: 20px; text-align: center; }
           .team-table { border-collapse: collapse; width: 100%; }
           .team-table td { padding: 2px 0; }
         </style>
@@ -156,7 +156,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         margin:       0,
         filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        html2canvas:  { scale: 2, windowWidth: 794 },
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
       };
       
@@ -185,7 +185,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         margin:       0,
         filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        html2canvas:  { scale: 2, windowWidth: 794 },
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
       };
       
