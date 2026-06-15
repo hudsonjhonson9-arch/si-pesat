@@ -23,6 +23,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
   const [kabupaten, setKabupaten] = useState('SUMBA BARAT PROVINSI NUSA TENGGARA TIMUR');
   
   const [tanggal, setTanggal] = useState('25 Agustus 2025 s/d 8 September 2025 (10 HARI KERJA)');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   // Custom multi-select searchable dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -134,14 +135,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
 
   const handlePrint = async () => {
     setIsSaving(true);
+    setErrorMsg(null);
     try {
-      const container = document.createElement('div');
-      container.innerHTML = htmlContent;
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '-9999px';
-      document.body.appendChild(container);
-      
       const opt = {
         margin:       2.5,
         filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
@@ -150,13 +145,16 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
       };
       
-      const pdfBlob = await html2pdf().set(opt).from(container).output('blob');
-      document.body.removeChild(container);
+      const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
+      if (!lib) throw new Error("Library pembuat PDF tidak ditemukan.");
+
+      const pdfBlob = await lib().set(opt).from(htmlContent).output('blob');
       
       const url = URL.createObjectURL(pdfBlob);
       setPdfPreviewUrl(url);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setErrorMsg("Gagal membuat Pratinjau PDF: " + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -166,15 +164,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
   const handleSaveToDokumen1 = async () => {
     if (!onSaveAsDokumen1) return;
     setIsSaving(true);
+    setErrorMsg(null);
     try {
-      const container = document.createElement('div');
-      container.innerHTML = htmlContent;
-      // Temporarily append to body so html2canvas can measure it, but hide it
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '-9999px';
-      document.body.appendChild(container);
-      
       const opt = {
         margin:       2.5,
         filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
@@ -183,14 +174,17 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' as const }
       };
       
-      const pdfBlob = await html2pdf().set(opt).from(container).output('blob');
-      document.body.removeChild(container);
+      const lib = typeof html2pdf === 'function' ? html2pdf : (html2pdf as any).default;
+      if (!lib) throw new Error("Library pembuat PDF tidak ditemukan.");
+
+      const pdfBlob = await lib().set(opt).from(htmlContent).output('blob');
       
       const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
       await onSaveAsDokumen1(file);
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setErrorMsg("Gagal menyimpan dokumen: " + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -216,6 +210,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             <FileText className="w-5 h-5 text-peach-accent" />
             <h2 className="font-black text-sm tracking-wide uppercase">Cetak Sampul KKP</h2>
           </div>
+          {errorMsg && <div className="text-xs text-red-500 font-bold bg-red-50 px-3 py-1 rounded">{errorMsg}</div>}
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-dark-gray/10 text-dark-gray/60 transition-colors cursor-pointer">
             <X className="w-4 h-4" />
           </button>
