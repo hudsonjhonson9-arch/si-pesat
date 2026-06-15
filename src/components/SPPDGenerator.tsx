@@ -70,19 +70,20 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
       <div style="width: 210mm; min-height: 297mm; padding: 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; ${idx > 0 ? 'page-break-before: always;' : ''}">
         
         <!-- KOP SURAT -->
-        <table style="width: 100%; border-bottom: 3px solid black; margin-bottom: 25px;">
+        <table style="width: 100%;">
           <tr>
-            <td style="width: 90px; text-align: center; vertical-align: middle; padding-bottom: 15px;">
+            <td style="width: 90px; text-align: center; vertical-align: middle;">
               <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
             </td>
-            <td style="text-align: center; vertical-align: middle; padding-bottom: 15px;">
+            <td style="text-align: center; vertical-align: middle;">
               <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
               <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
               <div style="font-size: 10pt; line-height: 1.2;">${alamat}</div>
             </td>
-            <td style="width: 90px; padding-bottom: 15px;"></td> <!-- Dummy cell for centering -->
+            <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
           </tr>
         </table>
+        <div style="border-bottom: 3px solid black; margin-top: 15px; margin-bottom: 25px;"></div>
 
         <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
           <table style="width: 300px;">
