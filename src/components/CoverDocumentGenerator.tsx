@@ -104,9 +104,33 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             font-family: "Times New Roman", Times, serif !important;
           }
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
           @media print {
-            body { padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; }
-            .page { padding: 25mm !important; box-shadow: none; margin: 0; }
+            html, body { 
+              margin: 0 !important; 
+              padding: 0 !important; 
+              background: white !important;
+              display: block !important;
+              overflow: visible !important;
+              -webkit-print-color-adjust: exact;
+            }
+            #clip-container {
+              display: block !important;
+              overflow: visible !important;
+            }
+            .page-wrapper {
+              transform: none !important;
+            }
+            .page { 
+              width: 100% !important;
+              min-height: auto !important;
+              padding: 20mm !important; 
+              box-shadow: none !important; 
+              margin: 0 !important;
+            }
           }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
