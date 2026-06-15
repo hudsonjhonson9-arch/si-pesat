@@ -1383,7 +1383,11 @@ export default function AuditWorkspaceView({
 
       {/* Cover Document Generator Modal */}
       {isCoverModalOpen && (
-        <CoverDocumentGenerator audit={audit} onClose={() => setIsCoverModalOpen(false)} />
+        <CoverDocumentGenerator 
+          audit={audit} 
+          userProfiles={userProfiles}
+          onClose={() => setIsCoverModalOpen(false)} 
+        />
       )}
 
     </div>
