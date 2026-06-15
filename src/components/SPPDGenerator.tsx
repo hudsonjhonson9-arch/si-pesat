@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, Printer, FileText } from 'lucide-react';
+import { X, Printer, FileText, Trash2, Plus } from 'lucide-react';
 import { OpdAudit, UserProfile } from '../types';
 import html2pdf from 'html2pdf.js';
 
@@ -47,14 +47,32 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
     setTeamList(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
   };
 
+  const handleAddTeam = () => {
+    setTeamList(prev => [
+      ...prev,
+      {
+        id: Math.random().toString(),
+        nama: '',
+        nip: '',
+        pangkat: '',
+        jabatan: 'Anggota Tim'
+      }
+    ]);
+  };
+
+  const handleRemoveTeam = (id: string) => {
+    setTeamList(prev => prev.filter(t => t.id !== id));
+  };
+
   const htmlContent = useMemo(() => {
     const pages = teamList.map((member, idx) => `
       <div style="width: 210mm; min-height: 297mm; padding: 25mm 20mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; ${idx > 0 ? 'page-break-before: always;' : ''}">
         
         <!-- KOP SURAT -->
-        <div style="text-align: center; border-bottom: 3px solid black; padding-bottom: 15px; margin-bottom: 25px;">
+        <div style="text-align: center; border-bottom: 3px solid black; padding-bottom: 15px; margin-bottom: 25px; position: relative;">
+          <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="position: absolute; left: 0; top: 0; width: 75px; height: auto;" />
           <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
-          <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px;">${lembaga}</div>
+          <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
           <div style="font-size: 10pt;">${alamat}</div>
         </div>
 
@@ -258,7 +276,29 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                     <div key={member.id} className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
                       <div className="col-span-2 flex items-center justify-between mb-1">
                         <span className="text-[10px] font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded">Personil {i + 1}</span>
+                        <button onClick={() => handleRemoveTeam(member.id)} className="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus Personil">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
+                      
+                      <div className="col-span-2 mb-1">
+                        <select 
+                          className="w-full text-xs p-2 border border-slate-200 rounded focus:border-purple-500 outline-none bg-white text-slate-600"
+                          onChange={(e) => {
+                            const profile = userProfiles.find(p => p.id === e.target.value);
+                            if (profile) {
+                              handleUpdateTeam(member.id, 'nama', profile.full_name || profile.email || '');
+                              handleUpdateTeam(member.id, 'nip', profile.nip || '-');
+                            }
+                          }}
+                        >
+                          <option value="">-- Pilih dari daftar user --</option>
+                          {userProfiles.map(p => (
+                            <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                          ))}
+                        </select>
+                      </div>
+
                       <input type="text" placeholder="Nama" value={member.nama} onChange={e => handleUpdateTeam(member.id, 'nama', e.target.value)} className="text-xs p-2 border border-slate-200 rounded outline-none focus:border-purple-500" />
                       <input type="text" placeholder="NIP" value={member.nip} onChange={e => handleUpdateTeam(member.id, 'nip', e.target.value)} className="text-xs p-2 border border-slate-200 rounded outline-none focus:border-purple-500" />
                       <input type="text" placeholder="Pangkat" value={member.pangkat} onChange={e => handleUpdateTeam(member.id, 'pangkat', e.target.value)} className="text-xs p-2 border border-slate-200 rounded outline-none focus:border-purple-500" />
@@ -266,6 +306,13 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                     </div>
                   ))}
                   {teamList.length === 0 && <div className="text-xs text-center text-slate-400 py-4">Tidak ada anggota tim</div>}
+                  
+                  <button
+                    onClick={handleAddTeam}
+                    className="w-full mt-2 py-2 border-2 border-dashed border-slate-200 hover:border-purple-400 hover:bg-purple-50 text-slate-500 hover:text-purple-600 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Personil
+                  </button>
                 </div>
               </div>
             </div>
