@@ -79,38 +79,47 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         <title>Cetak Sampul KKP - ${pada}</title>
         <style>
           @media print {
-            @page { size: A4; margin: 2.5cm; }
-            body { padding: 0 !important; -webkit-print-color-adjust: exact; }
+            @page { size: A4; margin: 0; }
+            body { padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; }
+            .page { padding: 2.5cm !important; width: 21cm; min-height: 29.7cm; box-sizing: border-box; margin: 0; border: none; box-shadow: none; }
           }
           body { 
             font-family: "Times New Roman", Times, serif; 
-            font-size: 14pt; 
-            line-height: 1.3; 
-            margin: 0 auto; 
-            padding: 2.5cm; 
-            color: black; 
+            margin: 0; 
+            padding: 20px 0; 
             background: white;
-            max-width: 21cm; /* A4 width constraint for preview */
+            color: black;
+            display: flex;
+            justify-content: center;
+          }
+          .page {
+            width: 21cm;
+            min-height: 29.7cm;
+            padding: 2.5cm;
             box-sizing: border-box;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
           }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
           .header-instansi { font-size: 14pt; font-weight: bold; margin-bottom: 5px; }
-          .header-lembaga { font-size: 18pt; font-weight: bold; margin-bottom: 15px; }
-          .header-alamat { font-size: 11pt; margin-bottom: 40px; }
-          .judul { font-size: 13pt; font-weight: bold; margin-bottom: 10px; }
+          .header-lembaga { font-size: 16pt; font-weight: bold; margin-bottom: 10px; }
+          .header-alamat { font-size: 10pt; margin-bottom: 40px; }
+          .judul { font-size: 12pt; font-weight: bold; margin-bottom: 10px; }
           .center-lines { display: flex; justify-content: center; gap: 20px; margin: 60px 0; height: 150px; }
-          .line-short { width: 2px; background-color: black; height: 100px; margin-top: 25px; }
-          .line-long { width: 2px; background-color: black; height: 150px; }
-          .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: 12pt; }
-          .info-table td { padding: 5px 0; vertical-align: top; }
-          .col-label { width: 180px; }
-          .col-colon { width: 20px; }
+          .line-short { width: 1.5px; background-color: black; height: 100px; margin-top: 25px; }
+          .line-long { width: 1.5px; background-color: black; height: 150px; }
+          .info-table { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: 11pt; line-height: 1.4; }
+          .info-table td { padding: 4px 0; vertical-align: top; }
+          .col-label { width: 160px; }
+          .col-colon { width: 20px; text-align: center; }
           .team-table { border-collapse: collapse; width: 100%; }
           .team-table td { padding: 2px 0; }
         </style>
       </head>
       <body>
+        <div class="page" id="pdf-content">
         <div class="text-center">
           <div class="header-instansi">${instansi}</div>
           <div class="header-lembaga">${lembaga}</div>
@@ -134,6 +143,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             <td><table class="team-table">${teamListHTML}</table></td>
           </tr>
         </table>
+        </div>
         <script>
           window.onafterprint = function() { window.close(); };
         </script>
