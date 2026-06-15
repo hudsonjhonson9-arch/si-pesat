@@ -80,9 +80,19 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
         <style>
           @media print {
             @page { size: A4; margin: 2.5cm; }
-            body { -webkit-print-color-adjust: exact; }
+            body { padding: 0 !important; -webkit-print-color-adjust: exact; }
           }
-          body { font-family: "Times New Roman", Times, serif; font-size: 14pt; line-height: 1.3; margin: 0; padding: 0; color: black; }
+          body { 
+            font-family: "Times New Roman", Times, serif; 
+            font-size: 14pt; 
+            line-height: 1.3; 
+            margin: 0 auto; 
+            padding: 2.5cm; 
+            color: black; 
+            background: white;
+            max-width: 21cm; /* A4 width constraint for preview */
+            box-sizing: border-box;
+          }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
           .header-instansi { font-size: 14pt; font-weight: bold; margin-bottom: 5px; }
@@ -139,7 +149,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
     setErrorMsg(null);
     try {
       const opt = {
-        margin:       2.5,
+        margin:       0,
         filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2 },
@@ -168,7 +178,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
     setErrorMsg(null);
     try {
       const opt = {
-        margin:       2.5,
+        margin:       0,
         filename:     `Sampul_KKP_${pada.replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg' as const, quality: 0.98 },
         html2canvas:  { scale: 2 },
@@ -272,7 +282,8 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
                           <div className="p-3 text-xs text-center text-slate-400 italic">Tidak ada user ditemukan</div>
                         ) : (
                           filteredProfiles.map(p => {
-                            const nameUpper = p.full_name.toUpperCase();
+                            const displayName = p.full_name || p.email || '';
+                            const nameUpper = displayName.toUpperCase();
                             const isSelected = selectedNames.includes(nameUpper);
                             return (
                               <label key={p.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
@@ -280,7 +291,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
                                   <CheckSquare className="w-3.5 h-3.5" />
                                 </div>
                                 <div className="flex flex-col">
-                                  <span className="text-xs font-bold text-dark-gray">{p.full_name}</span>
+                                  <span className="text-xs font-bold text-dark-gray">{displayName}</span>
                                   <span className="text-[10px] text-slate-500">{p.role} {p.nip ? `- ${p.nip}` : ''}</span>
                                 </div>
                                 <input 
