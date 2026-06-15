@@ -75,6 +75,10 @@ export default function AuditWorkspaceView({
   const [uploadingIds, setUploadingIds] = useState<Record<string, boolean>>({});
 
   const handleDirectUpload = async (itemId: string, file: File, newName?: string) => {
+    // Conflict Check
+    const hasConflict = await checkConflict(itemId, 'Unggah dokumen');
+    if (hasConflict) return;
+
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const fileToUpload = newName ? new File([file], newName, { type: file.type }) : file;
@@ -107,6 +111,11 @@ export default function AuditWorkspaceView({
 
   const handleDirectCopy = async (itemId: string, sourceUrl: string, currentName: string) => {
     if (!sourceUrl || !sourceUrl.includes('drive.google.com')) return;
+    
+    // Conflict Check
+    const hasConflict = await checkConflict(itemId, 'Tautkan dokumen');
+    if (hasConflict) return;
+
     setCopyingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const res = await copyEvidenceFileFromUrl(sourceUrl, currentName || `Copy_of_${itemId}`, audit.fiscalYear, audit.opdName, audit.auditType);
@@ -224,28 +233,39 @@ export default function AuditWorkspaceView({
     setIsEditingMetadata(false);
   };
 
+  // Helper untuk mengecek konflik data sebelum melakukan aksi kritis
+  const checkConflict = async (itemId: string, actionName: string = 'Perubahan'): Promise<boolean> => {
+    if (!navigator.onLine) return false;
+    try {
+      const { data, error } = await supabase.from('audits').select('categories').eq('id', audit.id).single();
+      if (data && data.categories) {
+        const remoteItem = data.categories.flatMap((c: any) => c.items).find((i: any) => i.id === itemId);
+        const localItem = activeCategory?.items.find(i => i.id === itemId) || audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+        
+        if (remoteItem && localItem) {
+          const hasStatusConflict = remoteItem.status !== localItem.status;
+          const hasEvidenceConflict = remoteItem.evidenceLink !== localItem.evidenceLink || (remoteItem.evidenceHistory?.length || 0) !== (localItem.evidenceHistory?.length || 0);
+          
+          if (hasStatusConflict || hasEvidenceConflict) {
+            alert(`${actionName} ditolak! Data item ini telah dimodifikasi oleh pengguna lain (Konflik). Halaman akan dimuat ulang untuk mensinkronkan data terbaru.`);
+            window.location.reload();
+            return true;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to check conflict', err);
+    }
+    return false;
+  };
+
   // Quick state toggling for individual criteria items
   const handleItemStatusChange = async (itemId: string, status: FindingStatus) => {
     if (isReadOnly) return;
 
-    // Conflict Check: Verifikasi dengan data terbaru di server sebelum mengubah
-    if (navigator.onLine) {
-      try {
-        const { data, error } = await supabase.from('audits').select('categories').eq('id', audit.id).single();
-        if (data && data.categories) {
-          const remoteItem = data.categories.flatMap((c: any) => c.items).find((i: any) => i.id === itemId);
-          const localItem = activeCategory?.items.find(i => i.id === itemId);
-          
-          if (remoteItem && localItem && remoteItem.status !== localItem.status) {
-            alert('Perubahan ditolak! Data item ini telah diubah oleh pengguna lain (Konflik). Halaman akan dimuat ulang untuk mensinkronkan data terbaru.');
-            window.location.reload();
-            return;
-          }
-        }
-      } catch (err) {
-        console.error('Failed to check conflict', err);
-      }
-    }
+    // Conflict Check
+    const hasConflict = await checkConflict(itemId, 'Ubah status');
+    if (hasConflict) return;
 
     const updatedCategories = audit.categories.map(cat => {
       return {
@@ -957,7 +977,11 @@ export default function AuditWorkspaceView({
                     onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
                     onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
                     onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
-                    onClear={() => {
+                    onClear={async () => {
+                      // Conflict Check
+                      const hasConflict = await checkConflict(item.id, 'Hapus dokumen');
+                      if (hasConflict) return;
+
                       const prevHistory = item.evidenceHistory || [];
                       const historyEntry = {
                         name: item.evidenceName || 'Dokumen',
