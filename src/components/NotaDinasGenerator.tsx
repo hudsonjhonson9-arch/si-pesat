@@ -28,6 +28,11 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
   
   const [pengendaliNama, setPengendaliNama] = useState('Abdullah Daud, S.E');
   
+  const [marginTop, setMarginTop] = useState(5);
+  const [marginBottom, setMarginBottom] = useState(25);
+  const [marginLeft, setMarginLeft] = useState(30);
+  const [marginRight, setMarginRight] = useState(30);
+  
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -83,7 +88,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
       <body style="margin: 0; padding: 0; background: white;">
         <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: white;">
           <div id="page-wrapper" style="transform-origin: top center; background: white;">
-            <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 15mm 30mm 25mm 30mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
+            <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
@@ -221,7 +226,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
       </body>
       </html>
     `;
-  }, [instansi, lembaga, alamat, kepada, dari, nomorSurat, tanggal, lampiran, perihal, pembuka, audit.opdName, pengendaliNama, teamList, waktu]);
+  }, [instansi, lembaga, alamat, kepada, dari, nomorSurat, tanggal, lampiran, perihal, pembuka, audit.opdName, pengendaliNama, teamList, waktu, marginTop, marginBottom, marginLeft, marginRight]);
 
   const handleDownloadPdf = () => {
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -285,6 +290,30 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
                 <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Pengendali Teknis / Irban IV</label>
                 <input type="text" value={pengendaliNama} onChange={e => setPengendaliNama(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
               </div>
+
+              <details className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <summary className="px-4 py-3 bg-slate-50 text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-100 flex items-center justify-between">
+                  Pengaturan Margin (mm)
+                </summary>
+                <div className="p-4 grid grid-cols-2 gap-4 border-t border-slate-100">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Atas</label>
+                    <input type="number" value={marginTop} onChange={e => setMarginTop(Number(e.target.value))} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Bawah</label>
+                    <input type="number" value={marginBottom} onChange={e => setMarginBottom(Number(e.target.value))} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Kiri</label>
+                    <input type="number" value={marginLeft} onChange={e => setMarginLeft(Number(e.target.value))} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Kanan</label>
+                    <input type="number" value={marginRight} onChange={e => setMarginRight(Number(e.target.value))} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
+                  </div>
+                </div>
+              </details>
 
               <div>
                 <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Daftar Tim Pemeriksa</label>
