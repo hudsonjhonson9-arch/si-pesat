@@ -26,8 +26,8 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
   const [pembuka, setPembuka] = useState(`Sesuai Rencana Program Kerja Pengawasan Tahunan di Kabupaten Sumba Barat Tahun 2026, maka bersama ini kami mengajukan Rencana ${auditName} dengan rincian sebagai berikut :`);
   const [waktu, setWaktu] = useState('Waktu Pemeriksaan direncanakan selama 8 (delapan) hari kerja yaitu tanggal 11 Mei s/d 25 Mei 2026');
   
-  const [pengendaliNama, setPengendaliNama] = useState('Abdullah Daud, S.E');
-  const [pengendaliNip, setPengendaliNip] = useState('19700101 200001 1 001');
+  const [pengendaliNama, setPengendaliNama] = useState('');
+  const [pengendaliNip, setPengendaliNip] = useState('');
   
   const [marginTop, setMarginTop] = useState(5);
   const [marginBottom, setMarginBottom] = useState(25);
@@ -216,8 +216,8 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
           Demikian nota dinas ini disampaikan, mohon persetujuan Inspektur Kabupaten Sumba Barat.
         </div>
 
-        <div style="width: 100%; display: block; overflow: hidden; page-break-inside: avoid;">
-          <div style="float: right; width: 250px; text-align: center;">
+        <div style="width: 100%; page-break-inside: avoid;">
+          <div style="margin-left: auto; width: 250px; text-align: center;">
             <div style="margin-bottom: 80px;">Inspektur Pembantu Wilayah IV</div>
             <div style="font-weight: bold; text-decoration: underline;">${pengendaliNama}</div>
             <div>NIP. ${pengendaliNip}</div>
@@ -250,6 +250,11 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
   }, [instansi, lembaga, alamat, kepada, dari, nomorSurat, tanggal, lampiran, perihal, pembuka, audit.opdName, pengendaliNama, pengendaliNip, teamList, waktu, marginTop, marginBottom, marginLeft, marginRight]);
 
   const handleDownloadPdf = () => {
+    if (!pengendaliNama.trim() || !pengendaliNip.trim()) {
+      alert('Nama dan NIP Pengendali Teknis / Irban IV wajib diisi!');
+      return;
+    }
+    
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) {
       setErrorMsg("Pop-up diblokir oleh browser. Izinkan pop-up untuk mencetak PDF.");

@@ -22,6 +22,9 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
   const [tglBerangkat, setTglBerangkat] = useState('11 Mei 2026');
   const [tglKembali, setTglKembali] = useState('25 Mei 2026');
   
+  const [inspekturNama, setInspekturNama] = useState('');
+  const [inspekturNip, setInspekturNip] = useState('');
+  
   const [marginTop, setMarginTop] = useState(5);
   const [marginBottom, setMarginBottom] = useState(25);
   const [marginLeft, setMarginLeft] = useState(30);
@@ -187,20 +190,19 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
             <td style="border: 1px solid black; padding: 6px; vertical-align: top;"></td>
           </tr>
         </table>
-
-        <div style="width: 100%; display: block; overflow: hidden; page-break-inside: avoid;">
-          <div style="float: right; width: 300px;">
+        <div style="width: 100%; page-break-inside: avoid;">
+          <div style="margin-left: auto; width: 300px;">
             <table style="width: 100%; margin-bottom: 15px;">
               <tr><td style="width: 100px;">Dikeluarkan di</td><td style="width: 10px;">:</td><td>Waikabubak</td></tr>
-              <tr><td>Pada Tanggal</td><td>:</td><td>${tglBerangkat}</td></tr>
+              <tr><td>Pada Tanggal</td><td>:</td><td>..............................</td></tr>
             </table>
             
             <div style="text-align: center;">
               <div>INSPEKTUR KABUPATEN SUMBA BARAT,</div>
               <div style="height: 80px;"></div>
-              <div style="font-weight: bold; text-decoration: underline;">WERU RADDI KAKA ORA, SP</div>
+              <div style="font-weight: bold; text-decoration: underline;">${inspekturNama}</div>
               <div>PEMBINA TINGKAT I – IV/b</div>
-              <div>NIP. 19791118 200312 2 012</div>
+              <div>NIP. ${inspekturNip}</div>
             </div>
           </div>
         </div>
@@ -259,9 +261,13 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
       </body>
       </html>
     `;
-  }, [instansi, lembaga, alamat, maksud, tempatTujuan, lamanya, tglBerangkat, tglKembali, teamList, marginTop, marginBottom, marginLeft, marginRight]);
+  }, [instansi, lembaga, alamat, maksud, tempatTujuan, lamanya, tglBerangkat, tglKembali, teamList, inspekturNama, inspekturNip, marginTop, marginBottom, marginLeft, marginRight]);
 
   const handleDownloadPdf = () => {
+    if (!inspekturNama.trim() || !inspekturNip.trim()) {
+      alert('Nama dan NIP Inspektur wajib diisi!');
+      return;
+    }
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) {
       setErrorMsg("Pop-up diblokir oleh browser. Izinkan pop-up untuk mencetak PDF.");
@@ -319,6 +325,17 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Tanggal Kembali</label>
                   <input type="text" value={tglKembali} onChange={e => setTglKembali(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-purple-500" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Inspektur</label>
+                  <input type="text" value={inspekturNama} onChange={e => setInspekturNama(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-purple-500" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">NIP Inspektur</label>
+                  <input type="text" value={inspekturNip} onChange={e => setInspekturNip(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-purple-500" />
                 </div>
               </div>
 
