@@ -218,7 +218,8 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
 
         <div style="width: 100%; page-break-inside: avoid;">
           <div style="margin-left: auto; width: 250px; text-align: center;">
-            <div style="margin-bottom: 80px;">Inspektur Pembantu Wilayah IV</div>
+            <div>Inspektur Pembantu Wilayah IV</div>
+            <div style="height: 80px;"></div>
             <div style="font-weight: bold; text-decoration: underline;">${pengendaliNama}</div>
             <div>NIP. ${pengendaliNip}</div>
           </div>
