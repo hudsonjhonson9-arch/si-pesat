@@ -250,8 +250,8 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
   }, [instansi, lembaga, alamat, kepada, dari, nomorSurat, tanggal, lampiran, perihal, pembuka, audit.opdName, pengendaliNama, pengendaliNip, teamList, waktu, marginTop, marginBottom, marginLeft, marginRight]);
 
   const handleDownloadPdf = () => {
-    if (!pengendaliNama.trim() || !pengendaliNip.trim()) {
-      alert('Nama dan NIP Pengendali Teknis / Irban IV wajib diisi!');
+    if (!nomorSurat.trim() || !tanggal.trim() || !perihal.trim() || !waktu.trim() || !pengendaliNama.trim() || !pengendaliNip.trim()) {
+      alert('Mohon lengkapi semua isian (Nomor Surat, Tanggal, Perihal, Waktu, Nama & NIP Irban IV)!');
       return;
     }
     
@@ -312,7 +312,27 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
                 <textarea value={waktu} onChange={e => setWaktu(e.target.value)} rows={2} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div className="space-y-1 col-span-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">Isi Cepat dari Daftar User</label>
+                  <select 
+                    className="w-full text-xs p-2 border border-slate-200 rounded focus:border-emerald-500 outline-none bg-white text-slate-600"
+                    onChange={(e) => {
+                      const profile = userProfiles?.find(p => p.id === e.target.value);
+                      if (profile) {
+                        setPengendaliNama(profile.full_name || profile.email || '');
+                        if (profile.nip) setPengendaliNip(profile.nip);
+                      }
+                      e.target.value = '';
+                    }}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>-- Pilih user untuk mengisi Nama & NIP --</option>
+                    {userProfiles?.map(p => (
+                      <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Pengendali Teknis / Irban IV</label>
                   <input type="text" value={pengendaliNama} onChange={e => setPengendaliNama(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />

@@ -250,8 +250,8 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
   }, [instansi, lembaga, alamat, nomorSurat, dasar1, dasar2, teamList, untuk, inspekturNama, inspekturNip, marginTop, marginBottom, marginLeft, marginRight]);
 
   const handleDownloadPdf = () => {
-    if (!inspekturNama.trim() || !inspekturNip.trim()) {
-      alert('Nama dan NIP Inspektur wajib diisi!');
+    if (!nomorSurat.trim() || !dasar1.trim() || !dasar2.trim() || !untuk.trim() || !inspekturNama.trim() || !inspekturNip.trim()) {
+      alert('Mohon lengkapi semua isian (Nomor Surat, Dasar Surat, Untuk, Nama & NIP Inspektur)!');
       return;
     }
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -310,7 +310,27 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
                 <textarea value={untuk} onChange={e => setUntuk(e.target.value)} rows={3} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-blue-500" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div className="space-y-1 col-span-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">Isi Cepat dari Daftar User</label>
+                  <select 
+                    className="w-full text-xs p-2 border border-slate-200 rounded focus:border-blue-500 outline-none bg-white text-slate-600"
+                    onChange={(e) => {
+                      const profile = userProfiles?.find(p => p.id === e.target.value);
+                      if (profile) {
+                        setInspekturNama(profile.full_name || profile.email || '');
+                        if (profile.nip) setInspekturNip(profile.nip);
+                      }
+                      e.target.value = '';
+                    }}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>-- Pilih user untuk mengisi Nama & NIP --</option>
+                    {userProfiles?.map(p => (
+                      <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Inspektur</label>
                   <input type="text" value={inspekturNama} onChange={e => setInspekturNama(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-blue-500" />
