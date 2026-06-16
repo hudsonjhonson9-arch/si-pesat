@@ -19,6 +19,9 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
   const [dasar1, setDasar1] = useState('Keputusan Bupati Sumba Barat Nomor : KEP/HK/305/2026 tanggal 12 Maret 2026 tentang Perubahan atas Lampiran Keputusan Bupati Sumba Barat Nomor : KEP/HK/7/2026 tentang Program Kerja Pengawasan Tahunan Inspektorat Kabupaten Sumba Barat Tahun 2026;');
   const [dasar2, setDasar2] = useState('Nota Dinas dari Inspektur Pembantu Wilayah IV Nomor : 10/IK.IPW IV/V/2026 tanggal 06 Mei 2026;');
   
+  const [inspekturNama, setInspekturNama] = useState('');
+  const [inspekturNip, setInspekturNip] = useState('');
+
   const auditName = activeCategory?.name || 'Audit Ketaatan';
   const [untuk, setUntuk] = useState(`Melakukan ${auditName} pada ${audit.opdName} selama 8 (delapan) hari mulai tanggal 11 Mei 2026 sampai dengan 25 Mei 2026 sesuai PKPT tahun 2026.`);
   
@@ -187,8 +190,8 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
         </table>
 
         <!-- TTD -->
-        <div style="width: 100%; display: block; overflow: hidden; page-break-inside: avoid;">
-          <div style="float: right; width: 300px;">
+        <div style="width: 100%; page-break-inside: avoid;">
+          <div style="margin-left: auto; width: 300px;">
             <table style="width: 100%; margin-bottom: 15px;">
               <tr><td style="width: 100px;">Dikeluarkan di</td><td style="width: 10px;">:</td><td>Waikabubak</td></tr>
               <tr><td>Pada Tanggal</td><td>:</td><td>..............................</td></tr>
@@ -197,9 +200,9 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
             <div style="text-align: center;">
               <div>INSPEKTUR KABUPATEN SUMBA BARAT,</div>
               <div style="height: 80px;"></div>
-              <div style="font-weight: bold; text-decoration: underline;">WERU RADDI KAKA ORA, SP</div>
+              <div style="font-weight: bold; text-decoration: underline;">${inspekturNama}</div>
               <div>PEMBINA TINGKAT I – IV/b</div>
-              <div>NIP. 19791118 200312 2 012</div>
+              <div>NIP. ${inspekturNip}</div>
             </div>
           </div>
         </div>
@@ -244,9 +247,13 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
       </body>
       </html>
     `;
-  }, [instansi, lembaga, alamat, nomorSurat, dasar1, dasar2, teamList, untuk, marginTop, marginBottom, marginLeft, marginRight]);
+  }, [instansi, lembaga, alamat, nomorSurat, dasar1, dasar2, teamList, untuk, inspekturNama, inspekturNip, marginTop, marginBottom, marginLeft, marginRight]);
 
   const handleDownloadPdf = () => {
+    if (!inspekturNama.trim() || !inspekturNip.trim()) {
+      alert('Nama dan NIP Inspektur wajib diisi!');
+      return;
+    }
     const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) {
       setErrorMsg("Pop-up diblokir oleh browser. Izinkan pop-up untuk mencetak PDF.");
@@ -301,6 +308,17 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-500 uppercase">Untuk</label>
                 <textarea value={untuk} onChange={e => setUntuk(e.target.value)} rows={3} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-blue-500" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Inspektur</label>
+                  <input type="text" value={inspekturNama} onChange={e => setInspekturNama(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-blue-500" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">NIP Inspektur</label>
+                  <input type="text" value={inspekturNip} onChange={e => setInspekturNip(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-blue-500" />
+                </div>
               </div>
 
               <details className="bg-white border border-slate-200 rounded-xl overflow-hidden">
