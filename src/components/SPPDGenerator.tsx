@@ -289,10 +289,10 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                 avoidElements.forEach(function(el) { el.style.marginTop = '0px'; });
                 
                 avoidElements.forEach(function(el) {
-                  var contentRect = content.getBoundingClientRect();
-                  var elRect = el.getBoundingClientRect();
-                  var topInContent = elRect.top - contentRect.top;
-                  var bottomInContent = topInContent + elRect.height;
+                  // Find offset relative to the pdf-page container
+                  var topInContent = el.offsetTop;
+                  var bottomInContent = topInContent + el.offsetHeight;
+                  
                   var pageIndexTop = Math.floor(topInContent / a4HeightPx);
                   var pageIndexBottom = Math.floor(bottomInContent / a4HeightPx);
                   
