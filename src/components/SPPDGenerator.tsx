@@ -298,11 +298,6 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
           <div className="w-full md:w-1/2 p-6 overflow-y-auto border-r border-slate-150 space-y-5 bg-slate-50/30">
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Nomor Surat</label>
-                <input type="text" value={nomorSurat} onChange={e => setNomorSurat(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-purple-500" />
-              </div>
-
-              <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-500 uppercase">Maksud Perjalanan</label>
                 <input type="text" value={maksud} onChange={e => setMaksud(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-purple-500" />
               </div>
