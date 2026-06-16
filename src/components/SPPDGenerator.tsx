@@ -15,7 +15,6 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
   const [lembaga] = useState('I N S P E K T O R A T');
   const [alamat] = useState('Jalan Basuki Rahmat Nomor : 12 Waikabubak, Provinsi Nusa Tenggara Timur Telp.(0387) 21165, Fax.(0387) 21165, Email: inspektoratsumbabarat2026@gmail.com');
   
-  const [nomorSurat, setNomorSurat] = useState('425 / SPPD / 2026');
   const auditName = activeCategory?.name || 'Audit Ketaatan';
   const [maksud, setMaksud] = useState(`Melakukan ${auditName}`);
   const [tempatTujuan, setTempatTujuan] = useState(audit.opdName);
@@ -43,7 +42,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
       nama: name,
       nip: profile?.nip || '-',
       pangkat: 'Penata Muda – III/a',
-      jabatan: idx === 0 ? 'Ketua Tim' : 'Anggota Tim'
+      jabatan: idx === 0 ? 'Ketua Tim' : 'Anggota Tim',
+      nomorSurat: '425 / SPPD / 2026'
     };
   });
 
@@ -61,7 +61,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
         nama: '',
         nip: '',
         pangkat: '',
-        jabatan: 'Anggota Tim'
+        jabatan: 'Anggota Tim',
+        nomorSurat: '425 / SPPD / 2026'
       }
     ]);
   };
@@ -72,7 +73,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
 
   const htmlContent = useMemo(() => {
     const pages = teamList.map((member, idx) => `
-      <div style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; ${idx > 0 ? 'page-break-before: always;' : ''}">
+      <div class="pdf-page" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; ${idx > 0 ? 'page-break-before: always;' : ''}">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
@@ -94,7 +95,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
           <table style="width: 300px;">
             <tr><td style="width: 80px;">Lembar Ke</td><td style="width: 10px;">:</td><td></td></tr>
             <tr><td>Kode No.</td><td>:</td><td></td></tr>
-            <tr><td>Nomor</td><td>:</td><td>${nomorSurat}</td></tr>
+            <tr><td>Nomor</td><td>:</td><td>${member.nomorSurat}</td></tr>
           </table>
         </div>
 
@@ -187,8 +188,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
           </tr>
         </table>
 
-        <div style="display: flex; justify-content: flex-end;">
-          <div style="width: 300px;">
+        <div style="width: 100%; display: block; overflow: hidden; page-break-inside: avoid;">
+          <div style="float: right; width: 300px;">
             <table style="width: 100%; margin-bottom: 15px;">
               <tr><td style="width: 100px;">Dikeluarkan di</td><td style="width: 10px;">:</td><td>Waikabubak</td></tr>
               <tr><td>Pada Tanggal</td><td>:</td><td>${tglBerangkat}</td></tr>
@@ -214,9 +215,20 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
         <title>Cetak SPPD - ${audit.opdName}</title>
         <style>
           @media print {
-            #clip-container { overflow: visible !important; display: block !important; }
-            #page-wrapper { transform: none !important; }
-            @page { margin: 0; size: A4; }
+            @page { 
+              size: A4 portrait;
+              margin: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm !important; 
+            }
+            html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+            #clip-container { overflow: visible !important; display: block !important; height: auto !important; }
+            #page-wrapper { transform: none !important; width: auto !important; height: auto !important; }
+            .pdf-page { 
+              width: auto !important; 
+              min-height: auto !important; 
+              height: auto !important; 
+              padding: 0 !important; 
+              margin: 0 !important;
+            }
           }
         </style>
       </head>
@@ -246,7 +258,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
       </body>
       </html>
     `;
-  }, [instansi, lembaga, alamat, nomorSurat, maksud, tempatTujuan, lamanya, tglBerangkat, tglKembali, teamList, marginTop, marginBottom, marginLeft, marginRight]);
+  }, [instansi, lembaga, alamat, maksud, tempatTujuan, lamanya, tglBerangkat, tglKembali, teamList, marginTop, marginBottom, marginLeft, marginRight]);
 
   const handleDownloadPdf = () => {
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -344,8 +356,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                   {teamList.map((member, i) => (
                     <div key={member.id} className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
                       <div className="col-span-2 flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded">Personil {i + 1}</span>
-                        <button onClick={() => handleRemoveTeam(member.id)} className="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus Personil">
+                        <span className="text-[10px] font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded">Anggota Tim {i + 1}</span>
+                        <button onClick={() => handleRemoveTeam(member.id)} className="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus Anggota Tim">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -359,7 +371,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                               const profileName = profile.full_name || profile.email || '';
                               const exists = teamList.some(t => t.id !== member.id && t.nama.toLowerCase() === profileName.toLowerCase());
                               if (exists) {
-                                alert('Personil ini sudah ada dalam tim!');
+                                alert('Anggota ini sudah ada dalam tim!');
                                 e.target.value = '';
                                 return;
                               }
@@ -384,6 +396,9 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                       <input type="text" placeholder="NIP" value={member.nip} onChange={e => handleUpdateTeam(member.id, 'nip', e.target.value)} className="text-xs p-2 border border-slate-200 rounded outline-none focus:border-purple-500" />
                       <input type="text" placeholder="Pangkat" value={member.pangkat} onChange={e => handleUpdateTeam(member.id, 'pangkat', e.target.value)} className="text-xs p-2 border border-slate-200 rounded outline-none focus:border-purple-500" />
                       <input type="text" placeholder="Jabatan" value={member.jabatan} onChange={e => handleUpdateTeam(member.id, 'jabatan', e.target.value)} className="text-xs p-2 border border-slate-200 rounded outline-none focus:border-purple-500" />
+                      <div className="col-span-2">
+                        <input type="text" placeholder="Nomor Surat" value={member.nomorSurat} onChange={e => handleUpdateTeam(member.id, 'nomorSurat', e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-purple-500" />
+                      </div>
                     </div>
                   ))}
                   {teamList.length === 0 && <div className="text-xs text-center text-slate-400 py-4">Tidak ada anggota tim</div>}
@@ -392,7 +407,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                     onClick={handleAddTeam}
                     className="w-full mt-2 py-2 border-2 border-dashed border-slate-200 hover:border-purple-400 hover:bg-purple-50 text-slate-500 hover:text-purple-600 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1"
                   >
-                    <Plus className="w-4 h-4" /> Tambah Personil
+                    <Plus className="w-4 h-4" /> Tambah Anggota Tim
                   </button>
                 </div>
               </div>

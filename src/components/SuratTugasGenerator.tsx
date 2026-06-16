@@ -102,16 +102,27 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
         <title>Cetak Surat Tugas - ${audit.opdName}</title>
         <style>
           @media print {
-            #clip-container { overflow: visible !important; display: block !important; }
-            #page-wrapper { transform: none !important; }
-            @page { margin: 0; size: A4; }
+            @page { 
+              size: A4 portrait;
+              margin: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm !important; 
+            }
+            html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+            #clip-container { overflow: visible !important; display: block !important; height: auto !important; }
+            #page-wrapper { transform: none !important; width: auto !important; height: auto !important; }
+            .pdf-page { 
+              width: auto !important; 
+              min-height: auto !important; 
+              height: auto !important; 
+              padding: 0 !important; 
+              margin: 0 !important;
+            }
           }
         </style>
       </head>
       <body style="margin: 0; padding: 0; background: white;">
         <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: white;">
           <div id="page-wrapper" style="transform-origin: top center; background: white;">
-            <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
+            <div class="pdf-page" id="pdf-content" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3;">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
@@ -175,22 +186,14 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
         </table>
 
         <!-- TTD -->
-        <div style="display: flex; justify-content: flex-end; margin-top: 40px;">
-          <div style="width: 300px; text-align: left;">
-            <table style="width: 100%;">
-              <tr>
-                <td style="width: 80px;">Dikeluarkan di</td>
-                <td style="width: 10px;">:</td>
-                <td>Waikabubak</td>
-              </tr>
-              <tr>
-                <td>Pada Tanggal</td>
-                <td>:</td>
-                <td>..............................</td>
-              </tr>
+        <div style="width: 100%; display: block; overflow: hidden; page-break-inside: avoid;">
+          <div style="float: right; width: 300px;">
+            <table style="width: 100%; margin-bottom: 15px;">
+              <tr><td style="width: 100px;">Dikeluarkan di</td><td style="width: 10px;">:</td><td>Waikabubak</td></tr>
+              <tr><td>Pada Tanggal</td><td>:</td><td>..............................</td></tr>
             </table>
             
-            <div style="margin-top: 20px; text-align: center;">
+            <div style="text-align: center;">
               <div>INSPEKTUR KABUPATEN SUMBA BARAT,</div>
               <div style="height: 80px;"></div>
               <div style="font-weight: bold; text-decoration: underline;">WERU RADDI KAKA ORA, SP</div>
@@ -329,8 +332,8 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
                   {teamList.map((member, i) => (
                     <div key={member.id} className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-lg border border-slate-100">
                       <div className="col-span-2 flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded">Personil {i + 1}</span>
-                        <button onClick={() => handleRemoveTeam(member.id)} className="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus Personil">
+                        <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded">Anggota Tim {i + 1}</span>
+                        <button onClick={() => handleRemoveTeam(member.id)} className="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus Anggota Tim">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -344,7 +347,7 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
                               const profileName = profile.full_name || profile.email || '';
                               const exists = teamList.some(t => t.id !== member.id && t.nama.toLowerCase() === profileName.toLowerCase());
                               if (exists) {
-                                alert('Personil ini sudah ada dalam tim!');
+                                alert('Anggota ini sudah ada dalam tim!');
                                 e.target.value = '';
                                 return;
                               }
@@ -377,7 +380,7 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
                     onClick={handleAddTeam}
                     className="w-full mt-2 py-2 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1"
                   >
-                    <Plus className="w-4 h-4" /> Tambah Personil
+                    <Plus className="w-4 h-4" /> Tambah Anggota Tim
                   </button>
                 </div>
               </div>
