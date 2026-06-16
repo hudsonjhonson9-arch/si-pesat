@@ -29,6 +29,16 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
   const [pengendaliNama, setPengendaliNama] = useState('');
   const [pengendaliNip, setPengendaliNip] = useState('');
   
+  useEffect(() => {
+    if (userProfiles && !pengendaliNama && !pengendaliNip) {
+      const irban = userProfiles.find(p => p.role?.toLowerCase().includes('irban') || p.role?.toLowerCase().includes('inspektur pembantu') || p.full_name?.toLowerCase().includes('irban'));
+      if (irban) {
+        setPengendaliNama(irban.full_name || irban.email || '');
+        if (irban.nip) setPengendaliNip(irban.nip);
+      }
+    }
+  }, [userProfiles]);
+  
   const [marginTop, setMarginTop] = useState(5);
   const [marginBottom, setMarginBottom] = useState(25);
   const [marginLeft, setMarginLeft] = useState(30);
@@ -101,16 +111,18 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
               padding: 0 !important; 
               margin: 0 !important;
               box-shadow: none !important;
+              background-image: none !important;
             }
+            #page-wrapper { padding: 0 !important; gap: 0 !important; }
           }
         </style>
       </head>
-      <body style="margin: 0; padding: 0; background: #525659;">
-        <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: #525659;">
-          <div id="page-wrapper" style="transform-origin: top center; background: transparent; padding: 20px 0; display: flex; flex-direction: column; gap: 20px;">
-            <div class="pdf-page" id="pdf-content" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; position: relative;">
-        
-        <!-- KOP SURAT -->
+      <body>
+        <div id="clip-container" style="width: 100vw; overflow: hidden; background: #525659; position: relative;">
+          <div id="page-wrapper" style="transform-origin: top center; background: transparent; padding: 20px 0; display: flex; flex-direction: column; gap: 20px; align-items: center;">
+            <div class="pdf-page" id="pdf-content" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background-color: white; background-image: linear-gradient(to bottom, transparent 296mm, #94a3b8 296mm, #94a3b8 297mm); background-size: 100% 297mm; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; position: relative;">
+              
+              <!-- KOP SURAT -->
         <table style="width: 100%;">
           <tr>
             <td style="width: 90px; text-align: center; vertical-align: middle;">
