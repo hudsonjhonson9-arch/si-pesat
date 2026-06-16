@@ -27,6 +27,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
   const [waktu, setWaktu] = useState('Waktu Pemeriksaan direncanakan selama 8 (delapan) hari kerja yaitu tanggal 11 Mei s/d 25 Mei 2026');
   
   const [pengendaliNama, setPengendaliNama] = useState('Abdullah Daud, S.E');
+  const [pengendaliNip, setPengendaliNip] = useState('19700101 200001 1 001');
   
   const [marginTop, setMarginTop] = useState(5);
   const [marginBottom, setMarginBottom] = useState(25);
@@ -219,6 +220,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
           <div style="float: right; width: 250px; text-align: center;">
             <div style="margin-bottom: 80px;">Inspektur Pembantu Wilayah IV</div>
             <div style="font-weight: bold; text-decoration: underline;">${pengendaliNama}</div>
+            <div>NIP. ${pengendaliNip}</div>
           </div>
         </div>
 
@@ -245,7 +247,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
       </body>
       </html>
     `;
-  }, [instansi, lembaga, alamat, kepada, dari, nomorSurat, tanggal, lampiran, perihal, pembuka, audit.opdName, pengendaliNama, teamList, waktu, marginTop, marginBottom, marginLeft, marginRight]);
+  }, [instansi, lembaga, alamat, kepada, dari, nomorSurat, tanggal, lampiran, perihal, pembuka, audit.opdName, pengendaliNama, pengendaliNip, teamList, waktu, marginTop, marginBottom, marginLeft, marginRight]);
 
   const handleDownloadPdf = () => {
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -305,9 +307,15 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
                 <textarea value={waktu} onChange={e => setWaktu(e.target.value)} rows={2} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
               </div>
               
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Pengendali Teknis / Irban IV</label>
-                <input type="text" value={pengendaliNama} onChange={e => setPengendaliNama(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Pengendali Teknis / Irban IV</label>
+                  <input type="text" value={pengendaliNama} onChange={e => setPengendaliNama(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">NIP Pengendali Teknis</label>
+                  <input type="text" value={pengendaliNip} onChange={e => setPengendaliNip(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
+                </div>
               </div>
 
               <details className="bg-white border border-slate-200 rounded-xl overflow-hidden">
