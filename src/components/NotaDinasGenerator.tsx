@@ -84,6 +84,13 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
       <html>
       <head>
         <title>Cetak Nota Dinas - ${audit.opdName}</title>
+        <style>
+          @media print {
+            #clip-container { overflow: visible !important; display: block !important; }
+            #page-wrapper { transform: none !important; }
+            @page { margin: 0; size: A4; }
+          }
+        </style>
       </head>
       <body style="margin: 0; padding: 0; background: white;">
         <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: white;">
