@@ -268,6 +268,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
           }
           
           function applyLivePagination() {
+            if (window.location.href === 'about:blank') return; // Do not run in print window
+            
             var pages = document.querySelectorAll('.pdf-page');
             if (!pages.length) return;
             
@@ -286,7 +288,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
               
               pages.forEach(function(content) {
                 var avoidElements = content.querySelectorAll('.avoid-break');
-                avoidElements.forEach(function(el) { el.style.marginTop = '0px'; });
+                avoidElements.forEach(function(el) { el.style.paddingTop = '0px'; });
                 
                 avoidElements.forEach(function(el) {
                   // Find offset relative to the pdf-page container
@@ -298,7 +300,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                   
                   if (pageIndexTop !== pageIndexBottom) {
                     var pushAmount = ((pageIndexTop + 1) * a4HeightPx) + topMarginPx - topInContent;
-                    el.style.marginTop = pushAmount + 'px';
+                    el.style.paddingTop = pushAmount + 'px';
                   }
                 });
               });
