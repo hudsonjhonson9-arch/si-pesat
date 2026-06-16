@@ -255,10 +255,12 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
           }
           
           function applyLivePagination() {
+            if (window.location.href === 'about:blank') return; // Do not run in print window
+            
             var content = document.getElementById('pdf-content');
             if (!content) return;
             var avoidElements = content.querySelectorAll('.avoid-break');
-            avoidElements.forEach(function(el) { el.style.marginTop = '0px'; });
+            avoidElements.forEach(function(el) { el.style.paddingTop = '0px'; });
             
             setTimeout(function() {
               var div = document.createElement('div');
@@ -283,7 +285,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
                 
                 if (pageIndexTop !== pageIndexBottom) {
                   var pushAmount = ((pageIndexTop + 1) * a4HeightPx) + topMarginPx - topInContent;
-                  el.style.marginTop = pushAmount + 'px';
+                  el.style.paddingTop = pushAmount + 'px';
                 }
               });
               adjustScale(); // Re-adjust scale after pushing elements
