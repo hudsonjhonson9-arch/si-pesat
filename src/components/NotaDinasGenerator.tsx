@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { X, Printer, FileText, Trash2, Plus } from 'lucide-react';
 import { OpdAudit, UserProfile } from '../types';
 import html2pdf from 'html2pdf.js';
