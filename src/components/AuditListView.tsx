@@ -198,14 +198,6 @@ export default function AuditListView({
               className="w-full pl-9 pr-4 py-2 border border-dark-gray/15 rounded-lg text-sm bg-white/70 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent outline-none transition text-dark-gray placeholder-dark-gray/50 font-medium"
             />
           </div>
-
-          {/* New Audit Trigger Button */}
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-peach-accent hover:opacity-90 text-dark-gray text-sm font-extrabold px-4 py-2 rounded-lg inline-flex items-center justify-center gap-1.5 shadow-sm transition-all h-[38px] cursor-pointer border border-dark-gray/10"
-          >
-            <Plus className="w-4 h-4" /> Mulai Audit Baru
-          </button>
         </div>
 
         {/* Extended drop-downs for filtering */}
