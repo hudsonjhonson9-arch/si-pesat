@@ -24,6 +24,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
   
   const [inspekturNama, setInspekturNama] = useState('');
   const [inspekturNip, setInspekturNip] = useState('');
+  const [inspekturPangkat, setInspekturPangkat] = useState('PEMBINA TINGKAT I – IV/b');
 
   useEffect(() => {
     if (userProfiles && !inspekturNama && !inspekturNip) {
@@ -31,6 +32,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
       if (inspektur) {
         setInspekturNama(inspektur.full_name || inspektur.email || '');
         if (inspektur.nip) setInspekturNip(inspektur.nip);
+        if (inspektur.pangkat && inspektur.golongan) setInspekturPangkat(`${inspektur.pangkat} – ${inspektur.golongan}`);
+        else if (inspektur.pangkat) setInspekturPangkat(inspektur.pangkat);
       }
     }
   }, [userProfiles]);
@@ -211,7 +214,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
               <div>INSPEKTUR KABUPATEN SUMBA BARAT,</div>
               <div style="height: 80px;"></div>
               <div style="font-weight: bold; text-decoration: underline;">${inspekturNama}</div>
-              <div>PEMBINA TINGKAT I – IV/b</div>
+              <div>${inspekturPangkat}</div>
               <div>NIP. ${inspekturNip}</div>
             </div>
           </div>
@@ -393,6 +396,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
                       if (profile) {
                         setInspekturNama(profile.full_name || profile.email || '');
                         if (profile.nip) setInspekturNip(profile.nip);
+                        if (profile.pangkat && profile.golongan) setInspekturPangkat(`${profile.pangkat} – ${profile.golongan}`);
+                        else if (profile.pangkat) setInspekturPangkat(profile.pangkat);
                       }
                       e.target.value = '';
                     }}
