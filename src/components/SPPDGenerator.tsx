@@ -81,8 +81,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
               <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
             </td>
             <td style="text-align: center; vertical-align: middle;">
-              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
-              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px;">${lembaga}</div>
+              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px; white-space: nowrap;">${instansi}</div>
+              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; white-space: nowrap;">${lembaga}</div>
               <div style="font-size: 10pt; line-height: 1.2;">${alamat}</div>
             </td>
             <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
