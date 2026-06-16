@@ -224,11 +224,11 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
           ${waktu}
         </div>
 
-        <div style="text-align: justify; margin-bottom: 40px;">
-          Demikian nota dinas ini disampaikan, mohon persetujuan Inspektur Kabupaten Sumba Barat.
-        </div>
-
         <div class="avoid-break" style="width: 100%; page-break-inside: avoid;">
+          <div style="text-align: justify; margin-bottom: 40px;">
+            Demikian nota dinas ini disampaikan, mohon persetujuan Inspektur Kabupaten Sumba Barat.
+          </div>
+
           <div style="margin-left: auto; width: 250px; text-align: center;">
             <div>Inspektur Pembantu Wilayah IV</div>
             <div style="height: 80px;"></div>
