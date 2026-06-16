@@ -24,6 +24,16 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
   
   const [inspekturNama, setInspekturNama] = useState('');
   const [inspekturNip, setInspekturNip] = useState('');
+
+  useEffect(() => {
+    if (userProfiles && !inspekturNama && !inspekturNip) {
+      const inspektur = userProfiles.find(p => p.role?.toLowerCase() === 'inspektur' || p.full_name?.toLowerCase().includes('inspektur'));
+      if (inspektur) {
+        setInspekturNama(inspektur.full_name || inspektur.email || '');
+        if (inspektur.nip) setInspekturNip(inspektur.nip);
+      }
+    }
+  }, [userProfiles]);
   
   const [marginTop, setMarginTop] = useState(5);
   const [marginBottom, setMarginBottom] = useState(25);
@@ -76,7 +86,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
 
   const htmlContent = useMemo(() => {
     const pages = teamList.map((member, idx) => `
-      <div class="pdf-page" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; position: relative; ${idx > 0 ? 'page-break-before: always;' : ''}">
+      <div class="pdf-page" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background-color: white; background-image: linear-gradient(to bottom, transparent 296mm, #94a3b8 296mm, #94a3b8 297mm); background-size: 100% 297mm; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; position: relative; ${idx > 0 ? 'page-break-before: always;' : ''}">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
@@ -231,13 +241,15 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
               padding: 0 !important; 
               margin: 0 !important;
               box-shadow: none !important;
+              background-image: none !important;
             }
+            #page-wrapper { padding: 0 !important; gap: 0 !important; }
           }
         </style>
       </head>
-      <body style="margin: 0; padding: 0; background: #525659;">
-        <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: #525659;">
-          <div id="page-wrapper" style="transform-origin: top center; background: transparent; padding: 20px 0; display: flex; flex-direction: column; gap: 20px;">
+      <body>
+        <div id="clip-container" style="width: 100vw; overflow: hidden; background: #525659; position: relative;">
+          <div id="page-wrapper" style="transform-origin: top center; background: transparent; padding: 20px 0; display: flex; flex-direction: column; gap: 20px; align-items: center;">
             ${pages}
           </div>
         </div>
