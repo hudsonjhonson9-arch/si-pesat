@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { X, Printer, FileText, Search, Save, Trash2, Plus } from 'lucide-react';
 import { OpdAudit, UserProfile } from '../types';
 import html2pdf from 'html2pdf.js';
+import SearchableSelect from './SearchableSelect';
 
 interface SuratTugasGeneratorProps {
   audit: OpdAudit;
@@ -22,6 +23,23 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
   const [inspekturNama, setInspekturNama] = useState('');
   const [inspekturNip, setInspekturNip] = useState('');
   const [inspekturPangkat, setInspekturPangkat] = useState('PEMBINA TINGKAT I – IV/b');
+
+  const sortedUserOptions = useMemo(() => {
+    return [...(userProfiles || [])]
+      .sort((a, b) => {
+        const golA = a.golongan || '';
+        const golB = b.golongan || '';
+        if (golA > golB) return -1;
+        if (golA < golB) return 1;
+        const nameA = (a.full_name || a.email || '').toLowerCase();
+        const nameB = (b.full_name || b.email || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      })
+      .map(p => ({
+        value: p.id,
+        label: p.full_name || p.email || 'Tanpa Nama'
+      }));
+  }, [userProfiles]);
 
   const auditName = activeCategory?.name || 'Audit Ketaatan';
   const [untuk, setUntuk] = useState('Melakukan Audit Kinerja selama 8 (delapan) hari kerja yaitu tanggal 11 Mei s/d 25 Mei 2026 pada Bagian Pemerintahan Sekretariat Daerah Kabupaten Sumba Barat.');
@@ -368,25 +386,19 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
               <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div className="space-y-1 col-span-2">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Isi Cepat dari Daftar User</label>
-                  <select 
-                    className="w-full text-xs p-2 border border-slate-200 rounded focus:border-blue-500 outline-none bg-white text-slate-600"
-                    onChange={(e) => {
-                      const profile = userProfiles?.find(p => p.id === e.target.value);
+                  <SearchableSelect
+                    options={sortedUserOptions}
+                    placeholder="-- Pilih user untuk mengisi Nama & NIP --"
+                    onChange={(val) => {
+                      const profile = userProfiles?.find(p => p.id === val);
                       if (profile) {
                         setInspekturNama(profile.full_name || profile.email || '');
                         if (profile.nip) setInspekturNip(profile.nip);
                         if (profile.pangkat && profile.golongan) setInspekturPangkat(`${profile.pangkat} – ${profile.golongan}`);
                         else if (profile.pangkat) setInspekturPangkat(profile.pangkat);
                       }
-                      e.target.value = '';
                     }}
-                    defaultValue=""
-                  >
-                    <option value="" disabled>-- Pilih user untuk mengisi Nama & NIP --</option>
-                    {userProfiles?.map(p => (
-                      <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Inspektur</label>
@@ -435,33 +447,23 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
                       </div>
                       
                       <div className="col-span-2 mb-1">
-                        <select 
-                          className="w-full text-xs p-2 border border-slate-200 rounded focus:border-blue-500 outline-none bg-white text-slate-600"
-                          onChange={(e) => {
-                            const profile = userProfiles.find(p => p.id === e.target.value);
+                        <SearchableSelect
+                          options={sortedUserOptions}
+                          placeholder="-- Pilih dari daftar user --"
+                          onChange={(val) => {
+                            const profile = userProfiles.find(p => p.id === val);
                             if (profile) {
                               const profileName = profile.full_name || profile.email || '';
                               const exists = teamList.some(t => t.id !== member.id && t.nama.toLowerCase() === profileName.toLowerCase());
                               if (exists) {
                                 alert('Anggota ini sudah ada dalam tim!');
-                                e.target.value = '';
                                 return;
                               }
                               handleUpdateTeam(member.id, 'nama', profileName);
                               handleUpdateTeam(member.id, 'nip', profile.nip || '-');
                             }
-                            // Reset select after picking so they can pick again if needed (or keep it as quick-fill)
-                            e.target.value = '';
                           }}
-                          value=""
-                        >
-                          <option value="" disabled>-- Pilih dari daftar user --</option>
-                          {userProfiles
-                            .filter(p => !teamList.some(t => t.nama.toLowerCase() === (p.full_name || p.email || '').toLowerCase()))
-                            .map(p => (
-                            <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
-                          ))}
-                        </select>
+                        />
                       </div>
 
                       <input type="text" placeholder="Nama" value={member.nama} onChange={e => handleUpdateTeam(member.id, 'nama', e.target.value)} className="text-xs p-2 border border-slate-200 rounded focus:border-blue-500 outline-none" />
