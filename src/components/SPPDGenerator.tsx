@@ -73,7 +73,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
 
   const htmlContent = useMemo(() => {
     const pages = teamList.map((member, idx) => `
-      <div class="pdf-page" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; ${idx > 0 ? 'page-break-before: always;' : ''}">
+      <div class="pdf-page" style="width: 210mm; min-height: 297mm; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm; box-sizing: border-box; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-family: 'Times New Roman', Times, serif; color: #000000; font-size: 11pt; line-height: 1.3; position: relative; ${idx > 0 ? 'page-break-before: always;' : ''}">
         
         <!-- KOP SURAT -->
         <table style="width: 100%;">
@@ -228,13 +228,14 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
               height: auto !important; 
               padding: 0 !important; 
               margin: 0 !important;
+              box-shadow: none !important;
             }
           }
         </style>
       </head>
-      <body style="margin: 0; padding: 0; background: white;">
-        <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: white;">
-          <div id="page-wrapper" style="transform-origin: top center; background: white;">
+      <body style="margin: 0; padding: 0; background: #525659;">
+        <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: #525659;">
+          <div id="page-wrapper" style="transform-origin: top center; background: transparent; padding: 20px 0; display: flex; flex-direction: column; gap: 20px;">
             ${pages}
           </div>
         </div>
@@ -244,8 +245,8 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
             var clipContainer = document.getElementById('clip-container');
             var containerWidth = window.innerWidth;
             var scale = 1;
-            if (containerWidth < 794) {
-              scale = (containerWidth - 20) / 794;
+            if (containerWidth < 834) { // 794 (A4 width) + 40 (padding)
+              scale = containerWidth / 834;
             }
             wrapper.style.transform = 'scale(' + scale + ')';
             var rect = wrapper.getBoundingClientRect();
