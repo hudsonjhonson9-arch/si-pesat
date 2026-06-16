@@ -200,7 +200,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
             <td style="border: 1px solid black; padding: 6px; vertical-align: top;"></td>
           </tr>
         </table>
-        <div style="width: 100%; page-break-inside: avoid;">
+        <div class="avoid-break" style="width: 100%; page-break-inside: avoid;">
           <div style="margin-left: auto; width: 300px;">
             <table style="width: 100%; margin-bottom: 15px;">
               <tr><td style="width: 100px;">Dikeluarkan di</td><td style="width: 10px;">:</td><td>Waikabubak</td></tr>
@@ -264,10 +264,51 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
             }
             wrapper.style.transform = 'scale(' + scale + ')';
             var rect = wrapper.getBoundingClientRect();
-            clipContainer.style.height = rect.height + 'px';
+            clipContainer.style.height = (rect.height + 40) + 'px';
           }
+          
+          function applyLivePagination() {
+            var pages = document.querySelectorAll('.pdf-page');
+            if (!pages.length) return;
+            
+            setTimeout(function() {
+              var div = document.createElement('div');
+              div.style.height = '297mm';
+              document.body.appendChild(div);
+              var a4HeightPx = div.offsetHeight;
+              document.body.removeChild(div);
+              
+              var divMargin = document.createElement('div');
+              divMargin.style.height = '${marginTop}mm';
+              document.body.appendChild(divMargin);
+              var topMarginPx = divMargin.offsetHeight;
+              document.body.removeChild(divMargin);
+              
+              pages.forEach(function(content) {
+                var avoidElements = content.querySelectorAll('.avoid-break');
+                avoidElements.forEach(function(el) { el.style.marginTop = '0px'; });
+                
+                avoidElements.forEach(function(el) {
+                  var contentRect = content.getBoundingClientRect();
+                  var elRect = el.getBoundingClientRect();
+                  var topInContent = elRect.top - contentRect.top;
+                  var bottomInContent = topInContent + elRect.height;
+                  var pageIndexTop = Math.floor(topInContent / a4HeightPx);
+                  var pageIndexBottom = Math.floor(bottomInContent / a4HeightPx);
+                  
+                  if (pageIndexTop !== pageIndexBottom) {
+                    var pushAmount = ((pageIndexTop + 1) * a4HeightPx) + topMarginPx - topInContent;
+                    el.style.marginTop = pushAmount + 'px';
+                  }
+                });
+              });
+              adjustScale();
+            }, 50);
+          }
+          
           window.addEventListener('resize', adjustScale);
           adjustScale();
+          applyLivePagination();
           window.onafterprint = function() { window.close(); };
         </script>
       </body>
