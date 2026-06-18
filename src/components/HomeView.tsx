@@ -152,7 +152,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
 
           <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden relative min-h-[220px] z-10 rounded-xl flex-1">
             <iframe
-              src="https://maps.google.com/maps?q=Loli,%20Kabupaten%20Sumba%20Barat&t=&z=11&ie=UTF8&iwloc=&output=embed"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126214.41014169992!2d119.34440050478051!3d-9.630045468500208!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c473138b79b2ed3%3A0xc3abf299c8531cc3!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1718670000000!5m2!1sid!2sid"
               className="absolute inset-0 w-full h-full border-0"
               allowFullScreen
               loading="lazy"
