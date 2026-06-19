@@ -44,19 +44,46 @@ function extractDriveFileId(url: string): string | null {
   return null;
 }
 
-// Convert a GDrive view URL to an embed/preview URL
+// Convert a GDrive / Docs URL to an embeddable/preview URL (supports PDF, Excel, DOCX, Sheets, Docs, Slides)
 function toEmbedUrl(url: string): string | null {
+  // Google Sheets (docs.google.com/spreadsheets)
+  if (url.includes('docs.google.com/spreadsheets')) {
+    const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) return `https://docs.google.com/spreadsheets/d/${m[1]}/htmlview?embedded=true`;
+  }
+  // Google Docs (docs.google.com/document)
+  if (url.includes('docs.google.com/document')) {
+    const m = url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) return `https://docs.google.com/document/d/${m[1]}/preview`;
+  }
+  // Google Slides (docs.google.com/presentation)
+  if (url.includes('docs.google.com/presentation')) {
+    const m = url.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
+    if (m) return `https://docs.google.com/presentation/d/${m[1]}/preview`;
+  }
+  // Drive-uploaded file (PDF, Excel, DOCX, images, etc.) — Google renders Office files natively
   const id = extractDriveFileId(url);
-  if (!id) return null;
-  return `https://drive.google.com/file/d/${id}/preview`;
+  if (id) return `https://drive.google.com/file/d/${id}/preview`;
+  // External Office files (xlsx, docx, pptx) — fallback to Microsoft Office Online Viewer
+  const ext = url.split('.').pop()?.toLowerCase();
+  if (ext && ['xlsx', 'xls', 'docx', 'doc', 'pptx', 'ppt'].includes(ext)) {
+    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+  }
+  return null;
 }
 
 // Get file type icon & color based on name/url
 function getFileIcon(name?: string, url?: string) {
-  const ext = (name || url || '').split('.').pop()?.toLowerCase() || '';
+  const src = name || url || '';
+  const ext = src.split('.').pop()?.toLowerCase() || '';
+  // Detect Google Docs types from URL
+  if (url?.includes('docs.google.com/spreadsheets')) return { icon: FileSpreadsheet, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Google Sheets' };
+  if (url?.includes('docs.google.com/document')) return { icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50', label: 'Google Docs' };
+  if (url?.includes('docs.google.com/presentation')) return { icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50', label: 'Google Slides' };
   if (['pdf'].includes(ext)) return { icon: FileText, color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' };
   if (['xlsx', 'xls', 'csv'].includes(ext)) return { icon: FileSpreadsheet, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Excel' };
   if (['docx', 'doc'].includes(ext)) return { icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50', label: 'Word' };
+  if (['pptx', 'ppt'].includes(ext)) return { icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50', label: 'PowerPoint' };
   if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return { icon: Image, color: 'text-purple-600', bg: 'bg-purple-50', label: 'Gambar' };
   return { icon: File, color: 'text-dark-gray/60', bg: 'bg-dark-gray/5', label: 'Berkas' };
 }
