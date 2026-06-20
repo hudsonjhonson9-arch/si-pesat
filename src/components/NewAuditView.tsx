@@ -385,6 +385,16 @@ export default function NewAuditView({
                         className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-none focus:border-peach-accent" />
                     </div>
                     <div className="overflow-y-auto p-1 space-y-0.5">
+                      {/* Opsi ketik manual */}
+                      {catAuditorSearch.trim() && !userProfiles.find(p => (p.full_name || p.email).toLowerCase() === catAuditorSearch.toLowerCase()) && (
+                        <button
+                          onClick={() => { setCatAuditorName(catAuditorSearch.trim()); setIsAuditorDropdownOpen(false); setCatAuditorSearch(''); }}
+                          className="w-full text-left px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 cursor-pointer transition-colors hover:bg-peach-accent/20 text-dark-gray border-b border-dark-gray/10">
+                          <Plus className="w-3 h-3 shrink-0 text-peach-accent" />
+                          Gunakan "{catAuditorSearch.trim()}"
+                        </button>
+                      )}
+                      {/* Semua profil yang memenuhi syarat ketua */}
                       {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catAuditorName === name;
@@ -394,11 +404,39 @@ export default function NewAuditView({
                             {isSel && <Check className="w-3 h-3 shrink-0" />}
                             <User className="w-3 h-3 shrink-0 text-dark-gray/40" />
                             {name}
+                            <span className="ml-auto text-[9px] text-dark-gray/40 font-normal">{p.role}</span>
                           </button>
                         );
                       })}
+                      {/* Jika tidak ada yang memenuhi syarat ketua, tampilkan semua profil dengan label */}
+                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role)).length === 0 && (
+                        <>
+                          <p className="px-3 py-1 text-[9px] text-dark-gray/40 font-bold uppercase tracking-wider">Semua Pengguna</p>
+                          {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).map(p => {
+                            const name = p.full_name || p.email;
+                            const isSel = catAuditorName === name;
+                            return (
+                              <button key={p.id} onClick={() => { setCatAuditorName(name); setIsAuditorDropdownOpen(false); setCatAuditorSearch(''); }}
+                                className={`w-full text-left px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 cursor-pointer transition-colors ${isSel ? 'bg-peach-accent text-dark-gray' : 'hover:bg-slate-50 text-dark-gray'}`}>
+                                {isSel && <Check className="w-3 h-3 shrink-0" />}
+                                <User className="w-3 h-3 shrink-0 text-dark-gray/40" />
+                                {name}
+                              </button>
+                            );
+                          })}
+                        </>
+                      )}
+                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).length === 0
+                        && userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role)).length > 0
+                        && !catAuditorSearch.trim() && (
+                        <div className="px-3 py-2 text-[10px] text-dark-gray/40 italic">Tidak ada auditor yang memenuhi syarat ketua tim</div>
+                      )}
                     </div>
                   </div>
+                )}
+                {/* Info kalau nama default tidak memenuhi syarat */}
+                {catAuditorName && !userProfiles.find(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email) === catAuditorName) && (
+                  <p className="text-[9px] text-amber-600 font-semibold">⚠ Nama ini tidak memenuhi syarat jabatan ketua tim, namun tetap bisa digunakan.</p>
                 )}
               </div>
 

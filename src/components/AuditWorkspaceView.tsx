@@ -260,17 +260,19 @@ export default function AuditWorkspaceView({
   }, [templates, audit.categories]);
 
   // Check if current user is a member of any category team (Auditor access control)
-  const isTeamMember = isAdmin || !FUNGSIONAL_ROLES.includes(userRole) || !currentUserName || audit.categories.some(cat => {
+  // Admin & struktural selalu punya akses penuh, tidak perlu dicek keanggotaan tim
+  const isTeamMember = isAdmin || STRUKTURAL_ROLES.includes(userRole) || !FUNGSIONAL_ROLES.includes(userRole) || !currentUserName || audit.categories.some(cat => {
     const currNameLower = currentUserName.toLowerCase().trim();
     return (cat.auditorName || '').toLowerCase().trim() === currNameLower ||
            (cat.teamMembers || []).some(m => m.toLowerCase().trim() === currNameLower);
   });
 
+  // isReadOnly: admin dan struktural TIDAK pernah readonly kecuali audit sudah Selesai total
   const isReadOnly = !isTeamMember ||
-    (FUNGSIONAL_ROLES.includes(userRole) && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
-    ((STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (activeCategory?.status === 'Selesai' || audit.status === 'Selesai'));
+    (FUNGSIONAL_ROLES.includes(userRole) && !isAdmin && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
+    ((STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (activeCategory?.status === 'Selesai' && audit.status === 'Selesai'));
 
-  const isReviewerPanelVisible = (STRUKTURAL_ROLES.includes(userRole) || isAdmin) && audit.status === 'Direview';
+  const isReviewerPanelVisible = (STRUKTURAL_ROLES.includes(userRole) || isAdmin);
 
   // Handle saving general metadata updates
   const handleSaveMetadata = () => {
