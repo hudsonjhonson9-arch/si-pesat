@@ -890,7 +890,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16 pb-safe">
-          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu'].includes(userRole) ? 'grid-cols-7' : isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu'].includes(userRole) || isAdmin ? 'grid-cols-7' : 'grid-cols-5'}`}>
             <button
               onClick={() => navigateTo('dashboard')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -942,7 +942,7 @@ export default function App() {
                 <span className="text-[9px] tracking-wide">Jenis Audit</span>
               </button>
             )}
-            {['Inspektur', 'Inspektur Pembantu'].includes(userRole) && (
+            {(['Inspektur', 'Inspektur Pembantu'].includes(userRole) || isAdmin) && (
               <button
                 onClick={() => navigateTo('pengguna')}
                 className={`flex flex-col items-center justify-center gap-1 transition ${
