@@ -25,6 +25,13 @@ type RoleType = typeof ROLE_OPTIONS[number];
 
 const ROLE_ORDER: Record<string, number> = { 'Inspektur': 0, 'Inspektur Pembantu': 1, 'Auditor': 2 };
 
+const GOLONGAN_ORDER: Record<string, number> = {
+  'IV/e': 0, 'IV/d': 1, 'IV/c': 2, 'IV/b': 3, 'IV/a': 4,
+  'III/d': 5, 'III/c': 6, 'III/b': 7, 'III/a': 8,
+  'II/d': 9, 'II/c': 10, 'II/b': 11, 'II/a': 12,
+  'I/d': 13, 'I/c': 14, 'I/b': 15, 'I/a': 16
+};
+
 const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string; border: string }> = {
   Auditor: { label: 'Auditor', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
   'Inspektur Pembantu': { label: 'Irban', icon: <Star className="w-3.5 h-3.5" />, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
@@ -61,8 +68,13 @@ export default function UserManagementView({
         return matchSearch && (roleFilter === 'Semua' || p.role === roleFilter);
       })
       .sort((a, b) => {
-        const diff = (ROLE_ORDER[a.role] ?? 99) - (ROLE_ORDER[b.role] ?? 99);
-        if (diff !== 0) return diff;
+        const roleDiff = (ROLE_ORDER[a.role] ?? 99) - (ROLE_ORDER[b.role] ?? 99);
+        if (roleDiff !== 0) return roleDiff;
+
+        const golA = GOLONGAN_ORDER[a.golongan || ''] ?? 99;
+        const golB = GOLONGAN_ORDER[b.golongan || ''] ?? 99;
+        if (golA !== golB) return golA - golB;
+
         return (a.full_name || a.email || '').localeCompare(b.full_name || b.email || '');
       });
   }, [userProfiles, searchQuery, roleFilter]);
