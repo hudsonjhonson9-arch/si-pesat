@@ -106,6 +106,7 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
   const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [targetEntities, setTargetEntities] = useState<TargetEntity[]>([]);
 
@@ -887,83 +888,131 @@ export default function App() {
         </div>
       )}
 
-      {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
+      {/* Mobile Bottom Navigation Bar — maks 5 item, admin items masuk "Lainnya" */}
       {isSessionActive && (
-        <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16 pb-safe">
-          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu'].includes(userRole) || isAdmin ? 'grid-cols-7' : 'grid-cols-5'}`}>
-            <button
-              onClick={() => navigateTo('dashboard')}
-              className={`flex flex-col items-center justify-center gap-1 transition ${
-                activeTab === 'dashboard' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
-              }`}
+        <>
+          {/* Sheet overlay untuk "Lainnya" */}
+          {isMobileMoreOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm block md:hidden"
+              onClick={() => setIsMobileMoreOpen(false)}
             >
-              <BarChart3 className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Beranda</span>
-            </button>
+              <div
+                className="absolute bottom-16 left-2 right-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+                onClick={e => e.stopPropagation()}
+              >
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4 pt-3 pb-1">Menu Lainnya</p>
 
-            <button
-              onClick={() => navigateTo('audits')}
-              className={`flex flex-col items-center justify-center gap-1 transition ${
-                activeTab === 'audits' || selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <School className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Audit</span>
-            </button>
+                {/* Statistik */}
+                <button
+                  onClick={() => { navigateTo('statistik'); setIsMobileMoreOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
+                    activeTab === 'statistik' ? 'text-dark-gray bg-peach-accent/10' : 'text-slate-600'
+                  }`}
+                >
+                  <PieChart className="w-4 h-4" /> Statistik
+                </button>
 
-            <button
-              onClick={() => navigateTo('statistik')}
-              className={`flex flex-col items-center justify-center gap-1 transition ${
-                activeTab === 'statistik' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <PieChart className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Statistik</span>
-            </button>
+                {/* Jenis Audit — hanya admin/Inspektur */}
+                {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
+                  <button
+                    onClick={() => { navigateTo('jenis-audit'); setIsMobileMoreOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
+                      activeTab === 'jenis-audit' ? 'text-dark-gray bg-peach-accent/10' : 'text-slate-600'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4" /> Jenis Audit
+                  </button>
+                )}
 
-            <button
-              onClick={() => navigateTo('new-audit')}
-              className={`flex flex-col items-center justify-center gap-1 transition ${
-                activeTab === 'new-audit' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <PlusCircle className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Mulai Audit</span>
-            </button>
+                {/* Pengguna — hanya admin/Inspektur */}
+                {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
+                  <button
+                    onClick={() => { navigateTo('pengguna'); setIsMobileMoreOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
+                      activeTab === 'pengguna' ? 'text-dark-gray bg-peach-accent/10' : 'text-slate-600'
+                    }`}
+                  >
+                    <UserIcon className="w-4 h-4" /> Pengguna
+                  </button>
+                )}
 
-            {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
+                <div className="h-3" />
+              </div>
+            </div>
+          )}
+
+          <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16 pb-safe">
+            <div className="grid grid-cols-5 h-full">
+
+              {/* Beranda */}
               <button
-                onClick={() => navigateTo('jenis-audit')}
+                onClick={() => { navigateTo('dashboard'); setIsMobileMoreOpen(false); }}
                 className={`flex flex-col items-center justify-center gap-1 transition ${
-                  activeTab === 'jenis-audit' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+                  activeTab === 'dashboard' && !selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400'
                 }`}
               >
-                <Settings className="w-5 h-5" />
-                <span className="text-[9px] tracking-wide">Jenis Audit</span>
+                <BarChart3 className="w-5 h-5" />
+                <span className="text-[9px] tracking-wide">Beranda</span>
               </button>
-            )}
-            {(['Inspektur', 'Inspektur Pembantu'].includes(userRole) || isAdmin) && (
+
+              {/* Audit */}
               <button
-                onClick={() => navigateTo('pengguna')}
+                onClick={() => { navigateTo('audits'); setIsMobileMoreOpen(false); }}
                 className={`flex flex-col items-center justify-center gap-1 transition ${
-                  activeTab === 'pengguna' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+                  activeTab === 'audits' || selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400'
+                }`}
+              >
+                <School className="w-5 h-5" />
+                <span className="text-[9px] tracking-wide">Audit</span>
+              </button>
+
+              {/* Buat KKA — tengah, menonjol */}
+              <button
+                onClick={() => { navigateTo('new-audit'); setIsMobileMoreOpen(false); }}
+                className="flex flex-col items-center justify-center gap-1 transition"
+              >
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-md transition ${
+                  activeTab === 'new-audit' ? 'bg-dark-gray' : 'bg-dark-gray/85'
+                }`}>
+                  <PlusCircle className="w-5 h-5 text-white" />
+                </div>
+                <span className={`text-[9px] tracking-wide ${
+                  activeTab === 'new-audit' ? 'text-dark-gray font-bold' : 'text-slate-400'
+                }`}>Buat KKA</span>
+              </button>
+
+              {/* Profil */}
+              <button
+                onClick={() => { navigateTo('profil'); setIsMobileMoreOpen(false); }}
+                className={`flex flex-col items-center justify-center gap-1 transition ${
+                  activeTab === 'profil' ? 'text-dark-gray font-bold' : 'text-slate-400'
                 }`}
               >
                 <UserIcon className="w-5 h-5" />
-                <span className="text-[9px] tracking-wide">Pengguna</span>
+                <span className="text-[9px] tracking-wide">Profil</span>
               </button>
-            )}
-            <button
-              onClick={() => navigateTo('profil')}
-              className={`flex flex-col items-center justify-center gap-1 transition ${
-                activeTab === 'profil' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <UserIcon className="w-5 h-5" />
-              <span className="text-[9px] tracking-wide">Profil</span>
-            </button>
-          </div>
-        </footer>
+
+              {/* Lainnya */}
+              <button
+                onClick={() => setIsMobileMoreOpen(v => !v)}
+                className={`flex flex-col items-center justify-center gap-1 transition relative ${
+                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna'].includes(activeTab)
+                    ? 'text-dark-gray font-bold'
+                    : 'text-slate-400'
+                }`}
+              >
+                <Menu className="w-5 h-5" />
+                <span className="text-[9px] tracking-wide">Lainnya</span>
+                {/* Dot indikator kalau sedang di salah satu halaman "Lainnya" */}
+                {['statistik', 'jenis-audit', 'pengguna'].includes(activeTab) && (
+                  <span className="absolute top-2 right-4 w-1.5 h-1.5 bg-peach-accent rounded-full" />
+                )}
+              </button>
+
+            </div>
+          </footer>
+        </>
       )}
 
     </div>
