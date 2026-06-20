@@ -21,10 +21,20 @@ interface UserManagementViewProps {
   onRefreshProfiles?: () => void;
 }
 
-const ROLE_OPTIONS = ['Auditor', 'Inspektur Pembantu', 'Inspektur'] as const;
+const ROLE_OPTIONS = [
+  'Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
+  'Auditor Ahli Pertama', 'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
+  'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
+  'Inspektur Pembantu', 'Inspektur'
+] as const;
 type RoleType = typeof ROLE_OPTIONS[number];
 
-const ROLE_ORDER: Record<string, number> = { 'Inspektur': 0, 'Inspektur Pembantu': 1, 'Auditor': 2 };
+const ROLE_ORDER: Record<string, number> = {
+  'Inspektur': 0, 'Inspektur Pembantu': 1,
+  'Auditor Ahli Utama': 2, 'Auditor Ahli Madya': 3, 'Auditor Ahli Muda': 4, 'Auditor Ahli Pertama': 5,
+  'Auditor Penyelia': 6, 'Auditor Pelaksana Lanjutan': 7, 'Auditor Pelaksana': 8,
+  'PPUPD Ahli Utama': 9, 'PPUPD Ahli Madya': 10, 'PPUPD Ahli Muda': 11, 'PPUPD Ahli Pertama': 12,
+};
 
 const GOLONGAN_ORDER: Record<string, number> = {
   'IV/e': 0, 'IV/d': 1, 'IV/c': 2, 'IV/b': 3, 'IV/a': 4,
@@ -34,30 +44,41 @@ const GOLONGAN_ORDER: Record<string, number> = {
 };
 
 const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string; border: string }> = {
-  Auditor: { label: 'Auditor', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'Auditor Pelaksana': { label: 'Pelaksana', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'Auditor Pelaksana Lanjutan': { label: 'Pelaksana Lanjutan', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'Auditor Penyelia': { label: 'Penyelia', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'Auditor Ahli Pertama': { label: 'Ahli Pertama', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Auditor Ahli Muda': { label: 'Ahli Muda', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Auditor Ahli Madya': { label: 'Ahli Madya', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Auditor Ahli Utama': { label: 'Ahli Utama', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'PPUPD Ahli Pertama': { label: 'PPUPD Ahli Pertama', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  'PPUPD Ahli Muda': { label: 'PPUPD Ahli Muda', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  'PPUPD Ahli Madya': { label: 'PPUPD Ahli Madya', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  'PPUPD Ahli Utama': { label: 'PPUPD Ahli Utama', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
   'Inspektur Pembantu': { label: 'Irban', icon: <Star className="w-3.5 h-3.5" />, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   Inspektur: { label: 'Inspektur', icon: <Crown className="w-3.5 h-3.5" />, bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
 };
 
 export default function UserManagementView({
-  userProfiles, currentUserRole, currentUserId, onShowToast, onRefreshProfiles,
+  userProfiles, currentUserRole, isAdmin = false, currentUserId, onShowToast, onRefreshProfiles,
 }: UserManagementViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('Semua');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editRole, setEditRole] = useState<RoleType>('Auditor');
+  const [editRole, setEditRole] = useState<RoleType>('Auditor Pelaksana');
   const [editNip, setEditNip] = useState('');
   const [editGolongan, setEditGolongan] = useState('');
   const [editPangkat, setEditPangkat] = useState('');
   const [editFullName, setEditFullName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editMfaRequired, setEditMfaRequired] = useState(false);
+  const [editIsAdmin, setEditIsAdmin] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const canEdit = currentUserRole === 'Inspektur' || currentUserRole === 'Inspektur Pembantu';
-  const canEditRole = currentUserRole === 'Inspektur';
-  const canToggleMfa = currentUserRole === 'Inspektur';
+  const canEdit = currentUserRole === 'Inspektur' || currentUserRole === 'Inspektur Pembantu' || isAdmin;
+  const canEditRole = currentUserRole === 'Inspektur' || isAdmin;
+  const canToggleMfa = currentUserRole === 'Inspektur' || isAdmin;
 
   const filteredProfiles = useMemo(() => {
     return userProfiles
@@ -88,13 +109,14 @@ export default function UserManagementView({
 
   const startEdit = (profile: UserProfile) => {
     setEditingUserId(profile.id);
-    setEditRole((profile.role as RoleType) || 'Auditor');
+    setEditRole((profile.role as RoleType) || 'Auditor Pelaksana');
     setEditNip(profile.nip || '');
     setEditGolongan(profile.golongan || '');
     setEditPangkat(profile.pangkat || '');
     setEditFullName(profile.full_name || '');
     setEditEmail(profile.email || '');
     setEditMfaRequired((profile as any).mfa_required || false);
+    setEditIsAdmin((profile as any).is_admin || false);
   };
 
   const cancelEdit = () => setEditingUserId(null);
@@ -115,6 +137,7 @@ export default function UserManagementView({
           pangkat: editPangkat || null,
           full_name: editFullName || null,
           mfa_required: editMfaRequired,
+          is_admin: editIsAdmin,
           ...(emailChanged && !isEditingSelf ? { email_pending: editEmail.trim() } : {}),
         })
         .eq('id', userId);
@@ -237,7 +260,7 @@ export default function UserManagementView({
             {filteredProfiles.map(profile => {
               const isEditing = editingUserId === profile.id;
               const isCurrentUser = profile.id === currentUserId;
-              const roleConf = ROLE_CONFIG[profile.role] || ROLE_CONFIG['Auditor'];
+              const roleConf = ROLE_CONFIG[profile.role] || ROLE_CONFIG['Auditor Pelaksana'];
               const hasMfa = (profile as any).mfa_required === true;
               return (
                 <div key={profile.id} className={`px-6 py-4 transition-all ${isEditing ? 'bg-blue-50/40' : 'hover:bg-slate-50/50'}`}>
@@ -335,6 +358,29 @@ export default function UserManagementView({
                             )}
                           </div>
                         </div>
+
+                        {/* Toggle is_admin */}
+                        {canEditRole && (
+                          <div className="md:col-span-2">
+                            <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${editIsAdmin ? 'bg-purple-50 border-purple-200' : 'bg-slate-50 border-slate-200'}`}>
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${editIsAdmin ? 'bg-purple-100' : 'bg-slate-100'}`}>
+                                  <ShieldCheck className={`w-4 h-4 ${editIsAdmin ? 'text-purple-600' : 'text-slate-500'}`} />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-slate-700">Administrator Sistem</p>
+                                  <p className="text-[10px] text-slate-500 mt-0.5">
+                                    {editIsAdmin ? 'Aktif — dapat mengedit data pegawai, menghapus & membuat KKA' : 'Nonaktif — akses terbatas sesuai peran'}
+                                  </p>
+                                </div>
+                              </div>
+                              <button type="button" onClick={() => setEditIsAdmin(v => !v)}
+                                className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer border-2 ${editIsAdmin ? 'bg-purple-500 border-purple-600' : 'bg-slate-300 border-slate-400'}`}>
+                                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${editIsAdmin ? 'translate-x-5' : 'translate-x-0'}`} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex gap-2 pt-2 border-t border-blue-100">
