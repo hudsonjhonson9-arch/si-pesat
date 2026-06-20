@@ -306,6 +306,7 @@ export default function UserManagementView({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-gray/40 pointer-events-none" />
           <input type="text" placeholder="Cari nama, email, atau NIP..." value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
+            autoComplete="off"
             className="w-full pl-9 pr-4 py-2 border border-dark-gray/15 rounded-lg text-sm bg-white/70 focus:bg-white outline-none text-dark-gray font-medium placeholder-dark-gray/50" />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -543,7 +544,7 @@ export default function UserManagementView({
       {/* ── Modal Tambah Pengguna ── */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={e => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-dark-gray/10 overflow-hidden animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-dark-gray/10 overflow-hidden animate-fade-in">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-baby-blue">
               <div className="flex items-center gap-2">
@@ -561,7 +562,7 @@ export default function UserManagementView({
             </div>
 
             {/* Modal Body */}
-            <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="px-6 py-5 space-y-4 max-h-[80vh] overflow-y-auto">
               {addError && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
@@ -569,9 +570,9 @@ export default function UserManagementView({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Nama Lengkap */}
-                <div className="md:col-span-2 space-y-1">
+                <div className="sm:col-span-2 space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap <span className="text-red-400">*</span></label>
                   <input type="text" value={addFullName} onChange={e => setAddFullName(e.target.value)}
                     placeholder="Contoh: Budi Santoso, S.Ak."
@@ -640,7 +641,7 @@ export default function UserManagementView({
 
                 {/* Admin Toggle */}
                 {canEditRole && (
-                  <div className="md:col-span-2">
+                  <div className="sm:col-span-2">
                     <button type="button" onClick={() => setAddIsAdmin(v => !v)}
                       className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${addIsAdmin ? 'bg-purple-50 border-purple-200' : 'bg-slate-50 border-slate-200'}`}>
                       <div className="flex items-center gap-3">
