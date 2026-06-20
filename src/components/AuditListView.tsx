@@ -42,6 +42,7 @@ interface AuditListViewProps {
   onSyncToDrive: (audit: OpdAudit) => void;
   isDriveConnected: boolean;
   userRole?: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur';
+  isAdmin?: boolean;
   defaultAuditorName?: string;
   userProfiles: UserProfile[];
 }

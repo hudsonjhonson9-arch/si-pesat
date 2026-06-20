@@ -7,6 +7,7 @@ interface HomeViewProps {
   audits?: OpdAudit[];
   onSelectAudit?: (audit: OpdAudit, categoryId?: string) => void;
   userRole?: string;
+  isAdmin?: boolean;
 }
 
 const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'] as const;

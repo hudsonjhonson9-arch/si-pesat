@@ -15,6 +15,7 @@ import {
 interface UserManagementViewProps {
   userProfiles: UserProfile[];
   currentUserRole: string;
+  isAdmin?: boolean;
   currentUserId?: string;
   onShowToast?: (message: string, type: 'success' | 'info' | 'error') => void;
   onRefreshProfiles?: () => void;

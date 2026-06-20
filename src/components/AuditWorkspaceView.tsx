@@ -46,6 +46,7 @@ interface AuditWorkspaceViewProps {
   isDriveConnected: boolean;
   isSyncing: boolean;
   userRole?: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur';
+  isAdmin?: boolean;
   accessToken?: string | null;
   userProfiles: UserProfile[];
   templates: KKATemplate[];
