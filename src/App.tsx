@@ -820,13 +820,13 @@ export default function App() {
                   <Settings className="w-4 h-4" /> Jenis Audit
                 </button>
               )}
-              {['Inspektur', 'Inspektur Pembantu'].includes(userRole) && (
+              {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
                 <button
                   onClick={() => navigateTo('pengguna')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                     activeTab === 'pengguna' && !selectedAuditId
                       ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
-                      : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
+                      : 'text-dark-gray/70 hover:bg-white/70 hover:text-dark-gray'
                   }`}
                 >
                   <UserIcon className="w-4 h-4" /> Pengguna
