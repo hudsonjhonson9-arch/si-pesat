@@ -20,7 +20,8 @@ import {
   User as UserIcon,
   ShieldAlert,
   Info,
-  PlusCircle
+  PlusCircle,
+  PieChart
 } from 'lucide-react';
 
 import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity } from './types';
@@ -35,10 +36,13 @@ import AuditWorkspaceView from './components/AuditWorkspaceView';
 import TemplateConfiguratorView from './components/TemplateConfiguratorView';
 import LoginView from './components/LoginView';
 import NewAuditView from './components/NewAuditView';
+import StatistikView from './components/StatistikView';
+import UserProfileView from './components/UserProfileView';
+import UserManagementView from './components/UserManagementView';
 
 export default function App() {
   // Navigation & General Tabs based on URL Hash
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna'>('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
@@ -53,7 +57,7 @@ export default function App() {
         setActiveTab('audits');
         setSelectedAuditId(id);
         setSelectedCategoryId(catId);
-      } else if (hash === 'jenis-audit' || hash === 'audits' || hash === 'dashboard' || hash === 'new-audit') {
+      } else if (['jenis-audit', 'audits', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna'].includes(hash)) {
         setActiveTab(hash as any);
         setSelectedAuditId(null);
         setSelectedCategoryId(null);
@@ -191,7 +195,8 @@ export default function App() {
             progress: d.progress,
             teamMembers: d.team_members || [],
             categories: d.categories || [],
-            lastSyncedAt: d.updated_at || new Date().toISOString()
+            lastSyncedAt: d.updated_at || new Date().toISOString(),
+            schedule: d.schedule || []
           }));
           
           setAudits(prevLocalAudits => {
@@ -293,6 +298,7 @@ export default function App() {
               progress: calculateProgress(a),
               categories: a.categories,
               team_members: a.teamMembers || [],
+              schedule: a.schedule || [],
               updated_at: new Date().toISOString()
             }));
 
@@ -455,44 +461,34 @@ export default function App() {
   };
 
 
-  // Calculate Progress Helper
+  // Calculate Progress Helper — berdasarkan item yang sudah ada dokumen bukti (evidenceLink)
   const calculateProgress = (audit: OpdAudit): number => {
+    if (audit.status === 'Selesai') return 100;
+
     let totalItems = 0;
-    let evaluatedItems = 0;
+    let uploadedItems = 0;
     audit.categories.forEach(cat => {
       cat.items.forEach(item => {
         totalItems++;
-        // Asumsi: Jika ada uraian temuan, atau statusnya bukan Sesuai (karena default Sesuai), atau ada nilai temuan, berarti sudah dievaluasi.
-        // Jika kita ingin lebih presisi, kita bisa tambahkan status 'Draft' di item, tapi untuk sekarang kita anggap dievaluasi jika ada perubahan
-        if (item.status === 'Temuan' || item.status === 'N/A' || (item.uraianTemuan && item.uraianTemuan.length > 0) || (item.nilaiTemuan && item.nilaiTemuan > 0)) {
-          evaluatedItems++;
-        }
+        if (item.evidenceLink && item.evidenceLink.trim() !== '') uploadedItems++;
       });
     });
-    // If we want simple progress based on status, we can just say if it's reviewed.
-    // For now, let's just use a dummy logic or check if status is Selesai
-    if (audit.status === 'Selesai') return 100;
+
     if (totalItems === 0) return 0;
-    
-    // Instead of strict evaluation, we can track audit status: 
-    // Draft = 10%, Sedang Berjalan = 50%, Direview = 80%, Selesai = 100%
-    if (audit.status === 'Draft') return 10;
-    if (audit.status === 'Sedang Berjalan') return 50;
-    if (audit.status === 'Direview') return 80;
-    
-    return Math.round((evaluatedItems / totalItems) * 100);
+    return Math.round((uploadedItems / totalItems) * 100);
   };
 
   // Audit Crud Actions
   const handleCreateAudit = (
     opdName: string, 
     opdType: OpdAudit['opdType'], 
-    _legacyAuditType: string, // Kept for backwards compatibility with AuditListView call signature
+    _legacyAuditType: string,
     fiscalYear: string, 
     auditorName: string,
     teamMembers: string[],
     templateId: string,
-    initialCategoryId?: string
+    initialCategoryId?: string,
+    customSchedule?: import('./types').AuditMilestone[]
   ) => {
     // Copy checklist structures from active configured template (Requirement A.2)
     const selectedTemplate = templates.find(t => t.id === templateId) || templates[0];
@@ -541,6 +537,19 @@ export default function App() {
           return v.toString(16);
         });
 
+    const getFutureDate = (days: number) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    };
+
+    const defaultSchedule = customSchedule || [
+      { id: 'milestone_1', name: 'Perencanaan', startDate: new Date().toISOString().split('T')[0], targetDate: getFutureDate(7), status: 'Sedang Berjalan' as const, notes: 'Menyusun Surat Tugas dan KKA awal' },
+      { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(7), targetDate: getFutureDate(21), status: 'Belum Mulai' as const, notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
+      { id: 'milestone_3', name: 'Penyusunan LHO / LHP', startDate: getFutureDate(21), targetDate: getFutureDate(30), status: 'Belum Mulai' as const, notes: 'Penyusunan laporan hasil pemeriksaan' },
+      { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut', startDate: getFutureDate(30), targetDate: getFutureDate(45), status: 'Belum Mulai' as const, notes: 'Verifikasi tindak lanjut atas temuan LHP' }
+    ];
+
     const newAudit: OpdAudit = {
       id: auditId,
       opdName,
@@ -552,7 +561,8 @@ export default function App() {
       status: 'Draft',
       progress: 0,
       categories: initialCategories,
-      teamMembers
+      teamMembers,
+      schedule: defaultSchedule
     };
 
     setAudits(prev => [newAudit, ...prev]);
@@ -646,10 +656,35 @@ export default function App() {
             targetEntities={targetEntities}
             defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
             onBack={() => navigateTo('audits')}
-            onCreateAudit={(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId) => {
-              handleCreateAudit(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId);
+            onCreateAudit={(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId, schedule) => {
+              handleCreateAudit(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId, schedule);
               navigateTo('audits');
             }}
+          />
+        );
+      case 'statistik':
+        return <StatistikView audits={audits} userRole={userRole} />;
+      case 'pengguna':
+        return (
+          <UserManagementView
+            userProfiles={userProfiles}
+            currentUserRole={userRole}
+            currentUserId={user?.id}
+            onShowToast={showToast}
+            onRefreshProfiles={() => {
+              supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat').then(({ data, error }) => {
+                if (!error && data) setUserProfiles(data as UserProfile[]);
+              });
+            }}
+          />
+        );
+      case 'profil':
+        return (
+          <UserProfileView
+            currentUser={userProfiles.find(p => p.id === user?.id) || null}
+            userRole={userRole}
+            audits={audits}
+            onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
           />
         );
       case 'jenis-audit':
@@ -746,6 +781,16 @@ export default function App() {
               >
                 <School className="w-4 h-4" /> Audit
               </button>
+              <button
+                onClick={() => navigateTo('statistik')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
+                  activeTab === 'statistik' && !selectedAuditId
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
+                }`}
+              >
+                <PieChart className="w-4 h-4" /> Statistik
+              </button>
               {['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) && (
                 <button
                   onClick={() => navigateTo('jenis-audit')}
@@ -756,6 +801,18 @@ export default function App() {
                   }`}
                 >
                   <Settings className="w-4 h-4" /> Jenis Audit
+                </button>
+              )}
+              {['Inspektur', 'Inspektur Pembantu'].includes(userRole) && (
+                <button
+                  onClick={() => navigateTo('pengguna')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
+                    activeTab === 'pengguna' && !selectedAuditId
+                      ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                      : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
+                  }`}
+                >
+                  <UserIcon className="w-4 h-4" /> Pengguna
                 </button>
               )}
             </nav>
@@ -774,13 +831,18 @@ export default function App() {
 
             {/* Right Profile & Role */}
             <div className="flex items-center gap-3">
-              <div className="hidden md:flex flex-col items-end mr-2">
-                <span className="text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-0.5 rounded-sm border border-dark-gray/10 shadow-xs uppercase tracking-wider mb-0.5">
-                  {userRole === 'Auditor' && '🕵️ Auditor'}
-                  {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
-                  {userRole === 'Inspektur' && '👑 Inspektur'}
-                </span>
-                <span className="text-xs font-bold text-dark-gray">{userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || customAuditorName || 'Auditor'}</span>
+            <div className="hidden md:flex flex-col items-end mr-2">
+            <span className="text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-0.5 rounded-sm border border-dark-gray/10 shadow-xs uppercase tracking-wider mb-0.5">
+            {userRole === 'Auditor' && '🕵️ Auditor'}
+            {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
+            {userRole === 'Inspektur' && '👑 Inspektur'}
+            </span>
+            <button
+                onClick={() => navigateTo('profil')}
+                  className="text-xs font-bold text-dark-gray hover:text-dark-gray/70 hover:underline transition-colors"
+                >
+                  {userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || customAuditorName || 'Auditor'}
+                </button>
               </div>
               
               {/* Mobile compact role */}
@@ -815,7 +877,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16 pb-safe">
-          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu'].includes(userRole) ? 'grid-cols-7' : ['Admin'].includes(userRole) ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <button
               onClick={() => navigateTo('dashboard')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -834,6 +896,16 @@ export default function App() {
             >
               <School className="w-5 h-5" />
               <span className="text-[9px] tracking-wide">Audit</span>
+            </button>
+
+            <button
+              onClick={() => navigateTo('statistik')}
+              className={`flex flex-col items-center justify-center gap-1 transition ${
+                activeTab === 'statistik' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              <PieChart className="w-5 h-5" />
+              <span className="text-[9px] tracking-wide">Statistik</span>
             </button>
 
             <button
@@ -857,6 +929,26 @@ export default function App() {
                 <span className="text-[9px] tracking-wide">Jenis Audit</span>
               </button>
             )}
+            {['Inspektur', 'Inspektur Pembantu'].includes(userRole) && (
+              <button
+                onClick={() => navigateTo('pengguna')}
+                className={`flex flex-col items-center justify-center gap-1 transition ${
+                  activeTab === 'pengguna' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+                }`}
+              >
+                <UserIcon className="w-5 h-5" />
+                <span className="text-[9px] tracking-wide">Pengguna</span>
+              </button>
+            )}
+            <button
+              onClick={() => navigateTo('profil')}
+              className={`flex flex-col items-center justify-center gap-1 transition ${
+                activeTab === 'profil' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              <UserIcon className="w-5 h-5" />
+              <span className="text-[9px] tracking-wide">Profil</span>
+            </button>
           </div>
         </footer>
       )}

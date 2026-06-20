@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { TargetEntity, OpdAudit } from '../types';
-import { Map as MapIcon, Building, Activity, BarChart3, CheckCircle, FileText, AlertTriangle, FolderOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { Map as MapIcon, Building, Activity, BarChart3, CheckCircle, FileText, AlertTriangle, FolderOpen, ChevronDown, ChevronUp, Clock, Upload } from 'lucide-react';
 
 interface HomeViewProps {
   targetEntities: TargetEntity[];
@@ -77,6 +77,26 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
     );
   }, [audits]);
 
+  // Audit dengan milestone melewati tenggat (targetDate sudah lewat, status belum Selesai)
+  const overdueItems = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const result: { audit: OpdAudit; milestoneName: string; targetDate: string; daysOverdue: number }[] = [];
+    audits.forEach(audit => {
+      if (audit.status === 'Selesai') return;
+      (audit.schedule || []).forEach(milestone => {
+        if (milestone.status === 'Selesai') return;
+        const target = new Date(milestone.targetDate);
+        target.setHours(0, 0, 0, 0);
+        const diff = Math.floor((today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24));
+        if (diff > 0) {
+          result.push({ audit, milestoneName: milestone.name, targetDate: milestone.targetDate, daysOverdue: diff });
+        }
+      });
+    });
+    return result.sort((a, b) => b.daysOverdue - a.daysOverdue);
+  }, [audits]);
+
   return (
     <div className="space-y-6 animate-fade-in" id="home-view">
       {/* Notifications Banner */}
@@ -107,6 +127,44 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
                 </div>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Overdue Milestone Banner — untuk Inspektur/Irban */}
+      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && overdueItems.length > 0 && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="bg-rose-200/50 p-2 rounded-full">
+              <Clock className="w-5 h-5 text-rose-700" />
+            </div>
+            <div>
+              <p className="font-bold text-sm">Tenggat Waktu Terlewat</p>
+              <p className="text-xs text-rose-700/80">
+                <strong>{overdueItems.length} milestone</strong> pada audit aktif telah melewati target tanggal penyelesaian.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {overdueItems.slice(0, 6).map(({ audit, milestoneName, targetDate, daysOverdue }, idx) => (
+              <button
+                key={`${audit.id}-${milestoneName}-${idx}`}
+                onClick={() => onSelectAudit && onSelectAudit(audit)}
+                className="flex items-center gap-2 bg-white/70 hover:bg-white text-xs font-bold px-3 py-2 rounded-lg border border-rose-200/60 transition-colors cursor-pointer shadow-sm text-left"
+              >
+                <Clock className="w-3 h-3 text-rose-500 flex-shrink-0" />
+                <div>
+                  <span className="text-dark-gray">{audit.opdName}</span>
+                  <span className="text-rose-600 ml-1">({milestoneName.split(' (')[0]})</span>
+                  <span className="ml-1.5 text-[9px] font-black text-white bg-rose-500 px-1.5 py-0.5 rounded-full">
+                    +{daysOverdue}h
+                  </span>
+                </div>
+              </button>
+            ))}
+            {overdueItems.length > 6 && (
+              <span className="flex items-center text-[10px] font-bold text-rose-600 px-2">+{overdueItems.length - 6} lainnya</span>
+            )}
           </div>
         </div>
       )}
@@ -271,10 +329,38 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
                                 {hasAudits ? (
                                   <div className="space-y-2">
                                     {entityAudits.map(audit => (
-                                      <div key={audit.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
-                                        <div>
+                                      <div key={audit.id} className="flex items-start justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-xs gap-3">
+                                        <div className="flex-1 min-w-0">
                                           <div className="font-bold text-dark-gray text-xs">{audit.auditType || 'Audit Reguler'}</div>
                                           <div className="text-[10px] text-slate-500 mt-0.5">TA. {audit.fiscalYear} • Tim: {audit.auditorName || 'Belum diatur'}</div>
+                                          {/* Active milestone badge */}
+                                          {audit.schedule && audit.schedule.length > 0 && (() => {
+                                            const activeMilestone = audit.schedule.find(m => m.status === 'Sedang Berjalan') || audit.schedule.find(m => m.status === 'Belum Mulai');
+                                            const completedCount = audit.schedule.filter(m => m.status === 'Selesai').length;
+                                            const totalCount = audit.schedule.length;
+                                            return (
+                                              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                                {activeMilestone && (
+                                                  <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                                                    activeMilestone.status === 'Sedang Berjalan' 
+                                                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                                      : 'bg-slate-50 text-slate-500 border-slate-200'
+                                                  }`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${activeMilestone.status === 'Sedang Berjalan' ? 'bg-blue-500 animate-pulse' : 'bg-slate-300'}`}></span>
+                                                    {activeMilestone.name.split(' (')[0]}
+                                                  </span>
+                                                )}
+                                                <span className="text-[9px] text-slate-400 font-medium">{completedCount}/{totalCount} tahap selesai</span>
+                                              </div>
+                                            );
+                                          })()}
+                                          {/* Audit status badge */}
+                                          <span className={`inline-block mt-1 text-[8.5px] px-1.5 py-0.5 rounded font-black uppercase border ${
+                                            audit.status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                            audit.status === 'Direview' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                            audit.status === 'Sedang Berjalan' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                            'bg-slate-50 text-slate-500 border-slate-200'
+                                          }`}>{audit.status}</span>
                                         </div>
                                         <button 
                                           onClick={(e) => { e.stopPropagation(); onSelectAudit && onSelectAudit(audit); }}

@@ -47,6 +47,16 @@ export interface AuditCategory {
   categoryId?: string;
 }
 
+export interface AuditMilestone {
+  id: string;
+  name: string; // e.g., 'Perencanaan', 'Pelaksanaan / KKA', 'Penyusunan LHO / LHP', 'Pemantauan Tindak Lanjut'
+  startDate?: string;  // Tanggal mulai pemeriksaan
+  targetDate: string;  // Tanggal selesai / tenggat
+  actualDate?: string;
+  status: 'Belum Mulai' | 'Sedang Berjalan' | 'Selesai';
+  notes?: string;
+}
+
 export interface OpdAudit {
   id: string;
   opdName: string; // Nama Instansi / OPD / OPD
@@ -62,6 +72,7 @@ export interface OpdAudit {
   googleDriveFolderId?: string;
   googleDriveFileId?: string; // Cache of consolidated file ID
   lastSyncedAt?: string;
+  schedule?: AuditMilestone[]; // Jadwal pengerjaan audit
 }
 
 export interface TemplateItem {

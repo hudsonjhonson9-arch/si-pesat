@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile, KKATemplate } from '../types';
+import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile, KKATemplate, AuditMilestone } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
 import { supabase } from '../lib/supabase';
 import EvidencePanel from './EvidencePanel';
@@ -75,6 +75,31 @@ export default function AuditWorkspaceView({
   );
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [leftTab, setLeftTab] = useState<'categories' | 'schedule'>('categories');
+
+  const milestones = useMemo<AuditMilestone[]>(() => {
+    if (audit.schedule && audit.schedule.length > 0) {
+      return audit.schedule;
+    }
+    const getFutureDate = (days: number) => {
+      const d = new Date(audit.auditDate || new Date());
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    };
+    return [
+      { id: 'milestone_1', name: 'Perencanaan (Planning)', targetDate: getFutureDate(7), status: 'Sedang Berjalan', notes: 'Menyusun Surat Tugas dan KKA awal' },
+      { id: 'milestone_2', name: 'Pelaksanaan / KKA (Fieldwork)', targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
+      { id: 'milestone_3', name: 'Penyusunan LHO / LHP (Reporting)', targetDate: getFutureDate(30), status: 'Belum Mulai', notes: 'Penyusunan laporan hasil pemeriksaan' },
+      { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut (Follow up)', targetDate: getFutureDate(45), status: 'Belum Mulai', notes: 'Verifikasi tindak lanjut atas temuan LHP' }
+    ];
+  }, [audit.schedule, audit.auditDate]);
+
+  const handleUpdateSchedule = (updatedMilestones: AuditMilestone[]) => {
+    onUpdates({
+      ...audit,
+      schedule: updatedMilestones
+    });
+  };
 
 
   const [uploadingIds, setUploadingIds] = useState<Record<string, boolean>>({});
@@ -672,84 +697,289 @@ export default function AuditWorkspaceView({
             )}
           </div>
 
-          {/* Category/Instrument Navigation Controller with responsive list */}
-          <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3 text-dark-gray">
-            <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-              <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Jenis Audit Pemeriksaan</span>
-              {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && !isReadOnly && (
-                <button
-                  onClick={() => setIsAddingCategory(true)}
-                  className="text-xs text-dark-gray hover:text-dark-gray/70 inline-flex items-center gap-0.5 font-extrabold cursor-pointer"
-                >
-                  <PlusCircle className="w-3.5 h-3.5" /> Tambah
-                </button>
-              )}
-            </div>
-
-            {/* Mobile Dropdown (shown on smaller screens) */}
-            <div className="block lg:hidden">
-              <select
-                value={selectedCategoryId}
-                onChange={e => setSelectedCategoryId(e.target.value)}
-                className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden"
-              >
-                {audit.categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Desktop Full Menu (Hidden on mobile) */}
-            <div className="hidden lg:block space-y-1.5 max-h-[350px] overflow-y-auto pr-1">
-              {audit.categories.map(cat => {
-                const isActive = cat.id === selectedCategoryId;
-                const temuanCount = cat.items.filter(item => item.status === 'Temuan').length;
-                return (
-                  <div
-                    key={cat.id}
-                    onClick={() => setSelectedCategoryId(cat.id)}
-                    className={`group flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition-all border ${isActive
-                        ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold'
-                        : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/70 hover:text-dark-gray font-semibold'
-                      }`}
-                  >
-                    <span className="truncate pr-1">{cat.name}</span>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {temuanCount > 0 && (
-                        <span className={`px-1.5 py-0.5 text-[9px] rounded-full font-mono ${isActive ? 'bg-peach-accent text-dark-gray font-black' : 'bg-rose-100 text-rose-700 border border-rose-200'
-                          }`}>
-                          {temuanCount}!
-                        </span>
-                      )}
-
-                      {/* Delete category button */}
-                      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && !isReadOnly && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteCategory(cat.id);
-                          }}
-                          className={`opacity-0 group-hover:opacity-100 transition p-0.5 rounded hover:bg-red-50 hover:text-red-600 border border-transparent ${isActive ? 'text-white/60 hover:bg-dark-gray/50 hover:text-white' : 'text-dark-gray/40'
-                            }`}
-                          title="Hapus Jenis Audit Pemeriksaan"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {/* Tab Switcher for Sidebar */}
+          <div className="flex gap-1.5 bg-dark-gray/5 p-1 rounded-xl border border-dark-gray/10">
+            <button
+              onClick={() => setLeftTab('categories')}
+              className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                leftTab === 'categories'
+                  ? 'bg-dark-gray text-white shadow-xs'
+                  : 'text-dark-gray/65 hover:text-dark-gray hover:bg-white/40'
+              }`}
+            >
+              Kategori KKA
+            </button>
+            <button
+              onClick={() => setLeftTab('schedule')}
+              className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                leftTab === 'schedule'
+                  ? 'bg-dark-gray text-white shadow-xs'
+                  : 'text-dark-gray/65 hover:text-dark-gray hover:bg-white/40'
+              }`}
+            >
+              Jadwal & Progress
+            </button>
           </div>
+
+          {leftTab === 'categories' ? (
+            /* Category/Instrument Navigation Controller with responsive list */
+            <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3 text-dark-gray">
+              <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
+                <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Jenis Audit Pemeriksaan</span>
+                {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && !isReadOnly && (
+                  <button
+                    onClick={() => setIsAddingCategory(true)}
+                    className="text-xs text-dark-gray hover:text-dark-gray/70 inline-flex items-center gap-0.5 font-extrabold cursor-pointer"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" /> Tambah
+                  </button>
+                )}
+              </div>
+
+              {/* Mobile Dropdown (shown on smaller screens) */}
+              <div className="block lg:hidden">
+                <select
+                  value={selectedCategoryId}
+                  onChange={e => setSelectedCategoryId(e.target.value)}
+                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray focus:outline-hidden"
+                >
+                  {audit.categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Desktop Full Menu (Hidden on mobile) */}
+              <div className="hidden lg:block space-y-1.5 max-h-[350px] overflow-y-auto pr-1">
+                {audit.categories.map(cat => {
+                  const isActive = cat.id === selectedCategoryId;
+                  const temuanCount = cat.items.filter(item => item.status === 'Temuan').length;
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => setSelectedCategoryId(cat.id)}
+                      className={`group flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition-all border ${isActive
+                          ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold'
+                          : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/70 hover:text-dark-gray font-semibold'
+                        }`}
+                    >
+                      <span className="truncate pr-1">{cat.name}</span>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {temuanCount > 0 && (
+                          <span className={`px-1.5 py-0.5 text-[9px] rounded-full font-mono ${isActive ? 'bg-peach-accent text-dark-gray font-black' : 'bg-rose-100 text-rose-700 border border-rose-200'
+                            }`}>
+                            {temuanCount}!
+                          </span>
+                        )}
+
+                        {/* Delete category button */}
+                        {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && !isReadOnly && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCategory(cat.id);
+                            }}
+                            className={`opacity-0 group-hover:opacity-100 transition p-0.5 rounded hover:bg-red-50 hover:text-red-600 border border-transparent ${isActive ? 'text-white/60 hover:bg-dark-gray/50 hover:text-white' : 'text-dark-gray/40'
+                              }`}
+                            title="Hapus Jenis Audit Pemeriksaan"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            /* Stepper milestone view */
+            <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-4 text-dark-gray">
+              <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block border-b border-dark-gray/10 pb-2">Status Timeline Jadwal</span>
+              <div className="relative pl-6 space-y-5 border-l-2 border-slate-200 mt-2">
+                {milestones.map((m) => {
+                  const isSelesai = m.status === 'Selesai';
+                  const isRunning = m.status === 'Sedang Berjalan';
+                  return (
+                    <div key={m.id} className="relative">
+                      {/* Stepper Dot */}
+                      <div className={`absolute -left-[30px] top-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        isSelesai ? 'bg-emerald-500 border-emerald-600 text-white' :
+                        isRunning ? 'bg-blue-500 border-blue-600 text-white animate-pulse' :
+                        'bg-white border-slate-300 text-slate-400'
+                      }`}>
+                        {isSelesai ? <span className="text-[8px] font-bold">✓</span> : <span className="text-[8px] font-bold">•</span>}
+                      </div>
+                      <div>
+                        <div className="font-bold text-xs text-slate-800 leading-tight">{m.name}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          {m.startDate && (
+                            <span>{new Date(m.startDate).toLocaleDateString('id-ID', { dateStyle: 'medium' })} → </span>
+                          )}
+                          <span className="font-mono">{m.targetDate ? new Date(m.targetDate).toLocaleDateString('id-ID', { dateStyle: 'medium' }) : '-'}</span>
+                          {m.startDate && m.targetDate && (() => {
+                            const days = Math.floor((new Date(m.targetDate).getTime() - new Date(m.startDate).getTime()) / (1000*60*60*24));
+                            return days > 0 ? <span className="ml-1 text-slate-400">({days} hari)</span> : null;
+                          })()}
+                        </div>
+                        {m.actualDate && (
+                          <div className="text-[10px] text-emerald-700 font-bold mt-0.5">
+                            Selesai: <span className="font-mono">{new Date(m.actualDate).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</span>
+                          </div>
+                        )}
+                        <div className="mt-1">
+                          <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-black uppercase ${
+                            isSelesai ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                            isRunning ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                            'bg-slate-100 text-slate-500 border border-slate-200'
+                          }`}>
+                            {m.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Side: Active Category Items List */}
         <div className="lg:col-span-8 space-y-4">
+          {leftTab === 'schedule' ? (
+            <div className="space-y-4">
+              <div className="bg-white rounded-2xl border border-dark-gray/10 p-6 shadow-sm space-y-6 text-dark-gray">
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+                    📅 Jadwal & Monitoring Pengerjaan Audit
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Atur tanggal target, realisasi pengerjaan, status tahapan, serta catatan pemantauan audit untuk audit ini.
+                  </p>
+                </div>
+                
+                <div className="divide-y divide-slate-150 space-y-5">
+                  {milestones.map((m, index) => (
+                    <div key={m.id} className="pt-5 first:pt-0 grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                      <div className="md:col-span-3">
+                        <div className="font-bold text-xs text-slate-700">{m.name}</div>
+                        <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+                          {m.id === 'milestone_1' && 'Tahapan perencanaan, penyiapan tim, surat tugas, dan dokumen administrasi awal.'}
+                          {m.id === 'milestone_2' && 'Tahapan pengerjaan Kertas Kerja Audit (KKA) lapangan, wawancara, dan pengunggahan berkas bukti.'}
+                          {m.id === 'milestone_3' && 'Tahapan kompilasi temuan, penyusunan LHO (Laporan Hasil Opini) atau LHP (Laporan Hasil Pemeriksaan).'}
+                          {m.id === 'milestone_4' && 'Tahapan pemantauan dan tindak lanjut rekomendasi dari hasil pemeriksaan pimpinan.'}
+                        </p>
+                      </div>
+                      
+                      <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
+                          <input
+                            type="date"
+                            disabled={isReadOnly || userRole !== 'Auditor'}
+                            value={m.startDate || ''}
+                            onChange={(e) => {
+                              const updated = [...milestones];
+                              updated[index] = { ...m, startDate: e.target.value || undefined };
+                              handleUpdateSchedule(updated);
+                            }}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-400 outline-none text-slate-700"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
+                          <input
+                            type="date"
+                            disabled={isReadOnly || userRole !== 'Auditor'}
+                            value={m.targetDate}
+                            onChange={(e) => {
+                              const updated = [...milestones];
+                              updated[index] = { ...m, targetDate: e.target.value };
+                              handleUpdateSchedule(updated);
+                            }}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-400 outline-none text-slate-700"
+                          />
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Realisasi</label>
+                          <input
+                            type="date"
+                            disabled={isReadOnly || userRole !== 'Auditor'}
+                            value={m.actualDate || ''}
+                            onChange={(e) => {
+                              const updated = [...milestones];
+                              updated[index] = { ...m, actualDate: e.target.value || undefined };
+                              handleUpdateSchedule(updated);
+                            }}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-400 outline-none text-slate-700"
+                          />
+                        </div>
 
-          {/* Active Category Header Card */}
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Status Tahap</label>
+                          <select
+                            disabled={isReadOnly || userRole !== 'Auditor'}
+                            value={m.status}
+                            onChange={(e) => {
+                              const updated = [...milestones];
+                              const newStatus = e.target.value as any;
+                              updated[index] = { 
+                                ...m, 
+                                status: newStatus,
+                                actualDate: newStatus === 'Selesai' && !m.actualDate ? new Date().toISOString().split('T')[0] : m.actualDate
+                              };
+                              handleUpdateSchedule(updated);
+                            }}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white outline-none text-slate-700"
+                          >
+                            <option value="Belum Mulai">Belum Mulai</option>
+                            <option value="Sedang Berjalan">Sedang Berjalan</option>
+                            <option value="Selesai">Selesai</option>
+                          </select>
+                        </div>
+                        
+                        <div className="sm:col-span-4 space-y-1">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Catatan Pemantauan</label>
+                          <input
+                            type="text"
+                            disabled={isReadOnly || userRole !== 'Auditor'}
+                            placeholder="Tulis progres atau hambatan pengerjaan..."
+                            value={m.notes || ''}
+                            onChange={(e) => {
+                              const updated = [...milestones];
+                              updated[index] = { ...m, notes: e.target.value };
+                              handleUpdateSchedule(updated);
+                            }}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-400 outline-none text-slate-700"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {!isReadOnly && userRole === 'Auditor' && (
+                  <div className="pt-4 border-t border-slate-150 flex justify-end">
+                    <button
+                      onClick={() => {
+                        onSync(audit);
+                        onShowToast?.('Berhasil menyimpan dan mensinkronkan jadwal pengerjaan audit!', 'success');
+                      }}
+                      className="px-4 py-2 bg-peach-accent text-dark-gray text-xs font-black rounded-xl hover:opacity-90 transition border border-dark-gray/10 shadow-sm cursor-pointer"
+                    >
+                      Simpan & Sinkronkan Jadwal
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Active Category Header Card */}
           {activeCategory && (
             <div className="bg-dark-gray text-white rounded-xl p-5 border border-white/5 shadow-md">
               <div className="flex items-start justify-between gap-3">
@@ -1169,6 +1399,8 @@ export default function AuditWorkspaceView({
               );
             })}
           </div>
+          </>
+          )}
         </div>
       </div>
 
