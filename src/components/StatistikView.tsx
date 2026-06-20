@@ -3,13 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { OpdAudit } from '../types';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import { TrendingUp, CheckCircle, AlertTriangle, FileText, Activity } from 'lucide-react';
+import {
+  TrendingUp, CheckCircle, AlertTriangle, FileText, Activity,
+  Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight
+} from 'lucide-react';
 
 interface StatistikViewProps {
   audits: OpdAudit[];
@@ -42,7 +45,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+type SortKey = 'opdName' | 'opdType' | 'auditType' | 'fiscalYear' | 'auditorName' | 'status' | 'progress' | 'temuan' | 'nilai';
+type SortDir = 'asc' | 'desc';
+
+const PAGE_SIZE = 10;
+
 export default function StatistikView({ audits }: StatistikViewProps) {
+  // --- Rekap table state ---
+  const [search, setSearch] = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>('fiscalYear');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [page, setPage] = useState(1);
+
+  // --- Chart data ---
   const statusData = useMemo(() => {
     const counts: Record<string, number> = { 'Draft': 0, 'Sedang Berjalan': 0, 'Direview': 0, 'Selesai': 0 };
     audits.forEach(a => { counts[a.status] = (counts[a.status] || 0) + 1; });
@@ -89,6 +104,96 @@ export default function StatistikView({ audits }: StatistikViewProps) {
   }, [audits]);
 
   const completionPct = totals.kka > 0 ? Math.round((totals.selesai / totals.kka) * 100) : 0;
+
+  // --- Rekap rows with computed fields ---
+  const rekapRows = useMemo(() => {
+    return audits.map(a => {
+      let temuan = 0, nilai = 0;
+      a.categories.forEach(c => c.items.forEach(i => {
+        if (i.status === 'Temuan') { temuan++; nilai += i.nilaiTemuan || 0; }
+      }));
+      return { audit: a, temuan, nilai };
+    });
+  }, [audits]);
+
+  // Grand total for footer
+  const grandTotal = useMemo(() => ({
+    temuan: rekapRows.reduce((s, r) => s + r.temuan, 0),
+    nilai: rekapRows.reduce((s, r) => s + r.nilai, 0),
+  }), [rekapRows]);
+
+  // Sort helper
+  const handleSort = useCallback((key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+    setPage(1);
+  }, [sortKey]);
+
+  // Filtered & sorted rows
+  const filteredRows = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    let rows = q
+      ? rekapRows.filter(r =>
+          r.audit.opdName.toLowerCase().includes(q) ||
+          r.audit.opdType.toLowerCase().includes(q) ||
+          r.audit.auditType.toLowerCase().includes(q) ||
+          r.audit.fiscalYear.includes(q) ||
+          r.audit.auditorName.toLowerCase().includes(q) ||
+          r.audit.status.toLowerCase().includes(q)
+        )
+      : [...rekapRows];
+
+    rows.sort((a, b) => {
+      let va: any, vb: any;
+      switch (sortKey) {
+        case 'opdName':     va = a.audit.opdName;       vb = b.audit.opdName;       break;
+        case 'opdType':     va = a.audit.opdType;       vb = b.audit.opdType;       break;
+        case 'auditType':   va = a.audit.auditType;     vb = b.audit.auditType;     break;
+        case 'fiscalYear':  va = a.audit.fiscalYear;    vb = b.audit.fiscalYear;    break;
+        case 'auditorName': va = a.audit.auditorName;   vb = b.audit.auditorName;   break;
+        case 'status':      va = a.audit.status;        vb = b.audit.status;        break;
+        case 'progress':    va = a.audit.progress;      vb = b.audit.progress;      break;
+        case 'temuan':      va = a.temuan;              vb = b.temuan;              break;
+        case 'nilai':       va = a.nilai;               vb = b.nilai;               break;
+        default:            va = a.audit.fiscalYear;    vb = b.audit.fiscalYear;
+      }
+      if (typeof va === 'number') return sortDir === 'asc' ? va - vb : vb - va;
+      return sortDir === 'asc'
+        ? String(va).localeCompare(String(vb), 'id')
+        : String(vb).localeCompare(String(va), 'id');
+    });
+
+    return rows;
+  }, [rekapRows, search, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const pagedRows = filteredRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Reset page on search change
+  const handleSearch = (v: string) => { setSearch(v); setPage(1); };
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3 h-3 opacity-30" />;
+    return sortDir === 'asc'
+      ? <ArrowUp className="w-3 h-3 text-peach-accent" />
+      : <ArrowDown className="w-3 h-3 text-peach-accent" />;
+  };
+
+  const ThSort = ({ k, label, className = '' }: { k: SortKey; label: string; className?: string }) => (
+    <th
+      className={`px-3 py-3 cursor-pointer select-none group ${className}`}
+      onClick={() => handleSort(k)}
+    >
+      <div className="flex items-center gap-1 group-hover:text-slate-700 transition-colors">
+        {label}
+        <SortIcon k={k} />
+      </div>
+    </th>
+  );
 
   const EmptyState = () => (
     <div className="h-48 flex flex-col items-center justify-center text-slate-300 gap-2">
@@ -227,53 +332,200 @@ export default function StatistikView({ audits }: StatistikViewProps) {
         )}
       </div>
 
-      {/* Tabel rekap */}
+      {/* ═══════════════════════════════════════════════════════
+          REKAP LENGKAP KKA — Improved Table
+          ═══════════════════════════════════════════════════════ */}
       {audits.length > 0 && (
         <div className="bg-white rounded-2xl border border-dark-gray/10 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h3 className="font-extrabold text-dark-gray text-sm">Rekap Lengkap KKA</h3>
+          {/* Header + Search */}
+          <div className="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3 className="font-extrabold text-dark-gray text-sm">Rekap Lengkap KKA</h3>
+              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                {filteredRows.length} dari {rekapRows.length} KKA
+                {search && <span className="text-peach-accent ml-1">· filter aktif</span>}
+              </p>
+            </div>
+            {/* Search box */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => handleSearch(e.target.value)}
+                placeholder="Cari nama, tipe, auditor…"
+                className="w-full pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent placeholder:text-slate-300 transition-all"
+              />
+            </div>
           </div>
+
+          {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+            <table className="w-full text-xs min-w-[860px]">
+              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[9px] sticky top-0 z-10">
                 <tr>
-                  <th className="text-left px-4 py-3">Objek Audit</th>
-                  <th className="text-left px-4 py-3">Tipe</th>
-                  <th className="text-left px-4 py-3">TA</th>
-                  <th className="text-center px-4 py-3">Status</th>
-                  <th className="text-center px-4 py-3">Temuan</th>
-                  <th className="text-right px-4 py-3">Nilai Temuan</th>
+                  <th className="text-left px-3 py-3 w-8">#</th>
+                  <ThSort k="opdName"     label="Objek Audit"   className="text-left" />
+                  <ThSort k="opdType"     label="Tipe"          className="text-left" />
+                  <ThSort k="auditType"   label="Jenis Audit"   className="text-left" />
+                  <ThSort k="fiscalYear"  label="TA"            className="text-left" />
+                  <ThSort k="auditorName" label="Auditor"       className="text-left" />
+                  <ThSort k="status"      label="Status"        className="text-center" />
+                  <ThSort k="progress"    label="Progres"       className="text-center" />
+                  <ThSort k="temuan"      label="Temuan"        className="text-center" />
+                  <ThSort k="nilai"       label="Nilai Temuan"  className="text-right" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {audits.map(a => {
-                  let temuan = 0, nilai = 0;
-                  a.categories.forEach(c => c.items.forEach(i => { if (i.status === 'Temuan') { temuan++; nilai += i.nilaiTemuan || 0; } }));
+                {pagedRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="text-center py-12 text-slate-300 text-xs font-bold italic">
+                      Tidak ada data yang cocok
+                    </td>
+                  </tr>
+                ) : pagedRows.map((r, idx) => {
+                  const globalIdx = (page - 1) * PAGE_SIZE + idx + 1;
+                  const a = r.audit;
+                  const prog = Math.min(100, Math.max(0, a.progress ?? 0));
+                  const progColor =
+                    prog === 100 ? 'bg-emerald-400' :
+                    prog >= 50   ? 'bg-blue-400'    :
+                    prog > 0     ? 'bg-amber-400'   : 'bg-slate-200';
+
                   return (
-                    <tr key={a.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-4 py-3 font-bold text-slate-800 max-w-[200px] truncate">{a.opdName}</td>
-                      <td className="px-4 py-3 text-slate-500">{a.opdType}</td>
-                      <td className="px-4 py-3 font-mono text-slate-500">{a.fiscalYear}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase border ${
-                          a.status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                          a.status === 'Direview' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                    <tr key={a.id} className="hover:bg-slate-50/60 transition-colors">
+                      {/* No. */}
+                      <td className="px-3 py-3 text-slate-300 font-mono font-bold text-[10px]">{globalIdx}</td>
+
+                      {/* Objek Audit */}
+                      <td className="px-3 py-3">
+                        <span className="font-bold text-slate-800 block max-w-[180px] truncate" title={a.opdName}>
+                          {a.opdName}
+                        </span>
+                      </td>
+
+                      {/* Tipe */}
+                      <td className="px-3 py-3 text-slate-500 whitespace-nowrap">{a.opdType}</td>
+
+                      {/* Jenis Audit */}
+                      <td className="px-3 py-3 text-slate-500 whitespace-nowrap max-w-[120px] truncate" title={a.auditType}>
+                        {a.auditType || <span className="text-slate-300">&mdash;</span>}
+                      </td>
+
+                      {/* TA */}
+                      <td className="px-3 py-3 font-mono text-slate-500 whitespace-nowrap">{a.fiscalYear}</td>
+
+                      {/* Auditor */}
+                      <td className="px-3 py-3 text-slate-500 whitespace-nowrap max-w-[130px] truncate" title={a.auditorName}>
+                        {a.auditorName || <span className="text-slate-300">&mdash;</span>}
+                      </td>
+
+                      {/* Status badge */}
+                      <td className="px-3 py-3 text-center">
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase border whitespace-nowrap ${
+                          a.status === 'Selesai'         ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          a.status === 'Direview'        ? 'bg-amber-50 text-amber-700 border-amber-200' :
                           a.status === 'Sedang Berjalan' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                          'bg-slate-100 text-slate-500 border-slate-200'
+                                                           'bg-slate-100 text-slate-500 border-slate-200'
                         }`}>{a.status}</span>
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        {temuan > 0 ? <span className="font-black text-rose-600 font-mono">{temuan}</span> : <span className="text-slate-300">\u2014</span>}
+
+                      {/* Progres mini-bar */}
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2 justify-center">
+                          <div className="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className={`h-1.5 rounded-full transition-all duration-500 ${progColor}`}
+                              style={{ width: `${prog}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] font-mono font-bold text-slate-500 w-7 text-right">{prog}%</span>
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-right font-mono text-slate-600">
-                        {nilai > 0 ? formatRupiah(nilai) : <span className="text-slate-300">\u2014</span>}
+
+                      {/* Temuan count */}
+                      <td className="px-3 py-3 text-center">
+                        {r.temuan > 0
+                          ? <span className="font-black text-rose-600 font-mono bg-rose-50 px-1.5 py-0.5 rounded-md">{r.temuan}</span>
+                          : <span className="text-slate-300">&mdash;</span>
+                        }
+                      </td>
+
+                      {/* Nilai Temuan */}
+                      <td className="px-3 py-3 text-right font-mono text-slate-600 whitespace-nowrap">
+                        {r.nilai > 0 ? formatRupiah(r.nilai) : <span className="text-slate-300">&mdash;</span>}
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
+
+              {/* Grand total footer */}
+              {filteredRows.length > 0 && (
+                <tfoot>
+                  <tr className="bg-slate-50 border-t-2 border-slate-200 font-black text-slate-700 text-[10px]">
+                    <td className="px-3 py-3 text-slate-400" colSpan={8}>
+                      Total ({filteredRows.length} KKA)
+                    </td>
+                    <td className="px-3 py-3 text-center text-rose-600 font-mono">
+                      {grandTotal.temuan > 0 ? grandTotal.temuan : <span className="text-slate-300">&mdash;</span>}
+                    </td>
+                    <td className="px-3 py-3 text-right font-mono text-slate-700">
+                      {grandTotal.nilai > 0 ? formatRupiah(grandTotal.nilai) : <span className="text-slate-300">&mdash;</span>}
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-3 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 font-semibold">
+                Halaman {page} dari {totalPages}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                  .reduce<(number | '...')[]>((acc, p, i, arr) => {
+                    if (i > 0 && typeof arr[i - 1] === 'number' && (p as number) - (arr[i - 1] as number) > 1) {
+                      acc.push('...');
+                    }
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((p, i) =>
+                    p === '...'
+                      ? <span key={`ellipsis-${i}`} className="px-1 text-[10px] text-slate-300">…</span>
+                      : <button
+                          key={p}
+                          onClick={() => setPage(p as number)}
+                          className={`min-w-[28px] h-7 rounded-lg text-[10px] font-bold border transition-colors ${
+                            page === p
+                              ? 'bg-peach-accent text-white border-peach-accent'
+                              : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                          }`}
+                        >{p}</button>
+                  )
+                }
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
