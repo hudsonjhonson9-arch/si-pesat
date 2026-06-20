@@ -260,8 +260,8 @@ export default function AuditWorkspaceView({
   }, [templates, audit.categories]);
 
   // Check if current user is a member of any category team (Auditor access control)
-  // Admin & struktural selalu punya akses penuh, tidak perlu dicek keanggotaan tim
-  const isTeamMember = isAdmin || STRUKTURAL_ROLES.includes(userRole) || !FUNGSIONAL_ROLES.includes(userRole) || !currentUserName || audit.categories.some(cat => {
+  // Struktural selalu punya akses penuh, tidak perlu dicek keanggotaan tim
+  const isTeamMember = STRUKTURAL_ROLES.includes(userRole) || !FUNGSIONAL_ROLES.includes(userRole) || !currentUserName || audit.categories.some(cat => {
     const currNameLower = currentUserName.toLowerCase().trim();
     return (cat.auditorName || '').toLowerCase().trim() === currNameLower ||
            (cat.teamMembers || []).some(m => m.toLowerCase().trim() === currNameLower);
@@ -269,10 +269,10 @@ export default function AuditWorkspaceView({
 
   // isReadOnly: admin dan struktural TIDAK pernah readonly kecuali audit sudah Selesai total
   const isReadOnly = !isTeamMember ||
-    (FUNGSIONAL_ROLES.includes(userRole) && !isAdmin && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
-    ((STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (activeCategory?.status === 'Selesai' && audit.status === 'Selesai'));
+    (FUNGSIONAL_ROLES.includes(userRole) && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
+    (STRUKTURAL_ROLES.includes(userRole) && (activeCategory?.status === 'Selesai' && audit.status === 'Selesai'));
 
-  const isReviewerPanelVisible = (STRUKTURAL_ROLES.includes(userRole) || isAdmin);
+  const isReviewerPanelVisible = STRUKTURAL_ROLES.includes(userRole);
 
   // Handle saving general metadata updates
   const handleSaveMetadata = () => {
@@ -630,7 +630,7 @@ export default function AuditWorkspaceView({
                   <span className="text-[10px] bg-white/40 px-2 py-0.5 rounded font-extrabold text-dark-gray uppercase">
                     Profil Auditi
                   </span>
-                  {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (
+                  {STRUKTURAL_ROLES.includes(userRole) && (
                     <button
                       onClick={() => setIsEditingMetadata(true)}
                       className="p-1 text-dark-gray hover:text-dark-gray/80 rounded transition cursor-pointer"
@@ -743,7 +743,7 @@ export default function AuditWorkspaceView({
             <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3 text-dark-gray">
               <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
                 <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Jenis Audit Pemeriksaan</span>
-                {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && !isReadOnly && (
+                {STRUKTURAL_ROLES.includes(userRole) && !isReadOnly && (
                   <button
                     onClick={() => setIsAddingCategory(true)}
                     className="text-xs text-dark-gray hover:text-dark-gray/70 inline-flex items-center gap-0.5 font-extrabold cursor-pointer"
@@ -792,7 +792,7 @@ export default function AuditWorkspaceView({
                         )}
 
                         {/* Delete category button */}
-                        {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && !isReadOnly && (
+                        {STRUKTURAL_ROLES.includes(userRole) && !isReadOnly && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -896,7 +896,7 @@ export default function AuditWorkspaceView({
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
                           <input
                             type="date"
-                             disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                             disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                              value={m.startDate || ''}
                             onChange={(e) => {
                               const updated = [...milestones];
@@ -910,7 +910,7 @@ export default function AuditWorkspaceView({
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
                           <input
                             type="date"
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                             value={m.targetDate}
                             onChange={(e) => {
                               const updated = [...milestones];
@@ -925,7 +925,7 @@ export default function AuditWorkspaceView({
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Realisasi</label>
                           <input
                             type="date"
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                             value={m.actualDate || ''}
                             onChange={(e) => {
                               const updated = [...milestones];
@@ -939,7 +939,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Status Tahap</label>
                           <select
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                             value={m.status}
                             onChange={(e) => {
                               const updated = [...milestones];
@@ -963,7 +963,7 @@ export default function AuditWorkspaceView({
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Catatan Pemantauan</label>
                           <input
                             type="text"
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                             placeholder="Tulis progres atau hambatan pengerjaan..."
                             value={m.notes || ''}
                             onChange={(e) => {
@@ -1003,7 +1003,7 @@ export default function AuditWorkspaceView({
                 <div className="space-y-1.5">
                   <h3 className="text-base font-extrabold tracking-tight text-white leading-tight flex items-center gap-2">
                     {activeCategory.name}
-                    {(currentUserName === activeCategory.auditorName || STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (
+                    {(currentUserName === activeCategory.auditorName || STRUKTURAL_ROLES.includes(userRole)) && (
                       <button onClick={openEditCategoryTeam} className="p-1 hover:bg-white/10 rounded cursor-pointer transition-colors" title="Edit Tim & Tahun Jenis Audit">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -1076,7 +1076,7 @@ export default function AuditWorkspaceView({
                         </button>
                       )}
 
-                      {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && activeCategory.status === 'Direview' && (
+                      {STRUKTURAL_ROLES.includes(userRole) && activeCategory.status === 'Direview' && (
                         <>
                           <button
                             onClick={() => {
@@ -1222,7 +1222,7 @@ export default function AuditWorkspaceView({
                           <input
                             type="text"
                             list={`klasifikasi-options-${item.id}`}
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                             value={item.jenisTemuan || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'jenisTemuan', e.target.value)}
                             placeholder="Ketik klasifikasi temuan..."
@@ -1245,7 +1245,7 @@ export default function AuditWorkspaceView({
                               Rp
                             </span>
                             <input
-                              disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                              disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                               type="number"
                               placeholder="Misal: 1000000"
                               value={item.nilaiTemuan || ''}
@@ -1261,7 +1261,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide block">Uraian Penyimpangan / Detail Temuan</label>
                           <textarea
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                             placeholder="Uraikan temuan fisik secara detail, nominal, dan nomor berkas kuitansi terkait..."
                             value={item.uraianTemuan || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'uraianTemuan', e.target.value)}
@@ -1273,7 +1273,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide block">Rekomendasi Tindak Lanjut Inspektorat</label>
                           <textarea
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
                             placeholder="Rekomendasi tindakan hukum/administratif, pengembalian kas, atau peneguran tertulis..."
                             value={item.rekomendasi || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'rekomendasi', e.target.value)}
@@ -1359,7 +1359,7 @@ export default function AuditWorkspaceView({
                       )}
                     </div>
 
-                    {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (item.status === 'Temuan' || item.status === 'Sesuai') && (
+                    {STRUKTURAL_ROLES.includes(userRole) && (item.status === 'Temuan' || item.status === 'Sesuai') && (
                       <div className="bg-blue-50 border border-blue-200 rounded p-2 flex items-start gap-2 mt-2">
                         <AlertTriangle className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
                         <p className="text-[10px] text-blue-800 font-semibold leading-relaxed">
