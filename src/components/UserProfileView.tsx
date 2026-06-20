@@ -111,7 +111,7 @@ export default function UserProfileView({ currentUser, userRole, isAdmin = false
       </div>
 
       {/* === PANEL UNTUK INSPEKTUR / IRBAN === */}
-      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur' || isAdmin) && (
+      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (
         <>
           {/* Pending Reviews */}
           <div className="bg-white rounded-2xl p-6 border border-dark-gray/10 shadow-sm">
@@ -246,7 +246,7 @@ export default function UserProfileView({ currentUser, userRole, isAdmin = false
       )}
 
       {/* === PANEL UNTUK AUDITOR === */}
-      {(FUNGSIONAL_ROLES.includes(userRole) || isAdmin) && (
+      {FUNGSIONAL_ROLES.includes(userRole) && (
         <div className="bg-white rounded-2xl p-6 border border-dark-gray/10 shadow-sm">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
