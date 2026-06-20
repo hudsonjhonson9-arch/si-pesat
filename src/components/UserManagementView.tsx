@@ -6,11 +6,19 @@
 import React, { useState, useMemo } from 'react';
 import { UserProfile } from '../types';
 import { supabase } from '../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import {
   Users, Search, ShieldCheck, Shield, User as UserIcon,
   Mail, Hash, Edit2, Save, X, AlertTriangle, RefreshCw,
-  Crown, Star, Smartphone, KeyRound,
+  Crown, Star, Smartphone, KeyRound, UserPlus, Eye, EyeOff, Lock,
 } from 'lucide-react';
+
+// Instance terpisah agar signup pengguna baru tidak mematikan sesi admin
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder_key';
+const secondarySupabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { storageKey: 'si_pesat_secondary_auth', autoRefreshToken: false, persistSession: false }
+});
 
 interface UserManagementViewProps {
   userProfiles: UserProfile[];
@@ -75,6 +83,80 @@ export default function UserManagementView({
   const [editIsAdmin, setEditIsAdmin] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // ── Tambah Pengguna Modal ──
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addEmail, setAddEmail] = useState('');
+  const [addPassword, setAddPassword] = useState('');
+  const [addFullName, setAddFullName] = useState('');
+  const [addRole, setAddRole] = useState<RoleType>('Auditor Pelaksana');
+  const [addNip, setAddNip] = useState('');
+  const [addGolongan, setAddGolongan] = useState('');
+  const [addPangkat, setAddPangkat] = useState('');
+  const [addIsAdmin, setAddIsAdmin] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+
+  const resetAddForm = () => {
+    setAddEmail(''); setAddPassword(''); setAddFullName('');
+    setAddRole('Auditor Pelaksana'); setAddNip('');
+    setAddGolongan(''); setAddPangkat('');
+    setAddIsAdmin(false); setAddError(null); setShowPassword(false);
+  };
+
+  const handleAddUser = async () => {
+    if (!addEmail.trim() || !addPassword.trim() || !addFullName.trim()) {
+      setAddError('Email, password, dan nama lengkap wajib diisi.');
+      return;
+    }
+    if (addPassword.length < 8) {
+      setAddError('Password minimal 8 karakter.');
+      return;
+    }
+    setIsAdding(true);
+    setAddError(null);
+    try {
+      // Daftarkan via instance terpisah agar sesi admin tidak terputus
+      const { data, error: signUpError } = await secondarySupabase.auth.signUp({
+        email: addEmail.trim(),
+        password: addPassword,
+        options: { data: { full_name: addFullName.trim() } },
+      });
+      if (signUpError) throw signUpError;
+      if (!data.user) throw new Error('Gagal membuat akun — coba lagi.');
+
+      // Upsert profil langsung ke tabel profiles
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: data.user.id,
+        email: addEmail.trim(),
+        full_name: addFullName.trim(),
+        role: addRole,
+        nip: addNip.trim() || null,
+        golongan: addGolongan || null,
+        pangkat: addPangkat.trim() || null,
+        is_admin: addIsAdmin,
+      }, { onConflict: 'id' });
+      if (profileError) throw profileError;
+
+      // Sign out instance terpisah agar bersih
+      await secondarySupabase.auth.signOut();
+
+      onShowToast?.(`Pengguna ${addFullName.trim()} berhasil ditambahkan.`, 'success');
+      setShowAddModal(false);
+      resetAddForm();
+      onRefreshProfiles?.();
+    } catch (err: any) {
+      const msg = err?.message || JSON.stringify(err);
+      if (msg.includes('already registered') || msg.includes('already been registered')) {
+        setAddError('Email sudah terdaftar. Gunakan email lain.');
+      } else {
+        setAddError(`Gagal: ${msg}`);
+      }
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   const canEdit = currentUserRole === 'Inspektur' || currentUserRole === 'Inspektur Pembantu' || isAdmin;
   const canEditRole = currentUserRole === 'Inspektur' || isAdmin;
@@ -189,9 +271,17 @@ export default function UserManagementView({
           </h2>
           <p className="text-xs text-dark-gray/60 mt-1">Kelola peran, data kepegawaian, dan hak akses pengguna sistem SI-PESAT.</p>
         </div>
-        <button onClick={handleRefresh} className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl bg-white border border-dark-gray/15 text-dark-gray hover:bg-baby-blue transition-all shadow-sm cursor-pointer">
-          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} /> Perbarui
-        </button>
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <button onClick={() => { resetAddForm(); setShowAddModal(true); }}
+              className="inline-flex items-center gap-2 text-xs font-black px-4 py-2 rounded-xl bg-dark-gray text-white hover:bg-dark-gray/85 transition-all shadow-sm cursor-pointer">
+              <UserPlus className="w-3.5 h-3.5" /> Tambah Pengguna
+            </button>
+          )}
+          <button onClick={handleRefresh} className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl bg-white border border-dark-gray/15 text-dark-gray hover:bg-baby-blue transition-all shadow-sm cursor-pointer">
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} /> Perbarui
+          </button>
+        </div>
       </div>
 
       {/* Stats Row */}
@@ -450,7 +540,146 @@ export default function UserManagementView({
         )}
       </div>
 
-      {/* Info box */}
+      {/* ── Modal Tambah Pengguna ── */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={e => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-dark-gray/10 overflow-hidden animate-fade-in">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-baby-blue">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-dark-gray rounded-xl flex items-center justify-center">
+                  <UserPlus className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-dark-gray text-sm">Tambah Pengguna Baru</h3>
+                  <p className="text-[10px] text-dark-gray/60 font-semibold">Daftarkan akun pengguna SI-PESAT</p>
+                </div>
+              </div>
+              <button onClick={() => { setShowAddModal(false); resetAddForm(); }} className="p-1.5 hover:bg-white/50 rounded-lg transition">
+                <X className="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+              {addError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                  <p className="text-xs font-semibold text-red-700">{addError}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Nama Lengkap */}
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap <span className="text-red-400">*</span></label>
+                  <input type="text" value={addFullName} onChange={e => setAddFullName(e.target.value)}
+                    placeholder="Contoh: Budi Santoso, S.Ak."
+                    className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
+                </div>
+
+                {/* Email */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Mail className="w-3 h-3" /> Email <span className="text-red-400">*</span></label>
+                  <input type="email" value={addEmail} onChange={e => setAddEmail(e.target.value)}
+                    placeholder="pegawai@example.com"
+                    className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Lock className="w-3 h-3" /> Password Awal <span className="text-red-400">*</span></label>
+                  <div className="relative">
+                    <input type={showPassword ? 'text' : 'password'} value={addPassword} onChange={e => setAddPassword(e.target.value)}
+                      placeholder="Min. 8 karakter"
+                      className="w-full text-xs font-bold border border-slate-200 p-2.5 pr-9 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
+                    <button type="button" onClick={() => setShowPassword(v => !v)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-slate-400 font-semibold">Pengguna dapat mengubah password setelah login pertama.</p>
+                </div>
+
+                {/* Role */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peran / Role</label>
+                  <select value={addRole} onChange={e => setAddRole(e.target.value as RoleType)}
+                    className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all">
+                    {ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+
+                {/* NIP */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Hash className="w-3 h-3" /> NIP</label>
+                  <input type="text" value={addNip} onChange={e => setAddNip(e.target.value)}
+                    placeholder="198001012005011001"
+                    className="w-full text-xs font-bold font-mono border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
+                </div>
+
+                {/* Golongan */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Golongan</label>
+                  <select value={addGolongan} onChange={e => setAddGolongan(e.target.value)}
+                    className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all">
+                    <option value="">— Pilih Golongan —</option>
+                    {['I/a','I/b','I/c','I/d','II/a','II/b','II/c','II/d','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c','IV/d','IV/e'].map(g => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Pangkat */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pangkat</label>
+                  <input type="text" value={addPangkat} onChange={e => setAddPangkat(e.target.value)}
+                    placeholder="Contoh: Penata Muda, Pembina..."
+                    className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
+                </div>
+
+                {/* Admin Toggle */}
+                {canEditRole && (
+                  <div className="md:col-span-2">
+                    <button type="button" onClick={() => setAddIsAdmin(v => !v)}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${addIsAdmin ? 'bg-purple-50 border-purple-200' : 'bg-slate-50 border-slate-200'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${addIsAdmin ? 'bg-purple-100' : 'bg-slate-100'}`}>
+                          <ShieldCheck className={`w-4 h-4 ${addIsAdmin ? 'text-purple-600' : 'text-slate-400'}`} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-bold text-slate-700">Administrator Sistem</p>
+                          <p className="text-[10px] text-slate-500">{addIsAdmin ? 'Aktif — dapat mengedit data pegawai & KKA' : 'Nonaktif — akses standar sesuai peran'}</p>
+                        </div>
+                      </div>
+                      <div className={`relative w-11 h-6 rounded-full transition-colors border-2 ${addIsAdmin ? 'bg-purple-500 border-purple-600' : 'bg-slate-300 border-slate-400'}`}>
+                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${addIsAdmin ? 'translate-x-5' : 'translate-x-0'}`} />
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 flex gap-2 bg-slate-50/50">
+              <button onClick={() => { setShowAddModal(false); resetAddForm(); }}
+                className="flex-1 text-xs py-2.5 rounded-xl font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                Batal
+              </button>
+              <button onClick={handleAddUser} disabled={isAdding}
+                className="flex-1 text-xs py-2.5 rounded-xl font-black bg-dark-gray text-white hover:bg-dark-gray/85 transition cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5 shadow-sm">
+                {isAdding
+                  ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Mendaftarkan...</>
+                  : <><UserPlus className="w-3.5 h-3.5" /> Daftarkan Pengguna</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Info box */
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
         <Shield className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
         <div>
