@@ -88,10 +88,10 @@ export default function App() {
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
 
   // Simulated internal account role ('Auditor' | 'Inspektur Pembantu' | 'Inspektur')
-  const [userRole, setUserRole] = useState<'Auditor' | 'Inspektur Pembantu' | 'Inspektur'>(() => {
-    const cached = localStorage.getItem('si_pesat_user_role');
-    return (cached as 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') || 'Auditor';
-  });
+  const [userRole, setUserRole] = useState<string>(
+    localStorage.getItem('si_pesat_user_role') || 'Auditor Pelaksana'
+  );
+  const [isAdmin, setIsAdmin] = useState(localStorage.getItem('si_pesat_is_admin') === 'true');
 
   // Session Login gate state
   const [isSessionActive, setIsSessionActive] = useState<boolean>(() => {
@@ -274,6 +274,10 @@ export default function App() {
     localStorage.setItem('si_pesat_user_role', userRole);
   }, [userRole]);
 
+  useEffect(() => {
+    localStorage.setItem('si_pesat_is_admin', JSON.stringify(isAdmin));
+  }, [isAdmin]);
+
 
   // Supabase Background Sync (Debounced)
   useEffect(() => {
@@ -368,9 +372,12 @@ export default function App() {
           if (!error && data) setUserProfiles(data as UserProfile[]);
         });
 
-        supabase.from('profiles').select('role').eq('id', session.user.id).single()
+        supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
           .then(({ data }) => {
-             if (data?.role) setUserRole(data.role as any);
+             if (data) {
+               if (data.role) setUserRole(data.role as any);
+               setIsAdmin(data.is_admin || false);
+             }
           });
       }
     });
@@ -392,13 +399,17 @@ export default function App() {
            if (!error && data) setTargetEntities(data as TargetEntity[]);
          });
 
-         supabase.from('profiles').select('role').eq('id', session.user.id).single()
-           .then(({ data }) => {
-              if (data?.role) {
-                setUserRole(data.role as any);
-                localStorage.setItem('si_pesat_user_role', data.role);
-              }
-           });
+         supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
+            .then(({ data }) => {
+               if (data) {
+                 if (data.role) {
+                   setUserRole(data.role as any);
+                   localStorage.setItem('si_pesat_user_role', data.role);
+                 }
+                 setIsAdmin(data.is_admin || false);
+                 localStorage.setItem('si_pesat_is_admin', JSON.stringify(data.is_admin));
+               }
+            });
       } else {
          setIsSessionActive(false);
          localStorage.removeItem('si_pesat_session_active');
@@ -425,13 +436,15 @@ export default function App() {
     }
   };
 
-  const handleSessionLogin = (name: string, role: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') => {
+  const handleSessionLogin = (name: string, role: string) => {
     setCustomAuditorName(name);
     setUserRole(role);
+    setIsAdmin(false);
     setIsSessionActive(true);
     localStorage.setItem('si_pesat_session_active', 'true');
     localStorage.setItem('si_pesat_custom_name', name);
     localStorage.setItem('si_pesat_user_role', role);
+    localStorage.setItem('si_pesat_is_admin', 'false');
     showToast(`Berhasil masuk offline sebagai ${name} (${role})`, 'success');
   };
 
@@ -620,6 +633,7 @@ export default function App() {
           isDriveConnected={true}
           isSyncing={isSyncing}
           userRole={userRole}
+          isAdmin={isAdmin}
           userProfiles={userProfiles}
           onShowToast={showToast}
           currentUserName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
@@ -630,7 +644,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)} userRole={userRole} />;
+        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)} userRole={userRole} isAdmin={isAdmin} />;
       case 'audits':
         return (
           <AuditListView
@@ -643,6 +657,7 @@ export default function App() {
             onSyncToDrive={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
             isDriveConnected={true}
             userRole={userRole}
+            isAdmin={isAdmin}
             defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || customAuditorName || ''}
             userProfiles={userProfiles}
           />
@@ -669,6 +684,7 @@ export default function App() {
           <UserManagementView
             userProfiles={userProfiles}
             currentUserRole={userRole}
+            isAdmin={isAdmin}
             currentUserId={user?.id}
             onShowToast={showToast}
             onRefreshProfiles={() => {
@@ -683,6 +699,7 @@ export default function App() {
           <UserProfileView
             currentUser={userProfiles.find(p => p.id === user?.id) || null}
             userRole={userRole}
+            isAdmin={isAdmin}
             audits={audits}
             onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
           />
@@ -791,7 +808,7 @@ export default function App() {
               >
                 <PieChart className="w-4 h-4" /> Statistik
               </button>
-              {['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) && (
+              {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
                 <button
                   onClick={() => navigateTo('jenis-audit')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
@@ -833,9 +850,7 @@ export default function App() {
             <div className="flex items-center gap-3">
             <div className="hidden md:flex flex-col items-end mr-2">
             <span className="text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-0.5 rounded-sm border border-dark-gray/10 shadow-xs uppercase tracking-wider mb-0.5">
-            {userRole === 'Auditor' && '🕵️ Auditor'}
-            {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
-            {userRole === 'Inspektur' && '👑 Inspektur'}
+            {userRole === 'Inspektur' ? '👑 Inspektur' : userRole === 'Inspektur Pembantu' ? '🔍 Irban' : userRole}
             </span>
             <button
                 onClick={() => navigateTo('profil')}
@@ -847,9 +862,7 @@ export default function App() {
               
               {/* Mobile compact role */}
               <span className="md:hidden text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-1 rounded-md border border-dark-gray/10 shadow-xs">
-                {userRole === 'Auditor' && '🕵️ Auditor'}
-                {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
-                {userRole === 'Inspektur' && '👑 Inspektur'}
+                {userRole === 'Inspektur' ? '👑 Inspektur' : userRole === 'Inspektur Pembantu' ? '🔍 Irban' : userRole}
               </span>
 
               <button
@@ -877,7 +890,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16 pb-safe">
-          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu'].includes(userRole) ? 'grid-cols-7' : ['Admin'].includes(userRole) ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu'].includes(userRole) ? 'grid-cols-7' : isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <button
               onClick={() => navigateTo('dashboard')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -918,7 +931,7 @@ export default function App() {
               <span className="text-[9px] tracking-wide">Mulai Audit</span>
             </button>
 
-            {['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) && (
+            {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
               <button
                 onClick={() => navigateTo('jenis-audit')}
                 className={`flex flex-col items-center justify-center gap-1 transition ${

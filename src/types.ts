@@ -16,6 +16,7 @@ export interface UserProfile {
   nip?: string;
   golongan?: string;
   pangkat?: string;
+  is_admin?: boolean;
 }
 
 export interface AuditItem {

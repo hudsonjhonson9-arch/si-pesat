@@ -10,11 +10,14 @@ import { CheckCircle, AlertTriangle, Clock, FileText, User, ChevronRight, Upload
 interface UserProfileViewProps {
   currentUser: UserProfile | null;
   userRole: string;
+  isAdmin?: boolean;
   audits: OpdAudit[];
   onSelectAudit: (audit: OpdAudit, catId?: string) => void;
 }
 
-export default function UserProfileView({ currentUser, userRole, audits, onSelectAudit }: UserProfileViewProps) {
+export default function UserProfileView({ currentUser, userRole, isAdmin = false, audits, onSelectAudit }: UserProfileViewProps) {
+  const FUNGSIONAL_ROLES = ['Auditor', 'Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia', 'Auditor Ahli Pertama', 'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama', 'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama'];
+
   const pendingReviews = audits.flatMap(a =>
     a.categories
       .filter(c => c.status === 'Direview')
@@ -69,7 +72,7 @@ export default function UserProfileView({ currentUser, userRole, audits, onSelec
   }, [audits]);
 
   const roleIcon = userRole === 'Inspektur' ? '👑' : userRole === 'Inspektur Pembantu' ? '🔍' : '🕵️';
-  const roleLabel = userRole === 'Inspektur' ? 'Inspektur' : userRole === 'Inspektur Pembantu' ? 'Inspektur Pembantu (Irban)' : 'Auditor';
+  const roleLabel = userRole === 'Inspektur' ? 'Inspektur' : userRole === 'Inspektur Pembantu' ? 'Inspektur Pembantu (Irban)' : userRole || 'Auditor Pelaksana';
 
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl mx-auto">
@@ -108,7 +111,7 @@ export default function UserProfileView({ currentUser, userRole, audits, onSelec
       </div>
 
       {/* === PANEL UNTUK INSPEKTUR / IRBAN === */}
-      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (
+      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur' || isAdmin) && (
         <>
           {/* Pending Reviews */}
           <div className="bg-white rounded-2xl p-6 border border-dark-gray/10 shadow-sm">
@@ -243,7 +246,7 @@ export default function UserProfileView({ currentUser, userRole, audits, onSelec
       )}
 
       {/* === PANEL UNTUK AUDITOR === */}
-      {userRole === 'Auditor' && (
+      {(FUNGSIONAL_ROLES.includes(userRole) || isAdmin) && (
         <div className="bg-white rounded-2xl p-6 border border-dark-gray/10 shadow-sm">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
