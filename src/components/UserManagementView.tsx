@@ -101,6 +101,13 @@ export default function UserManagementView({
       });
   }, [userProfiles, searchQuery, roleFilter]);
 
+  const FUNGSIONAL_COUNT = userProfiles.filter(p => 
+    ['Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
+     'Auditor Ahli Pertama', 'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
+     'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
+     'Auditor'].includes(p.role)
+  ).length;
+
   const roleCounts = useMemo(() => {
     const counts: Record<string, number> = { Semua: userProfiles.length };
     ROLE_OPTIONS.forEach(r => { counts[r] = userProfiles.filter(p => p.role === r).length; });
@@ -191,7 +198,7 @@ export default function UserManagementView({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Pengguna', value: userProfiles.length, icon: <Users className="w-5 h-5 text-slate-600" />, bg: 'bg-slate-100' },
-          { label: 'Auditor', value: roleCounts['Auditor'] || 0, icon: <UserIcon className="w-5 h-5 text-blue-600" />, bg: 'bg-blue-100' },
+          { label: 'Auditor Fungsional', value: FUNGSIONAL_COUNT, icon: <UserIcon className="w-5 h-5 text-blue-600" />, bg: 'bg-blue-100' },
           { label: 'Inspektur Pembantu', value: roleCounts['Inspektur Pembantu'] || 0, icon: <Star className="w-5 h-5 text-amber-600" />, bg: 'bg-amber-100' },
           { label: 'Inspektur', value: roleCounts['Inspektur'] || 0, icon: <Crown className="w-5 h-5 text-purple-600" />, bg: 'bg-purple-100' },
         ].map((card, i) => (
@@ -241,7 +248,7 @@ export default function UserManagementView({
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
           <h3 className="font-extrabold text-dark-gray text-sm">
             Daftar Pengguna ({filteredProfiles.length})
-            <span className="ml-2 text-[10px] font-medium text-slate-400">diurutkan: Inspektur → Irban → Auditor</span>
+            <span className="ml-2 text-[10px] font-medium text-slate-400">diurutkan berdasarkan role dan golongan</span>
           </h3>
           {canEdit && (
             <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
@@ -449,7 +456,7 @@ export default function UserManagementView({
         <div>
           <p className="text-xs font-bold text-blue-800">Hak Akses Peran</p>
           <ul className="text-[11px] text-blue-700 mt-1.5 space-y-1">
-            <li>• <strong>Auditor</strong>: Mengerjakan KKA dan mengunggah bukti dokumen pada kategori yang ditugaskan.</li>
+            <li>• <strong>Auditor & PPUPD Fungsional</strong>: Mengerjakan KKA, mengunggah bukti dokumen, dan dapat ditugaskan sebagai Ketua Tim atau Anggota Tim sesuai jenjang.</li>
             <li>• <strong>Inspektur Pembantu (Irban)</strong>: Meninjau KKA, mengatur tim, mengedit profil OPD, dan mengelola pengguna.</li>
             <li>• <strong>Inspektur</strong>: Akses penuh termasuk mengubah peran pengguna, toggle MFA, dan pengaturan master sistem.</li>
           </ul>

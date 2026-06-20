@@ -88,10 +88,9 @@ export default function App() {
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
 
   // Simulated internal account role ('Auditor' | 'Inspektur Pembantu' | 'Inspektur')
-  const [userRole, setUserRole] = useState<'Auditor' | 'Inspektur Pembantu' | 'Inspektur'>(() => {
-    const cached = localStorage.getItem('si_pesat_user_role');
-    return (cached as 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') || 'Auditor';
-  });
+  const [userRole, setUserRole] = useState<string>(
+    localStorage.getItem('si_pesat_user_role') || 'Auditor Pelaksana'
+  );
   const [isAdmin, setIsAdmin] = useState(localStorage.getItem('si_pesat_is_admin') === 'true');
 
   // Session Login gate state
@@ -437,7 +436,7 @@ export default function App() {
     }
   };
 
-  const handleSessionLogin = (name: string, role: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur') => {
+  const handleSessionLogin = (name: string, role: string) => {
     setCustomAuditorName(name);
     setUserRole(role);
     setIsAdmin(false);
@@ -851,9 +850,7 @@ export default function App() {
             <div className="flex items-center gap-3">
             <div className="hidden md:flex flex-col items-end mr-2">
             <span className="text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-0.5 rounded-sm border border-dark-gray/10 shadow-xs uppercase tracking-wider mb-0.5">
-            {userRole === 'Auditor' && '🕵️ Auditor'}
-            {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
-            {userRole === 'Inspektur' && '👑 Inspektur'}
+            {userRole === 'Inspektur' ? '👑 Inspektur' : userRole === 'Inspektur Pembantu' ? '🔍 Irban' : userRole}
             </span>
             <button
                 onClick={() => navigateTo('profil')}
@@ -865,9 +862,7 @@ export default function App() {
               
               {/* Mobile compact role */}
               <span className="md:hidden text-[10px] font-black bg-peach-accent text-dark-gray px-2 py-1 rounded-md border border-dark-gray/10 shadow-xs">
-                {userRole === 'Auditor' && '🕵️ Auditor'}
-                {userRole === 'Inspektur Pembantu' && '🔍 Irban'}
-                {userRole === 'Inspektur' && '👑 Inspektur'}
+                {userRole === 'Inspektur' ? '👑 Inspektur' : userRole === 'Inspektur Pembantu' ? '🔍 Irban' : userRole}
               </span>
 
               <button

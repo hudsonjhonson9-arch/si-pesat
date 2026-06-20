@@ -1,0 +1,5 @@
+Task 1: complete (commits 16aa48f..c8670f0, review clean)
+Task 2: complete (commits c8670f0..d31928c, review clean)
+Task 3: complete (commits d31928c..58fd66f, review clean)
+  Minor: stats row still shows hardcoded 'Auditor' card (out of scope, noted pending)
+Task 4: complete (commits 58fd66f..92517b7, review clean)

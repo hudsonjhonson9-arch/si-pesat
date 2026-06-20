@@ -14,6 +14,7 @@ CREATE TABLE profiles (
 -- Add is_admin column and update role CHECK constraint for existing databases
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
 ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+UPDATE profiles SET role = 'Auditor Pelaksana' WHERE role = 'Auditor';
 ALTER TABLE profiles ADD CONSTRAINT profiles_role_check
   CHECK (role IN (
     'Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
@@ -27,7 +28,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, full_name, avatar_url, role)
-  VALUES (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', 'Auditor');
+  VALUES (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', 'Auditor Pelaksana');
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -115,4 +116,7 @@ INSERT INTO target_entities (name, type) VALUES
 ('Desa/Kelurahan se Kecamatan Loli', 'Desa'),
 ('Puskesmas Tanarara', 'Puskesmas'),
 ('Puskesmas Wee Karou', 'Puskesmas');
+
+-- Set admin for muthia.salsabila@google.com
+UPDATE profiles SET is_admin = true WHERE email = 'muthia.salsabila@google.com';
 
