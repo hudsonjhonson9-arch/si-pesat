@@ -815,7 +815,14 @@ export default function AuditWorkspaceView({
                       <div>
                         <div className="font-bold text-xs text-slate-800 leading-tight">{m.name}</div>
                         <div className="text-[10px] text-slate-500 mt-0.5">
-                          Target: <span className="font-mono">{m.targetDate ? new Date(m.targetDate).toLocaleDateString('id-ID', { dateStyle: 'medium' }) : '-'}</span>
+                          {m.startDate && (
+                            <span>{new Date(m.startDate).toLocaleDateString('id-ID', { dateStyle: 'medium' })} → </span>
+                          )}
+                          <span className="font-mono">{m.targetDate ? new Date(m.targetDate).toLocaleDateString('id-ID', { dateStyle: 'medium' }) : '-'}</span>
+                          {m.startDate && m.targetDate && (() => {
+                            const days = Math.floor((new Date(m.targetDate).getTime() - new Date(m.startDate).getTime()) / (1000*60*60*24));
+                            return days > 0 ? <span className="ml-1 text-slate-400">({days} hari)</span> : null;
+                          })()}
                         </div>
                         {m.actualDate && (
                           <div className="text-[10px] text-emerald-700 font-bold mt-0.5">
@@ -867,9 +874,23 @@ export default function AuditWorkspaceView({
                         </p>
                       </div>
                       
-                      <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-4 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Target</label>
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
+                          <input
+                            type="date"
+                            disabled={isReadOnly || userRole !== 'Auditor'}
+                            value={m.startDate || ''}
+                            onChange={(e) => {
+                              const updated = [...milestones];
+                              updated[index] = { ...m, startDate: e.target.value || undefined };
+                              handleUpdateSchedule(updated);
+                            }}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-400 outline-none text-slate-700"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
                           <input
                             type="date"
                             disabled={isReadOnly || userRole !== 'Auditor'}
@@ -921,7 +942,7 @@ export default function AuditWorkspaceView({
                           </select>
                         </div>
                         
-                        <div className="sm:col-span-3 space-y-1">
+                        <div className="sm:col-span-4 space-y-1">
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Catatan Pemantauan</label>
                           <input
                             type="text"

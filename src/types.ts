@@ -50,7 +50,8 @@ export interface AuditCategory {
 export interface AuditMilestone {
   id: string;
   name: string; // e.g., 'Perencanaan', 'Pelaksanaan / KKA', 'Penyusunan LHO / LHP', 'Pemantauan Tindak Lanjut'
-  targetDate: string;
+  startDate?: string;  // Tanggal mulai pemeriksaan
+  targetDate: string;  // Tanggal selesai / tenggat
   actualDate?: string;
   status: 'Belum Mulai' | 'Sedang Berjalan' | 'Selesai';
   notes?: string;

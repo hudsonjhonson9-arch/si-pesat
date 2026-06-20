@@ -4,10 +4,10 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { KKATemplate, OpdAudit, UserProfile, TargetEntity } from '../types';
+import { KKATemplate, OpdAudit, UserProfile, TargetEntity, AuditMilestone } from '../types';
 import {
   ArrowLeft, Plus, Trash2, ChevronDown, FileCheck, Building,
-  Calendar, User, Users, ClipboardList, Sparkles, X, Check
+  Calendar, User, Users, ClipboardList, Sparkles, X, Check, Clock
 } from 'lucide-react';
 
 interface CategoryDraft {
@@ -33,7 +33,8 @@ interface NewAuditViewProps {
     auditorName: string,
     teamMembers: string[],
     templateId: string,
-    initialCategoryId?: string
+    initialCategoryId?: string,
+    schedule?: AuditMilestone[]
   ) => void;
 }
 
@@ -55,6 +56,31 @@ export default function NewAuditView({
   const [categories, setCategories] = useState<CategoryDraft[]>([]);
   const [isAddingCat, setIsAddingCat] = useState(false);
   const [isOpdDropdownOpen, setIsOpdDropdownOpen] = useState(false);
+
+  // Jadwal milestone — user bisa atur tanggal mulai & selesai tiap tahap
+  const today = new Date().toISOString().split('T')[0];
+  const getFutureDate = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split('T')[0];
+  };
+
+  const [schedule, setSchedule] = useState<AuditMilestone[]>([
+    { id: 'milestone_1', name: 'Perencanaan', startDate: today, targetDate: getFutureDate(7), status: 'Sedang Berjalan', notes: 'Menyusun Surat Tugas dan KKA awal' },
+    { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(7), targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
+    { id: 'milestone_3', name: 'Penyusunan LHO / LHP', startDate: getFutureDate(21), targetDate: getFutureDate(30), status: 'Belum Mulai', notes: 'Penyusunan laporan hasil pemeriksaan' },
+    { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut', startDate: getFutureDate(30), targetDate: getFutureDate(45), status: 'Belum Mulai', notes: 'Verifikasi tindak lanjut atas temuan LHP' },
+  ]);
+
+  const updateMilestone = (id: string, field: keyof AuditMilestone, value: string) => {
+    setSchedule(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
+  };
+
+  const getDayCount = (startDate: string | undefined, endDate: string) => {
+    if (!startDate) return null;
+    const diff = Math.floor((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 0;
+  };
 
   // For the add-category panel
   const [selTemplateId, setSelTemplateId] = useState(templates[0]?.id || '');
@@ -126,7 +152,8 @@ export default function NewAuditView({
       firstCat.auditorName,
       firstCat.teamMembers,
       firstCat.templateId,
-      firstCat.categoryId
+      firstCat.categoryId,
+      schedule
     );
   };
 
@@ -419,6 +446,77 @@ export default function NewAuditView({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Section 3: Jadwal Pemeriksaan */}
+      <div className="bg-white rounded-2xl border border-dark-gray/10 shadow-sm p-6 space-y-4">
+        <h2 className="text-sm font-black text-dark-gray flex items-center gap-2">
+          <Clock className="w-4 h-4 text-peach-accent" />
+          Jadwal Pemeriksaan
+          <span className="text-[10px] font-normal text-dark-gray/50 ml-1">Atur tanggal mulai & selesai setiap tahap</span>
+        </h2>
+
+        <div className="space-y-3">
+          {schedule.map((m, idx) => {
+            const dayCount = getDayCount(m.startDate, m.targetDate);
+            return (
+              <div key={m.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0 ${
+                    idx === 0 ? 'bg-blue-500' : idx === 1 ? 'bg-amber-500' : idx === 2 ? 'bg-purple-500' : 'bg-emerald-500'
+                  }`}>{idx + 1}</div>
+                  <p className="text-xs font-black text-slate-800">{m.name}</p>
+                  {dayCount !== null && (
+                    <span className={`ml-auto text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                      dayCount === 0 ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                      dayCount <= 7 ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                      'bg-blue-50 text-blue-700 border-blue-200'
+                    }`}>
+                      {dayCount} hari
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
+                    <input
+                      type="date"
+                      value={m.startDate || ''}
+                      onChange={e => updateMilestone(m.id, 'startDate', e.target.value)}
+                      className="w-full text-xs font-bold border border-slate-200 px-2.5 py-1.5 rounded-lg bg-white text-slate-800 outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
+                    <input
+                      type="date"
+                      value={m.targetDate}
+                      min={m.startDate}
+                      onChange={e => updateMilestone(m.id, 'targetDate', e.target.value)}
+                      className="w-full text-xs font-bold border border-slate-200 px-2.5 py-1.5 rounded-lg bg-white text-slate-800 outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20"
+                    />
+                  </div>
+                </div>
+                {m.notes && (
+                  <p className="mt-2 text-[10px] text-slate-400 italic">{m.notes}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Ringkasan total durasi */}
+        {(() => {
+          const first = schedule[0]?.startDate;
+          const last = schedule[schedule.length - 1]?.targetDate;
+          const total = getDayCount(first, last);
+          return first && last && total !== null ? (
+            <div className="flex items-center justify-between bg-peach-accent/10 border border-peach-accent/20 rounded-xl px-4 py-3">
+              <span className="text-xs font-bold text-dark-gray/70">Total durasi pemeriksaan</span>
+              <span className="text-sm font-black text-dark-gray">{total} hari</span>
+            </div>
+          ) : null;
+        })()}
       </div>
 
       {/* Submit */}

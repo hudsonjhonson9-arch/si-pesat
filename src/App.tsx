@@ -482,12 +482,13 @@ export default function App() {
   const handleCreateAudit = (
     opdName: string, 
     opdType: OpdAudit['opdType'], 
-    _legacyAuditType: string, // Kept for backwards compatibility with AuditListView call signature
+    _legacyAuditType: string,
     fiscalYear: string, 
     auditorName: string,
     teamMembers: string[],
     templateId: string,
-    initialCategoryId?: string
+    initialCategoryId?: string,
+    customSchedule?: import('./types').AuditMilestone[]
   ) => {
     // Copy checklist structures from active configured template (Requirement A.2)
     const selectedTemplate = templates.find(t => t.id === templateId) || templates[0];
@@ -542,11 +543,11 @@ export default function App() {
       return d.toISOString().split('T')[0];
     };
 
-    const defaultSchedule = [
-      { id: 'milestone_1', name: 'Perencanaan (Planning)', targetDate: getFutureDate(7), status: 'Sedang Berjalan' as const, notes: 'Menyusun Surat Tugas dan KKA awal' },
-      { id: 'milestone_2', name: 'Pelaksanaan / KKA (Fieldwork)', targetDate: getFutureDate(21), status: 'Belum Mulai' as const, notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
-      { id: 'milestone_3', name: 'Penyusunan LHO / LHP (Reporting)', targetDate: getFutureDate(30), status: 'Belum Mulai' as const, notes: 'Penyusunan laporan hasil pemeriksaan' },
-      { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut (Follow up)', targetDate: getFutureDate(45), status: 'Belum Mulai' as const, notes: 'Verifikasi tindak lanjut atas temuan LHP' }
+    const defaultSchedule = customSchedule || [
+      { id: 'milestone_1', name: 'Perencanaan', startDate: new Date().toISOString().split('T')[0], targetDate: getFutureDate(7), status: 'Sedang Berjalan' as const, notes: 'Menyusun Surat Tugas dan KKA awal' },
+      { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(7), targetDate: getFutureDate(21), status: 'Belum Mulai' as const, notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
+      { id: 'milestone_3', name: 'Penyusunan LHO / LHP', startDate: getFutureDate(21), targetDate: getFutureDate(30), status: 'Belum Mulai' as const, notes: 'Penyusunan laporan hasil pemeriksaan' },
+      { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut', startDate: getFutureDate(30), targetDate: getFutureDate(45), status: 'Belum Mulai' as const, notes: 'Verifikasi tindak lanjut atas temuan LHP' }
     ];
 
     const newAudit: OpdAudit = {
@@ -655,8 +656,8 @@ export default function App() {
             targetEntities={targetEntities}
             defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
             onBack={() => navigateTo('audits')}
-            onCreateAudit={(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId) => {
-              handleCreateAudit(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId);
+            onCreateAudit={(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId, schedule) => {
+              handleCreateAudit(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId, schedule);
               navigateTo('audits');
             }}
           />
