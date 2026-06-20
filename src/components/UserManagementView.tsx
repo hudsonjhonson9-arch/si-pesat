@@ -273,7 +273,7 @@ export default function UserManagementView({
         </div>
         <div className="flex items-center gap-2">
           {canEdit && (
-            <button onClick={() => { resetAddForm(); setShowAddModal(true); }}
+            <button onClick={() => { resetAddForm(); setSearchQuery(''); setShowAddModal(true); }}
               className="inline-flex items-center gap-2 text-xs font-black px-4 py-2 rounded-xl bg-dark-gray text-white hover:bg-dark-gray/85 transition-all shadow-sm cursor-pointer">
               <UserPlus className="w-3.5 h-3.5" /> Tambah Pengguna
             </button>
@@ -307,6 +307,7 @@ export default function UserManagementView({
           <input type="text" placeholder="Cari nama, email, atau NIP..." value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             autoComplete="off"
+            name="search_users"
             className="w-full pl-9 pr-4 py-2 border border-dark-gray/15 rounded-lg text-sm bg-white/70 focus:bg-white outline-none text-dark-gray font-medium placeholder-dark-gray/50" />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -545,6 +546,9 @@ export default function UserManagementView({
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={e => { if (e.target === e.currentTarget) setShowAddModal(false); }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-dark-gray/10 overflow-hidden animate-fade-in">
+            {/* Honeypot fields — cegah autofill browser */}
+            <input type="text" name="username" style={{display:'none'}} autoComplete="username" readOnly />
+            <input type="password" name="password" style={{display:'none'}} autoComplete="current-password" readOnly />
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-baby-blue">
               <div className="flex items-center gap-2">
@@ -575,6 +579,7 @@ export default function UserManagementView({
                 <div className="sm:col-span-2 space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap <span className="text-red-400">*</span></label>
                   <input type="text" value={addFullName} onChange={e => setAddFullName(e.target.value)}
+                    autoComplete="off" name="add_fullname"
                     placeholder="Contoh: Budi Santoso, S.Ak."
                     className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
                 </div>
@@ -583,6 +588,7 @@ export default function UserManagementView({
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Mail className="w-3 h-3" /> Email <span className="text-red-400">*</span></label>
                   <input type="email" value={addEmail} onChange={e => setAddEmail(e.target.value)}
+                    autoComplete="off" name="add_email"
                     placeholder="pegawai@example.com"
                     className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
                 </div>
@@ -592,6 +598,7 @@ export default function UserManagementView({
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Lock className="w-3 h-3" /> Password Awal <span className="text-red-400">*</span></label>
                   <div className="relative">
                     <input type={showPassword ? 'text' : 'password'} value={addPassword} onChange={e => setAddPassword(e.target.value)}
+                      autoComplete="new-password" name="add_password"
                       placeholder="Min. 8 karakter"
                       className="w-full text-xs font-bold border border-slate-200 p-2.5 pr-9 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
                     <button type="button" onClick={() => setShowPassword(v => !v)}
