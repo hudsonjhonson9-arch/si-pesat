@@ -24,6 +24,7 @@ interface NewAuditViewProps {
   userProfiles: UserProfile[];
   targetEntities?: TargetEntity[];
   defaultAuditorName?: string;
+  isAdmin?: boolean;
   onBack: () => void;
   onCreateAudit: (
     opdName: string,
@@ -41,12 +42,19 @@ interface NewAuditViewProps {
 const OPD_TYPES: OpdAudit['opdType'][] = ['SD', 'SMP', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'];
 const FISCAL_YEARS = ['2026', '2025', '2024', '2023'];
 
+const KETUA_TIM_ROLES = [
+  'Inspektur', 'Inspektur Pembantu',
+  'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
+  'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
+];
+
 export default function NewAuditView({
   audits,
   templates,
   userProfiles,
   targetEntities = [],
   defaultAuditorName = '',
+  isAdmin = false,
   onBack,
   onCreateAudit,
 }: NewAuditViewProps) {
@@ -377,7 +385,7 @@ export default function NewAuditView({
                         className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-none focus:border-peach-accent" />
                     </div>
                     <div className="overflow-y-auto p-1 space-y-0.5">
-                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).map(p => {
+                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catAuditorName === name;
                         return (

@@ -10,11 +10,12 @@ import { CheckCircle, AlertTriangle, Clock, FileText, User, ChevronRight, Upload
 interface UserProfileViewProps {
   currentUser: UserProfile | null;
   userRole: string;
+  isAdmin?: boolean;
   audits: OpdAudit[];
   onSelectAudit: (audit: OpdAudit, catId?: string) => void;
 }
 
-export default function UserProfileView({ currentUser, userRole, audits, onSelectAudit }: UserProfileViewProps) {
+export default function UserProfileView({ currentUser, userRole, isAdmin = false, audits, onSelectAudit }: UserProfileViewProps) {
   const pendingReviews = audits.flatMap(a =>
     a.categories
       .filter(c => c.status === 'Direview')
@@ -108,7 +109,7 @@ export default function UserProfileView({ currentUser, userRole, audits, onSelec
       </div>
 
       {/* === PANEL UNTUK INSPEKTUR / IRBAN === */}
-      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur') && (
+      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur' || isAdmin) && (
         <>
           {/* Pending Reviews */}
           <div className="bg-white rounded-2xl p-6 border border-dark-gray/10 shadow-sm">

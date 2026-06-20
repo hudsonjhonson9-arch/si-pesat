@@ -700,6 +700,7 @@ export default function App() {
           <UserProfileView
             currentUser={userProfiles.find(p => p.id === user?.id) || null}
             userRole={userRole}
+            isAdmin={isAdmin}
             audits={audits}
             onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
           />

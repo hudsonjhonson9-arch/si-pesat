@@ -24,6 +24,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+const STRUKTURAL_ROLES = ['Inspektur', 'Inspektur Pembantu'];
+
 interface AuditListViewProps {
   audits: OpdAudit[];
   templates: KKATemplate[];
@@ -57,6 +59,7 @@ export default function AuditListView({
   onSyncToDrive,
   isDriveConnected,
   userRole = 'Auditor',
+  isAdmin = false,
   defaultAuditorName = '',
   userProfiles = []
 }: AuditListViewProps) {
@@ -380,7 +383,7 @@ export default function AuditListView({
 
                       {/* Right side: Actions */}
                       <div className="flex items-center md:flex-col justify-end md:justify-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-dark-gray/10 pt-3 md:pt-0 md:pl-6">
-                        {['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) && (
+                        {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (
                           <button
                             type="button"
                             onClick={(e) => {
