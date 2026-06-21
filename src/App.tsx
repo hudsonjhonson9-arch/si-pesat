@@ -104,10 +104,12 @@ export default function App() {
   }, []);
 
   const navigateTo = (path: string) => {
+    closeAllDropdowns();
     window.location.hash = path;
   };
 
   const navigateToPengawasan = (sub: 'audit' | 'reviu' | 'evaluasi' | 'asistensi') => {
+    closeAllDropdowns();
     setActiveTab('pengawasan');
     setPengawasanSubTab(sub);
     setSelectedAuditId(null);
@@ -150,23 +152,34 @@ export default function App() {
   const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [targetEntities, setTargetEntities] = useState<TargetEntity[]>([]);
 
-  // Dropdown hover state with timeout biar tidak cepat hilang
+  // Dropdown hover state — per-dropdown timer biar antar dropdown tidak saling ganggu
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
-  const dropdownTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dropdownTimers = React.useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
 
-  const clearDropdownTimer = () => {
-    if (dropdownTimer.current) { clearTimeout(dropdownTimer.current); dropdownTimer.current = null; }
+  const closeDropdown = (name: string) => {
+    setOpenDropdowns(prev => ({ ...prev, [name]: false }));
+  };
+
+  const clearDropdownTimer = (name: string) => {
+    const t = dropdownTimers.current[name];
+    if (t) { clearTimeout(t); dropdownTimers.current[name] = null; }
   };
 
   const handleDropdownEnter = (name: string) => {
-    clearDropdownTimer();
+    clearDropdownTimer(name);
     setOpenDropdowns(prev => ({ ...prev, [name]: true }));
   };
 
   const handleDropdownLeave = (name: string) => {
-    dropdownTimer.current = setTimeout(() => {
+    clearDropdownTimer(name);
+    dropdownTimers.current[name] = setTimeout(() => {
       setOpenDropdowns(prev => ({ ...prev, [name]: false }));
-    }, 250);
+    }, 400);
+  };
+
+  const closeAllDropdowns = () => {
+    Object.keys(dropdownTimers.current).forEach(k => clearDropdownTimer(k));
+    setOpenDropdowns({});
   };
 
   // Form notifications
@@ -978,7 +991,7 @@ export default function App() {
               >
                 <Building className="w-4 h-4" /> Wilayah Penugasan
               </button>
-              <div className="relative" onMouseEnter={() => handleDropdownEnter('pengawasan')} onMouseLeave={() => handleDropdownLeave('pengawasan')}>
+              <div className="relative" onPointerEnter={() => handleDropdownEnter('pengawasan')} onPointerLeave={() => handleDropdownLeave('pengawasan')}>
                 <button
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                     activeTab === 'pengawasan' || selectedAuditId
@@ -988,68 +1001,72 @@ export default function App() {
                 >
                   <School className="w-4 h-4" /> Pengawasan <ChevronDown className="w-3 h-3 ml-0.5" />
                 </button>
-                {/* Dropdown Menu */}
                 {openDropdowns['pengawasan'] && (
-                  <div className="absolute top-full left-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[200px] z-50" onMouseEnter={() => handleDropdownEnter('pengawasan')} onMouseLeave={() => handleDropdownLeave('pengawasan')}>
-                    {/* Audit with nested dropdown */}
-                    <div className="relative" onMouseEnter={() => handleDropdownEnter('audit-nested')} onMouseLeave={() => handleDropdownLeave('audit-nested')}>
+                  <>
+                    <div className="absolute top-full left-0 right-0 h-2 z-50" onPointerEnter={() => handleDropdownEnter('pengawasan')} />
+                    <div className="absolute top-[calc(100%+8px)] left-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[200px] z-50" onPointerEnter={() => handleDropdownEnter('pengawasan')} onPointerLeave={() => handleDropdownLeave('pengawasan')}>
+                      {/* Audit with nested dropdown */}
+                      <div className="relative" onPointerEnter={() => handleDropdownEnter('audit-nested')} onPointerLeave={() => handleDropdownLeave('audit-nested')}>
+                        <button
+                          onClick={() => navigateToPengawasan('audit')}
+                          className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                        >
+                          <span className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> Audit</span>
+                          <ChevronDown className="w-3 h-3 -rotate-90" />
+                        </button>
+                        {openDropdowns['audit-nested'] && (
+                          <>
+                            <div className="absolute left-full top-0 w-2 h-full z-50" onPointerEnter={() => handleDropdownEnter('audit-nested')} />
+                            <div className="absolute left-[calc(100%+8px)] top-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] z-50" onPointerEnter={() => handleDropdownEnter('audit-nested')} onPointerLeave={() => handleDropdownLeave('audit-nested')}>
+                              <button
+                                onClick={() => navigateToPengawasan('audit')}
+                                className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
+                              >
+                                <FileCheck className="w-4 h-4" /> KKA
+                              </button>
+                              <button
+                                onClick={() => { setActiveTab('pengawasan'); setPengawasanSubTab('audit'); navigateTo('statistik'); }}
+                                className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
+                              >
+                                <PieChart className="w-4 h-4" /> Statistik KKA
+                              </button>
+                              <button
+                                onClick={() => navigateTo('jenis-audit')}
+                                className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
+                              >
+                                <Settings className="w-4 h-4" /> Jenis Audit
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <hr className="border-dark-gray/5 my-1" />
                       <button
-                        onClick={() => navigateToPengawasan('audit')}
-                        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                        onClick={() => navigateToPengawasan('reviu')}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
                       >
-                        <span className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> Audit</span>
-                        <ChevronDown className="w-3 h-3 -rotate-90" />
+                        <FolderSync className="w-4 h-4" /> Reviu
                       </button>
-                      {/* Nested: KKA & Statistik KKA */}
-                      {openDropdowns['audit-nested'] && (
-                        <div className="absolute left-full top-0 ml-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] z-50" onMouseEnter={() => handleDropdownEnter('audit-nested')} onMouseLeave={() => handleDropdownLeave('audit-nested')}>
-                          <button
-                            onClick={() => navigateToPengawasan('audit')}
-                            className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
-                          >
-                            <FileCheck className="w-4 h-4" /> KKA
-                          </button>
-                          <button
-                            onClick={() => { setActiveTab('pengawasan'); setPengawasanSubTab('audit'); navigateTo('statistik'); }}
-                            className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
-                          >
-                            <PieChart className="w-4 h-4" /> Statistik KKA
-                          </button>
-                          <button
-                            onClick={() => navigateTo('jenis-audit')}
-                            className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
-                          >
-                            <Settings className="w-4 h-4" /> Jenis Audit
-                          </button>
-                        </div>
-                      )}
+                      <hr className="border-dark-gray/5 my-1" />
+                      <button
+                        onClick={() => navigateToPengawasan('evaluasi')}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                      >
+                        <TrendingDown className="w-4 h-4" /> Evaluasi
+                      </button>
+                      <hr className="border-dark-gray/5 my-1" />
+                      <button
+                        onClick={() => navigateToPengawasan('asistensi')}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                      >
+                        <Cloud className="w-4 h-4" /> Asistensi
+                      </button>
                     </div>
-                    <hr className="border-dark-gray/5 my-1" />
-                    <button
-                      onClick={() => navigateToPengawasan('reviu')}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                    >
-                      <FolderSync className="w-4 h-4" /> Reviu
-                    </button>
-                    <hr className="border-dark-gray/5 my-1" />
-                    <button
-                      onClick={() => navigateToPengawasan('evaluasi')}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                    >
-                      <TrendingDown className="w-4 h-4" /> Evaluasi
-                    </button>
-                    <hr className="border-dark-gray/5 my-1" />
-                    <button
-                      onClick={() => navigateToPengawasan('asistensi')}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                    >
-                      <Cloud className="w-4 h-4" /> Asistensi
-                    </button>
-                  </div>
+                  </>
                 )}
               </div>
               {(isAdmin || permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
-                <div className="relative" onMouseEnter={() => handleDropdownEnter('pengaturan')} onMouseLeave={() => handleDropdownLeave('pengaturan')}>
+                <div className="relative" onPointerEnter={() => handleDropdownEnter('pengaturan')} onPointerLeave={() => handleDropdownLeave('pengaturan')}>
                   <button
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                       activeTab === 'pengguna' || activeTab === 'role-permission'
@@ -1060,24 +1077,27 @@ export default function App() {
                     <Settings className="w-4 h-4" /> Pengaturan <ChevronDown className="w-3 h-3 ml-0.5" />
                   </button>
                   {openDropdowns['pengaturan'] && (
-                    <div className="absolute top-full left-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] z-50" onMouseEnter={() => handleDropdownEnter('pengaturan')} onMouseLeave={() => handleDropdownLeave('pengaturan')}>
-                      {(isAdmin || permissionChecker.can('user.manage')) && (
-                        <button
-                          onClick={() => navigateTo('pengguna')}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                        >
-                          <UserIcon className="w-4 h-4" /> Pengguna
-                        </button>
-                      )}
-                      {(isAdmin || permissionChecker.can('role.manage')) && (
-                        <button
-                          onClick={() => navigateTo('role-permission')}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                        >
-                          <ShieldAlert className="w-4 h-4" /> Role & Permission
-                        </button>
-                      )}
-                    </div>
+                    <>
+                      <div className="absolute top-full left-0 right-0 h-2 z-50" onPointerEnter={() => handleDropdownEnter('pengaturan')} />
+                      <div className="absolute top-[calc(100%+8px)] left-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] z-50" onPointerEnter={() => handleDropdownEnter('pengaturan')} onPointerLeave={() => handleDropdownLeave('pengaturan')}>
+                        {(isAdmin || permissionChecker.can('user.manage')) && (
+                          <button
+                            onClick={() => navigateTo('pengguna')}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                          >
+                            <UserIcon className="w-4 h-4" /> Pengguna
+                          </button>
+                        )}
+                        {(isAdmin || permissionChecker.can('role.manage')) && (
+                          <button
+                            onClick={() => navigateTo('role-permission')}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                          >
+                            <ShieldAlert className="w-4 h-4" /> Role & Permission
+                          </button>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
