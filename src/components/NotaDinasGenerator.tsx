@@ -9,9 +9,10 @@ interface NotaDinasGeneratorProps {
   activeCategory?: any;
   userProfiles?: UserProfile[];
   onClose: () => void;
+  bidangName?: string;
 }
 
-export default function NotaDinasGenerator({ audit, activeCategory, userProfiles = [], onClose }: NotaDinasGeneratorProps) {
+export default function NotaDinasGenerator({ audit, activeCategory, userProfiles = [], onClose, bidangName }: NotaDinasGeneratorProps) {
   const [instansi] = useState('PEMERINTAH KABUPATEN SUMBA BARAT');
   const [lembaga] = useState('I N S P E K T O R A T');
   const [alamat] = useState('Jalan Basuki Rahmat Nomor : 12 Waikabubak, Provinsi Nusa Tenggara Timur Telp.(0387) 21165, Fax.(0387) 21165, Email: inspektoratsumbabarat2026@gmail.com');
@@ -322,7 +323,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
 
   const handleDownloadPdf = () => {
     if (!nomorSurat.trim() || !tanggal.trim() || !perihal.trim() || !waktu.trim() || !pengendaliNama.trim() || !pengendaliNip.trim()) {
-      alert('Mohon lengkapi semua isian (Nomor Surat, Tanggal, Perihal, Waktu, Nama & NIP Irban IV)!');
+      alert(`Mohon lengkapi semua isian (Nomor Surat, Tanggal, Perihal, Waktu, Nama & NIP ${bidangName || 'Irban IV'})!`);
       return;
     }
     
@@ -399,7 +400,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Pengendali Teknis / Irban IV</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">Nama Pengendali Teknis / {bidangName || 'Irban IV'}</label>
                   <input type="text" value={pengendaliNama} onChange={e => setPengendaliNama(e.target.value)} className="w-full text-xs font-medium border border-slate-200 p-2.5 rounded-lg bg-white outline-none focus:border-emerald-500" />
                 </div>
                 <div className="space-y-1">

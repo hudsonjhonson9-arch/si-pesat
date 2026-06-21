@@ -268,7 +268,7 @@ export default function AuditWorkspaceView({
   });
 
   const isReadOnly = !isTeamMember ||
-    (FUNGSIONAL_ROLES.includes(userRole) && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
+    (permissionChecker.can('audit.edit') && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
     (permissionChecker.can('audit.review') && (activeCategory?.status === 'Selesai' || audit.status === 'Selesai'));
 
   const isReviewerPanelVisible = permissionChecker.can('audit.review') && audit.status === 'Direview';
@@ -895,7 +895,7 @@ export default function AuditWorkspaceView({
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
                           <input
                             type="date"
-                             disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                             disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                              value={m.startDate || ''}
                             onChange={(e) => {
                               const updated = [...milestones];
@@ -909,7 +909,7 @@ export default function AuditWorkspaceView({
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
                           <input
                             type="date"
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                             value={m.targetDate}
                             onChange={(e) => {
                               const updated = [...milestones];
@@ -924,7 +924,7 @@ export default function AuditWorkspaceView({
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Realisasi</label>
                           <input
                             type="date"
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                             value={m.actualDate || ''}
                             onChange={(e) => {
                               const updated = [...milestones];
@@ -938,7 +938,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Status Tahap</label>
                           <select
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                             value={m.status}
                             onChange={(e) => {
                               const updated = [...milestones];
@@ -962,7 +962,7 @@ export default function AuditWorkspaceView({
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Catatan Pemantauan</label>
                           <input
                             type="text"
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                             placeholder="Tulis progres atau hambatan pengerjaan..."
                             value={m.notes || ''}
                             onChange={(e) => {
@@ -978,7 +978,7 @@ export default function AuditWorkspaceView({
                   ))}
                 </div>
                 
-                {!isReadOnly && FUNGSIONAL_ROLES.includes(userRole) && (
+                {!isReadOnly && permissionChecker.can('audit.edit') && (
                   <div className="pt-4 border-t border-slate-150 flex justify-end">
                     <button
                       onClick={() => {
@@ -1221,7 +1221,7 @@ export default function AuditWorkspaceView({
                           <input
                             type="text"
                             list={`klasifikasi-options-${item.id}`}
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                             value={item.jenisTemuan || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'jenisTemuan', e.target.value)}
                             placeholder="Ketik klasifikasi temuan..."
@@ -1244,7 +1244,7 @@ export default function AuditWorkspaceView({
                               Rp
                             </span>
                             <input
-                              disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                              disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                               type="number"
                               placeholder="Misal: 1000000"
                               value={item.nilaiTemuan || ''}
@@ -1260,7 +1260,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide block">Uraian Penyimpangan / Detail Temuan</label>
                           <textarea
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                             placeholder="Uraikan temuan fisik secara detail, nominal, dan nomor berkas kuitansi terkait..."
                             value={item.uraianTemuan || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'uraianTemuan', e.target.value)}
@@ -1272,7 +1272,7 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide block">Rekomendasi Tindak Lanjut Inspektorat</label>
                           <textarea
-                            disabled={isReadOnly || (!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin)}
+                            disabled={isReadOnly || !permissionChecker.can('audit.edit')}
                             placeholder="Rekomendasi tindakan hukum/administratif, pengembalian kas, atau peneguran tertulis..."
                             value={item.rekomendasi || ''}
                             onChange={e => handleFindingDetailChange(item.id, 'rekomendasi', e.target.value)}
@@ -1283,7 +1283,7 @@ export default function AuditWorkspaceView({
                       </div>
 
                       {/* Delete action button for item */}
-                      {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (
+                      {permissionChecker.can('audit.edit') && !isReadOnly && (
                         <div className="md:col-span-2 pt-1.5 flex justify-end">
                           <button
                             type="button"
@@ -1302,7 +1302,7 @@ export default function AuditWorkspaceView({
                     evidenceName={item.evidenceName}
                     evidenceHistory={item.evidenceHistory || []}
                     isReadOnly={isReadOnly}
-                    isAuditor={FUNGSIONAL_ROLES.includes(userRole)}
+                    isAuditor={permissionChecker.can('audit.edit')}
                     isUploading={!!uploadingIds[item.id]}
                     isCopying={!!copyingIds[item.id]}
                     onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
@@ -1368,7 +1368,7 @@ export default function AuditWorkspaceView({
                       </div>
                     )}
 
-                    {FUNGSIONAL_ROLES.includes(userRole) || (isReadOnly && audit.status === 'Selesai') ? (
+                    {permissionChecker.can('audit.edit') || (isReadOnly && audit.status === 'Selesai') ? (
                       <p className="text-[11px] text-amber-900 bg-white/20 p-2 border border-amber-200/40 rounded italic font-bold leading-relaxed">
                         {item.catatanReview || 'Belum ada catatan review dari pimpinan.'}
                       </p>
@@ -1400,7 +1400,7 @@ export default function AuditWorkspaceView({
                   </div>
 
                   {/* Fallback delete button if NOT currently expanded */}
-                  {!hasFinding && FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (
+                  {!hasFinding && permissionChecker.can('audit.edit') && !isReadOnly && (
                     <div className="mt-2.5 pt-2 border-t border-dark-gray/10 flex justify-end">
                       <button
                         type="button"
