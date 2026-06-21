@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { OpdAudit, AuditStatus, KKATemplate, UserProfile, AuditType, TargetEntity } from '../types';
+import { OpdAudit, KKATemplate, UserProfile, AuditType, TargetEntity } from '../types';
 import {
   Plus,
   Search,
@@ -65,9 +65,10 @@ export default function AuditListView({
 }: AuditListViewProps) {
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [jenisAuditFilter, setJenisAuditFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'newest'>('name');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
 
@@ -136,26 +137,26 @@ export default function AuditListView({
     return Math.round((evaluatedItems / totalItems) * 100);
   };
 
-  // Dynamic status configurations
-  const statusConfig: Record<AuditStatus, { bg: string; text: string; label: string }> = {
-    'Draft': { bg: 'bg-slate-50 border-slate-200 text-slate-700', text: 'slate', label: 'Draft' },
-    'Sedang Berjalan': { bg: 'bg-amber-50 border-amber-200 text-amber-700', text: 'amber', label: 'Audit Lapangan' },
-    'Direview': { bg: 'bg-sky-50 border-sky-200 text-sky-700', text: 'sky', label: 'Review Pengendali' },
-    'Selesai': { bg: 'bg-emerald-50 border-emerald-200 text-emerald-700', text: 'emerald', label: 'LHP Diterbitkan' }
-  };
-
   // Filter computations
   const filteredAudits = useMemo(() => {
-    return audits.filter(audit => {
+    let result = audits.filter(audit => {
       const matchSearch = audit.opdName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         audit.auditorName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchStatus = statusFilter === 'all' || audit.status === statusFilter;
+      const matchJenis = jenisAuditFilter === 'all' || audit.auditType === jenisAuditFilter;
       const matchType = typeFilter === 'all' || audit.opdType === typeFilter;
       const matchYear = yearFilter === 'all' || audit.fiscalYear === yearFilter;
 
-      return matchSearch && matchStatus && matchType && matchYear;
+      return matchSearch && matchJenis && matchType && matchYear;
     });
-  }, [audits, searchQuery, statusFilter, typeFilter, yearFilter]);
+
+    if (sortBy === 'name') {
+      result.sort((a, b) => a.opdName.localeCompare(b.opdName));
+    } else if (sortBy === 'newest') {
+      result.sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime());
+    }
+
+    return result;
+  }, [audits, searchQuery, jenisAuditFilter, typeFilter, yearFilter, sortBy]);
 
   // Unique fiscal years
   const availableYears = useMemo(() => {
@@ -163,14 +164,21 @@ export default function AuditListView({
     return Array.from(new Set(years)).sort().reverse();
   }, [audits]);
 
+  // Unique jenis audit (audit types) from templates
+  const availableJenisAudit = useMemo(() => {
+    return templates.map(t => t.name).filter(Boolean);
+  }, [templates]);
+
   const handleSubmitNewAudit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSchoolName || !newTemplateId) return;
 
+    const selectedTemplate = templates.find(t => t.id === newTemplateId);
+
     onCreateAudit(
       newSchoolName,
       newSchoolType,
-      'Audit Keuangan',
+      selectedTemplate?.name || 'Audit Keuangan',
       newFiscalYear,
       defaultAuditorName || 'Auditor',
       [],
@@ -205,19 +213,18 @@ export default function AuditListView({
         </div>
 
         {/* Extended drop-downs for filtering */}
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-dark-gray/10 font-semibold">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-dark-gray/10 font-semibold">
           <div>
-            <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider block mb-1">Status</label>
+            <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider block mb-1">Jenis Audit</label>
             <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
+              value={jenisAuditFilter}
+              onChange={e => setJenisAuditFilter(e.target.value)}
               className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded-md bg-white/70 text-dark-gray focus:bg-white focus:outline-hidden focus:border-peach-accent"
             >
-              <option value="all">Semua Status</option>
-              <option value="Draft">Draft</option>
-              <option value="Sedang Berjalan">Audit Lapangan</option>
-              <option value="Direview">Review Pengendali</option>
-              <option value="Selesai">LHP Selesai</option>
+              <option value="all">Semua Jenis</option>
+              {availableJenisAudit.map(jenis => (
+                <option key={jenis} value={jenis}>{jenis}</option>
+              ))}
             </select>
           </div>
 
@@ -253,6 +260,18 @@ export default function AuditListView({
               {availableYears.map(yr => (
                 <option key={yr} value={yr}>TA {yr}</option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider block mb-1">Urutkan</label>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as 'name' | 'newest')}
+              className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded-md bg-white/70 text-dark-gray focus:bg-white focus:outline-hidden focus:border-peach-accent"
+            >
+              <option value="name">Nama</option>
+              <option value="newest">Terbaru</option>
             </select>
           </div>
         </div>

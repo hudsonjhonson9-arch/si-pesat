@@ -15,13 +15,15 @@ import {
   CheckCircle, 
   TrendingDown, 
   FolderSync,
+  ChevronDown,
   Menu,
   X,
   User as UserIcon,
   ShieldAlert,
   Info,
   PlusCircle,
-  PieChart
+  PieChart,
+  Building
 } from 'lucide-react';
 
 import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity, Permission, Bidang, Role, RolePermission } from './types';
@@ -41,10 +43,15 @@ import StatistikView from './components/StatistikView';
 import UserProfileView from './components/UserProfileView';
 import UserManagementView from './components/UserManagementView';
 import RolePermissionView from './components/RolePermissionView';
+import WilayahPenugasanView from './components/WilayahPenugasanView';
+import ReviuView from './components/ReviuView';
+import EvaluasiView from './components/EvaluasiView';
+import AsistensiView from './components/AsistensiView';
 
 export default function App() {
   // Navigation & General Tabs based on URL Hash
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna' | 'role-permission'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'pengawasan' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna' | 'role-permission' | 'wilayah-penugasan'>('dashboard');
+  const [pengawasanSubTab, setPengawasanSubTab] = useState<'audit' | 'reviu' | 'evaluasi' | 'asistensi'>('audit');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [userBidangId, setUserBidangId] = useState<number | null>(null);
@@ -60,10 +67,22 @@ export default function App() {
         const parts = hash.split('/');
         const id = parts[1];
         const catId = parts[2] || null;
-        setActiveTab('audits');
         setSelectedAuditId(id);
         setSelectedCategoryId(catId);
-      } else if (['jenis-audit', 'audits', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna', 'role-permission'].includes(hash)) {
+        setActiveTab('pengawasan');
+        setPengawasanSubTab('audit');
+      } else if (hash === 'pengawasan') {
+        setActiveTab('pengawasan');
+        setPengawasanSubTab('audit');
+        setSelectedAuditId(null);
+        setSelectedCategoryId(null);
+      } else if (hash.startsWith('pengawasan/')) {
+        const sub = hash.split('/')[1] as 'audit' | 'reviu' | 'evaluasi' | 'asistensi';
+        setActiveTab('pengawasan');
+        setPengawasanSubTab(sub || 'audit');
+        setSelectedAuditId(null);
+        setSelectedCategoryId(null);
+      } else if (['jenis-audit', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna', 'role-permission', 'wilayah-penugasan'].includes(hash)) {
         setActiveTab(hash as any);
         setSelectedAuditId(null);
         setSelectedCategoryId(null);
@@ -86,6 +105,14 @@ export default function App() {
 
   const navigateTo = (path: string) => {
     window.location.hash = path;
+  };
+
+  const navigateToPengawasan = (sub: 'audit' | 'reviu' | 'evaluasi' | 'asistensi') => {
+    setActiveTab('pengawasan');
+    setPengawasanSubTab(sub);
+    setSelectedAuditId(null);
+    setSelectedCategoryId(null);
+    window.location.hash = `pengawasan/${sub}`;
   };
 
   // Core Applet States
@@ -665,7 +692,7 @@ export default function App() {
       return (
         <AuditWorkspaceView templates={templates}
           audit={activeAudit}
-          onBack={() => navigateTo('audits')}
+          onBack={() => navigateTo('pengawasan')}
           onUpdates={handleUpdateAudit}
           onSync={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
           isDriveConnected={true}
@@ -683,22 +710,89 @@ export default function App() {
     switch (activeTab) {
       case 'dashboard':
         return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)} userRole={userRole} isAdmin={isAdmin} />;
-      case 'audits':
+      case 'pengawasan':
         return (
-          <AuditListView
-            audits={audits}
-            templates={templates}
-            targetEntities={targetEntities}
-            onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
-            onCreateAudit={handleCreateAudit}
-            onDeleteAudit={handleDeleteAudit}
-            onSyncToDrive={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
-            isDriveConnected={true}
-            userRole={userRole}
-            isAdmin={isAdmin}
-            defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || customAuditorName || ''}
-            userProfiles={userProfiles}
-          />
+          <div className="space-y-4">
+            {/* Sub-tab navigation for Pengawasan — mobile only */}
+            <div className="md:hidden flex items-center gap-1 bg-white rounded-xl border border-dark-gray/10 p-1 shadow-xs overflow-x-auto">
+              <button
+                onClick={() => navigateToPengawasan('audit')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${
+                  pengawasanSubTab === 'audit'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5'
+                    : 'text-dark-gray/60 hover:text-dark-gray hover:bg-slate-50'
+                }`}
+              >
+                <FileCheck className="w-4 h-4" /> Audit
+              </button>
+              <button
+                onClick={() => navigateToPengawasan('reviu')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${
+                  pengawasanSubTab === 'reviu'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5'
+                    : 'text-dark-gray/60 hover:text-dark-gray hover:bg-slate-50'
+                }`}
+              >
+                <FolderSync className="w-4 h-4" /> Reviu
+              </button>
+              <button
+                onClick={() => navigateToPengawasan('evaluasi')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${
+                  pengawasanSubTab === 'evaluasi'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5'
+                    : 'text-dark-gray/60 hover:text-dark-gray hover:bg-slate-50'
+                }`}
+              >
+                <TrendingDown className="w-4 h-4" /> Evaluasi
+              </button>
+              <button
+                onClick={() => navigateToPengawasan('asistensi')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${
+                  pengawasanSubTab === 'asistensi'
+                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5'
+                    : 'text-dark-gray/60 hover:text-dark-gray hover:bg-slate-50'
+                }`}
+              >
+                <Cloud className="w-4 h-4" /> Asistensi
+              </button>
+            </div>
+
+            {/* Sub-tab content */}
+            {pengawasanSubTab === 'audit' && (
+              <AuditListView
+                audits={audits}
+                templates={templates}
+                targetEntities={targetEntities}
+                onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
+                onCreateAudit={handleCreateAudit}
+                onDeleteAudit={handleDeleteAudit}
+                onSyncToDrive={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
+                isDriveConnected={true}
+                userRole={userRole}
+                isAdmin={isAdmin}
+                defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || customAuditorName || ''}
+                userProfiles={userProfiles}
+              />
+            )}
+            {pengawasanSubTab === 'reviu' && (
+              <ReviuView
+                audits={audits}
+                onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
+              />
+            )}
+            {pengawasanSubTab === 'evaluasi' && (
+              <EvaluasiView
+                audits={audits}
+                onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
+              />
+            )}
+            {pengawasanSubTab === 'asistensi' && (
+              <AsistensiView
+                audits={audits}
+                onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
+              />
+            )}
+          </div>
         );
       case 'new-audit':
         return (
@@ -708,11 +802,21 @@ export default function App() {
             userProfiles={userProfiles}
             targetEntities={targetEntities}
             defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
-            onBack={() => navigateTo('audits')}
+            onBack={() => navigateTo('pengawasan')}
             onCreateAudit={(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId, schedule) => {
               handleCreateAudit(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId, schedule);
-              navigateTo('audits');
+              navigateTo('pengawasan');
             }}
+          />
+        );
+      case 'wilayah-penugasan':
+        return (
+          <WilayahPenugasanView
+            targetEntities={targetEntities}
+            audits={audits}
+            onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
+            userRole={userRole}
+            isAdmin={isAdmin}
           />
         );
       case 'statistik':
@@ -837,15 +941,81 @@ export default function App() {
                 <BarChart3 className="w-4 h-4" /> Beranda
               </button>
               <button
-                onClick={() => navigateTo('audits')}
+                onClick={() => navigateTo('wilayah-penugasan')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                  activeTab === 'audits' || selectedAuditId
+                  activeTab === 'wilayah-penugasan'
                     ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
                     : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                 }`}
               >
-                <School className="w-4 h-4" /> Audit
+                <Building className="w-4 h-4" /> Wilayah Penugasan
               </button>
+              <div className="relative group">
+                <button
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
+                    activeTab === 'pengawasan' || selectedAuditId
+                      ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                      : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
+                  }`}
+                >
+                  <School className="w-4 h-4" /> Pengawasan <ChevronDown className="w-3 h-3 ml-0.5" />
+                </button>
+                {/* Dropdown Menu */}
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[200px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  {/* Audit with nested dropdown */}
+                  <div className="relative group/nested">
+                    <button
+                      onClick={() => navigateToPengawasan('audit')}
+                      className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                    >
+                      <span className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> Audit</span>
+                      <ChevronDown className="w-3 h-3 -rotate-90" />
+                    </button>
+                    {/* Nested: KKA & Statistik KKA */}
+                    <div className="absolute left-full top-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] opacity-0 invisible group-hover/nested:opacity-100 group-hover/nested:visible transition-all duration-200 z-50 ml-1">
+                      <button
+                        onClick={() => navigateToPengawasan('audit')}
+                        className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
+                      >
+                        <FileCheck className="w-4 h-4" /> KKA
+                      </button>
+                      <button
+                        onClick={() => { setActiveTab('pengawasan'); setPengawasanSubTab('audit'); navigateTo('statistik'); }}
+                        className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
+                      >
+                        <PieChart className="w-4 h-4" /> Statistik KKA
+                      </button>
+                      <button
+                        onClick={() => navigateTo('jenis-audit')}
+                        className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
+                      >
+                        <Settings className="w-4 h-4" /> Jenis Audit
+                      </button>
+                    </div>
+                  </div>
+                  <hr className="border-dark-gray/5 my-1" />
+                  <button
+                    onClick={() => navigateToPengawasan('reviu')}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                  >
+                    <FolderSync className="w-4 h-4" /> Reviu
+                  </button>
+                  <hr className="border-dark-gray/5 my-1" />
+                  <button
+                    onClick={() => navigateToPengawasan('evaluasi')}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                  >
+                    <TrendingDown className="w-4 h-4" /> Evaluasi
+                  </button>
+                  <hr className="border-dark-gray/5 my-1" />
+                  <button
+                    onClick={() => navigateToPengawasan('asistensi')}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                  >
+                    <Cloud className="w-4 h-4" /> Asistensi
+                  </button>
+                </div>
+              </div>
               <button
                 onClick={() => navigateTo('statistik')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
@@ -856,41 +1026,36 @@ export default function App() {
               >
                 <PieChart className="w-4 h-4" /> Statistik
               </button>
-              {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
-                <button
-                  onClick={() => navigateTo('jenis-audit')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                    activeTab === 'jenis-audit' && !selectedAuditId
-                      ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
-                      : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
-                  }`}
-                >
-                  <Settings className="w-4 h-4" /> Jenis Audit
-                </button>
-              )}
-              {permissionChecker.can('user.manage') && (
-                <button
-                  onClick={() => navigateTo('pengguna')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                    activeTab === 'pengguna' && !selectedAuditId
-                      ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
-                      : 'text-dark-gray/70 hover:bg-white/70 hover:text-dark-gray'
-                  }`}
-                >
-                  <UserIcon className="w-4 h-4" /> Pengguna
-                </button>
-              )}
-              {permissionChecker.can('role.manage') && (
-                <button
-                  onClick={() => navigateTo('role-permission')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                    activeTab === 'role-permission' && !selectedAuditId
-                      ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
-                      : 'text-dark-gray/70 hover:bg-white/70 hover:text-dark-gray'
-                  }`}
-                >
-                  <ShieldAlert className="w-4 h-4" /> Role & Permission
-                </button>
+              {(permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
+                <div className="relative group">
+                  <button
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
+                      activeTab === 'pengguna' || activeTab === 'role-permission'
+                        ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                        : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4" /> Pengaturan <ChevronDown className="w-3 h-3 ml-0.5" />
+                  </button>
+                  <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    {permissionChecker.can('user.manage') && (
+                      <button
+                        onClick={() => navigateTo('pengguna')}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                      >
+                        <UserIcon className="w-4 h-4" /> Pengguna
+                      </button>
+                    )}
+                    {permissionChecker.can('role.manage') && (
+                      <button
+                        onClick={() => navigateTo('role-permission')}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                      >
+                        <ShieldAlert className="w-4 h-4" /> Role & Permission
+                      </button>
+                    )}
+                  </div>
+                </div>
               )}
             </nav>
 
@@ -903,7 +1068,7 @@ export default function App() {
                   : 'bg-dark-gray text-white border-dark-gray/80 hover:bg-dark-gray/85'
               }`}
             >
-              <PlusCircle className="w-4 h-4" /> Mulai Audit Baru
+              <PlusCircle className="w-4 h-4" /> Mulai Pengawasan Baru
             </button>
 
             {/* Right Profile & Role */}
@@ -961,6 +1126,16 @@ export default function App() {
                 onClick={e => e.stopPropagation()}
               >
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-4 pt-3 pb-1">Menu Lainnya</p>
+
+                {/* Wilayah Penugasan */}
+                <button
+                  onClick={() => { navigateTo('wilayah-penugasan'); setIsMobileMoreOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
+                    activeTab === 'wilayah-penugasan' ? 'text-dark-gray bg-peach-accent/10' : 'text-slate-600'
+                  }`}
+                >
+                  <Building className="w-4 h-4" /> Wilayah Penugasan
+                </button>
 
                 {/* Statistik */}
                 <button
@@ -1025,15 +1200,15 @@ export default function App() {
                 <span className="text-[9px] tracking-wide">Beranda</span>
               </button>
 
-              {/* Audit */}
+              {/* Pengawasan */}
               <button
-                onClick={() => { navigateTo('audits'); setIsMobileMoreOpen(false); }}
+                onClick={() => { navigateTo('pengawasan'); setIsMobileMoreOpen(false); }}
                 className={`flex flex-col items-center justify-center gap-1 transition ${
-                  activeTab === 'audits' || selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400'
+                  activeTab === 'pengawasan' || selectedAuditId ? 'text-dark-gray font-bold' : 'text-slate-400'
                 }`}
               >
                 <School className="w-5 h-5" />
-                <span className="text-[9px] tracking-wide">Audit</span>
+                <span className="text-[9px] tracking-wide">Pengawasan</span>
               </button>
 
               {/* Buat KKA — tengah, menonjol */}
@@ -1066,7 +1241,7 @@ export default function App() {
               <button
                 onClick={() => setIsMobileMoreOpen(v => !v)}
                 className={`flex flex-col items-center justify-center gap-1 transition relative ${
-                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna', 'role-permission'].includes(activeTab)
+                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan'].includes(activeTab)
                     ? 'text-dark-gray font-bold'
                     : 'text-slate-400'
                 }`}
@@ -1074,7 +1249,7 @@ export default function App() {
                 <Menu className="w-5 h-5" />
                 <span className="text-[9px] tracking-wide">Lainnya</span>
                 {/* Dot indikator kalau sedang di salah satu halaman "Lainnya" */}
-                {['statistik', 'jenis-audit', 'pengguna', 'role-permission'].includes(activeTab) && (
+                {['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan'].includes(activeTab) && (
                   <span className="absolute top-2 right-4 w-1.5 h-1.5 bg-peach-accent rounded-full" />
                 )}
               </button>
