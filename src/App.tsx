@@ -1016,37 +1016,35 @@ export default function App() {
                   </button>
                 </div>
               </div>
-              {(permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
-                <div className="relative group">
-                  <button
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                      activeTab === 'pengguna' || activeTab === 'role-permission'
-                        ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
-                        : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
-                    }`}
-                  >
-                    <Settings className="w-4 h-4" /> Pengaturan <ChevronDown className="w-3 h-3 ml-0.5" />
-                  </button>
-                  <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] hidden group-hover:block z-50">
-                    {permissionChecker.can('user.manage') && (
-                      <button
-                        onClick={() => navigateTo('pengguna')}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                      >
-                        <UserIcon className="w-4 h-4" /> Pengguna
-                      </button>
-                    )}
-                    {permissionChecker.can('role.manage') && (
-                      <button
-                        onClick={() => navigateTo('role-permission')}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                      >
-                        <ShieldAlert className="w-4 h-4" /> Role & Permission
-                      </button>
-                    )}
-                  </div>
+              <div className="relative group">
+                <button
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
+                    activeTab === 'pengguna' || activeTab === 'role-permission'
+                      ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                      : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
+                  }`}
+                >
+                  <Settings className="w-4 h-4" /> Pengaturan <ChevronDown className="w-3 h-3 ml-0.5" />
+                </button>
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] hidden group-hover:block z-50">
+                  {(isAdmin || permissionChecker.can('user.manage')) && (
+                    <button
+                      onClick={() => navigateTo('pengguna')}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                    >
+                      <UserIcon className="w-4 h-4" /> Pengguna
+                    </button>
+                  )}
+                  {(isAdmin || permissionChecker.can('role.manage')) && (
+                    <button
+                      onClick={() => navigateTo('role-permission')}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                    >
+                      <ShieldAlert className="w-4 h-4" /> Role & Permission
+                    </button>
+                  )}
                 </div>
-              )}
+              </div>
             </nav>
 
             {/* Mulai Audit Baru CTA */}
