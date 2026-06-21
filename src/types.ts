@@ -17,6 +17,7 @@ export interface UserProfile {
   golongan?: string;
   pangkat?: string;
   is_admin?: boolean;
+  bidang_id?: number;
 }
 
 export interface AuditItem {
@@ -74,6 +75,7 @@ export interface OpdAudit {
   googleDriveFileId?: string; // Cache of consolidated file ID
   lastSyncedAt?: string;
   schedule?: AuditMilestone[]; // Jadwal pengerjaan audit
+  bidang_id?: number;
 }
 
 export interface TemplateItem {
@@ -94,6 +96,7 @@ export interface KKATemplate {
   name: string;
   isDefault: boolean;
   categories: TemplateCategory[];
+  bidang_id?: number;
 }
 
 export interface SyncLog {
@@ -113,4 +116,30 @@ export interface TargetEntity {
   address?: string;
   latitude?: number;
   longitude?: number;
+  bidang_id?: number;
+}
+
+// === Multi-Bidang & RBAC Types ===
+
+export interface Bidang {
+  id: number;
+  name: string;
+  wilayah?: string;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+}
+
+export interface Permission {
+  id: number;
+  code: string;
+  label: string;
+}
+
+export interface RolePermission {
+  role_id: number;
+  permission_id: number;
+  scope: 'bidang' | 'all';
 }

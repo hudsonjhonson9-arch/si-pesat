@@ -24,9 +24,10 @@ import {
   PieChart
 } from 'lucide-react';
 
-import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity } from './types';
+import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity, Permission, Bidang, Role, RolePermission } from './types';
 import { EMPTY_KKA_TEMPLATE } from './data';
 import { supabase } from './lib/supabase';
+import { permissionChecker } from './lib/permissions';
 import { Session, User } from '@supabase/supabase-js';
 
 // Custom subcomponents
@@ -39,12 +40,17 @@ import NewAuditView from './components/NewAuditView';
 import StatistikView from './components/StatistikView';
 import UserProfileView from './components/UserProfileView';
 import UserManagementView from './components/UserManagementView';
+import RolePermissionView from './components/RolePermissionView';
 
 export default function App() {
   // Navigation & General Tabs based on URL Hash
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna' | 'role-permission'>('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [userBidangId, setUserBidangId] = useState<number | null>(null);
+  const [bidangList, setBidangList] = useState<Bidang[]>([]);
+  const [rolesList, setRolesList] = useState<Role[]>([]);
+  const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
 
   // Router logic for hash changes (browser back/forward support)
   useEffect(() => {
@@ -57,7 +63,7 @@ export default function App() {
         setActiveTab('audits');
         setSelectedAuditId(id);
         setSelectedCategoryId(catId);
-      } else if (['jenis-audit', 'audits', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna'].includes(hash)) {
+      } else if (['jenis-audit', 'audits', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna', 'role-permission'].includes(hash)) {
         setActiveTab(hash as any);
         setSelectedAuditId(null);
         setSelectedCategoryId(null);
@@ -392,7 +398,7 @@ export default function App() {
          const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
          setCustomAuditorName(name);
          
-         supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat').then(({ data, error }) => {
+          supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id').then(({ data, error }) => {
            if (!error && data) setUserProfiles(data as UserProfile[]);
          });
 
@@ -400,17 +406,48 @@ export default function App() {
            if (!error && data) setTargetEntities(data as TargetEntity[]);
          });
 
-         supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
-            .then(({ data }) => {
-               if (data) {
-                 if (data.role) {
-                   setUserRole(data.role as any);
-                   localStorage.setItem('si_pesat_user_role', data.role);
-                 }
-                 setIsAdmin(data.is_admin || false);
-                 localStorage.setItem('si_pesat_is_admin', JSON.stringify(data.is_admin));
-               }
-            });
+          supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
+             .then(({ data }) => {
+                if (data) {
+                  if (data.role) {
+                    setUserRole(data.role as any);
+                    localStorage.setItem('si_pesat_user_role', data.role);
+                  }
+                  setIsAdmin(data.is_admin || false);
+                  localStorage.setItem('si_pesat_is_admin', JSON.stringify(data.is_admin));
+                }
+             });
+
+          supabase.from('profiles').select('role, bidang_id, is_admin').eq('id', session.user.id).single().then(({ data }) => {
+            if (!data) return;
+            const bidangId = data.bidang_id ?? null;
+            if (data.is_admin) {
+              permissionChecker.setUser(null, bidangId, true);
+            } else if (data.role) {
+              supabase.from('roles').select('id').eq('name', data.role).single().then(({ data: roleData }) => {
+                if (roleData) permissionChecker.setUser(roleData.id, bidangId, false);
+              });
+            }
+            if (bidangId) setUserBidangId(bidangId);
+          });
+
+          supabase.from('bidang').select('*').then(({ data }) => {
+            if (data) setBidangList(data);
+          });
+          supabase.from('roles').select('*').then(({ data }) => {
+            if (data) setRolesList(data);
+          });
+          supabase.from('permissions').select('*').then(({ data }) => {
+            if (data) {
+              setPermissionsList(data);
+              const map = new Map<number, string>();
+              data.forEach((p: Permission) => map.set(p.id, p.code));
+              permissionChecker.setPermissionCodeMap(map);
+            }
+          });
+          supabase.from('role_permissions').select('*').then(({ data }) => {
+            if (data) permissionChecker.setRolePermissions(data as RolePermission[]);
+          });
       } else {
          setIsSessionActive(false);
          localStorage.removeItem('si_pesat_session_active');
@@ -689,10 +726,19 @@ export default function App() {
             currentUserId={user?.id}
             onShowToast={showToast}
             onRefreshProfiles={() => {
-              supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat').then(({ data, error }) => {
+              supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id').then(({ data, error }) => {
                 if (!error && data) setUserProfiles(data as UserProfile[]);
               });
             }}
+          />
+        );
+      case 'role-permission':
+        return (
+          <RolePermissionView
+            rolesList={rolesList}
+            permissionsList={permissionsList}
+            bidangList={bidangList}
+            onShowToast={showToast}
           />
         );
       case 'profil':
@@ -821,7 +867,7 @@ export default function App() {
                   <Settings className="w-4 h-4" /> Jenis Audit
                 </button>
               )}
-              {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
+              {permissionChecker.can('user.manage') && (
                 <button
                   onClick={() => navigateTo('pengguna')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
@@ -831,6 +877,18 @@ export default function App() {
                   }`}
                 >
                   <UserIcon className="w-4 h-4" /> Pengguna
+                </button>
+              )}
+              {permissionChecker.can('role.manage') && (
+                <button
+                  onClick={() => navigateTo('role-permission')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
+                    activeTab === 'role-permission' && !selectedAuditId
+                      ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
+                      : 'text-dark-gray/70 hover:bg-white/70 hover:text-dark-gray'
+                  }`}
+                >
+                  <ShieldAlert className="w-4 h-4" /> Role & Permission
                 </button>
               )}
             </nav>
@@ -926,7 +984,7 @@ export default function App() {
                 )}
 
                 {/* Pengguna — hanya admin/Inspektur */}
-                {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
+                {permissionChecker.can('user.manage') && (
                   <button
                     onClick={() => { navigateTo('pengguna'); setIsMobileMoreOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
@@ -934,6 +992,16 @@ export default function App() {
                     }`}
                   >
                     <UserIcon className="w-4 h-4" /> Pengguna
+                  </button>
+                )}
+                {permissionChecker.can('role.manage') && (
+                  <button
+                    onClick={() => { navigateTo('role-permission'); setIsMobileMoreOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
+                      activeTab === 'role-permission' ? 'text-dark-gray bg-peach-accent/10' : 'text-slate-600'
+                    }`}
+                  >
+                    <ShieldAlert className="w-4 h-4" /> Role & Permission
                   </button>
                 )}
 
@@ -997,7 +1065,7 @@ export default function App() {
               <button
                 onClick={() => setIsMobileMoreOpen(v => !v)}
                 className={`flex flex-col items-center justify-center gap-1 transition relative ${
-                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna'].includes(activeTab)
+                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna', 'role-permission'].includes(activeTab)
                     ? 'text-dark-gray font-bold'
                     : 'text-slate-400'
                 }`}
@@ -1005,7 +1073,7 @@ export default function App() {
                 <Menu className="w-5 h-5" />
                 <span className="text-[9px] tracking-wide">Lainnya</span>
                 {/* Dot indikator kalau sedang di salah satu halaman "Lainnya" */}
-                {['statistik', 'jenis-audit', 'pengguna'].includes(activeTab) && (
+                {['statistik', 'jenis-audit', 'pengguna', 'role-permission'].includes(activeTab) && (
                   <span className="absolute top-2 right-4 w-1.5 h-1.5 bg-peach-accent rounded-full" />
                 )}
               </button>
