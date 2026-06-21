@@ -55,7 +55,7 @@ export default function HomeView() {
       icon: <MapPin className="w-5 h-5" />,
       title: 'Wilayah Kerja',
       items: [
-        'Meliputi 11 Kecamatan di Kabupaten Sumba Barat',
+        'Meliputi 6 Kecamatan, 11 Kelurahan, dan 63 Desa di Kabupaten Sumba Barat',
         'Pengawasan terhadap 35 OPD, 5 Puskesmas, 66 SD, 18 SMP',
         'Koordinasi dengan Inspektorat Provinsi NTT dan BPKP',
       ]
