@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building, Shield, Eye, Target, Users, MapPin, CheckCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function HomeView() {
+  const [inspekturName, setInspekturName] = useState('');
+
+  useEffect(() => {
+    supabase.from('profiles').select('full_name').eq('role', 'Inspektur').single().then(({ data }) => {
+      if (data?.full_name) setInspekturName(data.full_name);
+    });
+  }, []);
 
   const profileCards = [
     {
@@ -35,12 +43,12 @@ export default function HomeView() {
       icon: <Users className="w-5 h-5" />,
       title: 'Struktur Organisasi',
       items: [
-        'Inspektur — Ir. Yanuarius H. Bili, M.Si',
+        inspekturName ? `Inspektur — ${inspekturName}` : 'Inspektur — ...',
         'Sekretariat — Bagian Tata Usaha',
-        'Inspektur Pembantu Wilayah I — Kecamatan Loli, Kota Waikabubak',
-        'Inspektur Pembantu Wilayah II — Kecamatan Lamboya, Wanokaka',
-        'Inspektur Pembantu Wilayah III — Kecamatan Tana Righu, Katikutana',
-        'Inspektur Pembantu Wilayah IV — Kecamatan Tana Righu, Mamboro',
+        'Inspektur Pembantu Wilayah I — Kecamatan Kota, Laboya Barat',
+        'Inspektur Pembantu Wilayah II — Kecamatan Tana Righu',
+        'Inspektur Pembantu Wilayah III — Kecamatan Lamboya, Wanokaka',
+        'Inspektur Pembantu Wilayah IV — Kecamatan Loli',
       ]
     },
     {
