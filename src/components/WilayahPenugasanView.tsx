@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { TargetEntity, OpdAudit } from '../types';
+import { TargetEntity, OpdAudit, Bidang } from '../types';
 import { Map as MapIcon, Building, FileText, ChevronDown, ChevronUp, FolderOpen } from 'lucide-react';
 
 const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'] as const;
@@ -22,12 +22,24 @@ interface WilayahPenugasanViewProps {
   onSelectAudit?: (audit: OpdAudit, categoryId?: string) => void;
   userRole?: string;
   isAdmin?: boolean;
+  userBidangId?: number | null;
+  bidangList?: Bidang[];
 }
 
-export default function WilayahPenugasanView({ targetEntities, audits = [], onSelectAudit, userRole, isAdmin = false }: WilayahPenugasanViewProps) {
+export default function WilayahPenugasanView({ targetEntities, audits = [], onSelectAudit, userRole, isAdmin = false, userBidangId, bidangList = [] }: WilayahPenugasanViewProps) {
   const [typeFilter, setTypeFilter] = useState<string>('Semua');
   const [yearFilter, setYearFilter] = useState<string>('Semua');
   const [expandedEntityId, setExpandedEntityId] = useState<string | null>(null);
+
+  const userBidangName = useMemo(() => {
+    if (!userBidangId) return null;
+    return bidangList.find(b => b.id === userBidangId)?.name || null;
+  }, [userBidangId, bidangList]);
+
+  const bidangFilteredEntities = useMemo(() => {
+    if (isAdmin || !userBidangId) return targetEntities;
+    return targetEntities.filter(e => e.bidang_id === userBidangId);
+  }, [targetEntities, userBidangId, isAdmin]);
 
   const availableYears = useMemo(() => {
     const years = Array.from(new Set(audits.map(a => a.fiscalYear))).sort().reverse();
@@ -35,20 +47,20 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
   }, [audits]);
 
   const filteredEntities = useMemo(() => {
-    let result = targetEntities;
+    let result = bidangFilteredEntities;
     if (typeFilter !== 'Semua') {
       result = result.filter(e => e.type === typeFilter);
     }
     return [...result].sort((a, b) => a.name.localeCompare(b.name));
-  }, [targetEntities, typeFilter]);
+  }, [bidangFilteredEntities, typeFilter]);
 
   const typeCounts = useMemo(() => {
-    const counts: Record<string, number> = { Semua: targetEntities.length };
+    const counts: Record<string, number> = { Semua: bidangFilteredEntities.length };
     OPD_TYPE_FILTERS.slice(1).forEach(t => {
-      counts[t] = targetEntities.filter(e => e.type === t).length;
+      counts[t] = bidangFilteredEntities.filter(e => e.type === t).length;
     });
     return counts;
-  }, [targetEntities]);
+  }, [bidangFilteredEntities]);
 
   return (
     <div className="space-y-6 animate-fade-in" id="wilayah-penugasan-view">
@@ -56,12 +68,39 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
         <div>
           <h2 className="font-black text-dark-gray text-lg">Wilayah Penugasan</h2>
           <p className="text-xs text-dark-gray/60 mt-0.5">
-            Daftar objek pemeriksaan Inspektorat Kabupaten Sumba Barat
+            {userBidangName
+              ? `Objek pemeriksaan wilayah ${userBidangName} — Inspektorat Kabupaten Sumba Barat`
+              : 'Daftar objek pemeriksaan Inspektorat Kabupaten Sumba Barat'}
           </p>
         </div>
         <span className="text-[10px] bg-peach-accent text-dark-gray border border-dark-gray/10 px-2.5 py-1 rounded font-bold font-mono uppercase">
           {filteredEntities.length} Objek
         </span>
+      </div>
+
+      {/* Map Section */}
+      <div className="bg-white rounded-3xl p-4 border border-dark-gray/10 shadow-sm relative overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="font-bold text-dark-gray text-sm flex items-center gap-1.5">
+              <MapIcon className="w-4 h-4 text-peach-accent" />
+              Peta Wilayah
+            </h3>
+            <p className="text-[10px] text-dark-gray/60 mt-0.5">
+              Kecamatan Loli, Sumba Barat
+            </p>
+          </div>
+        </div>
+
+        <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden relative min-h-[220px] z-10 rounded-xl">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126214.41014169992!2d119.34440050478051!3d-9.630045468500208!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c473138b79b2ed3%3A0xc3abf299c8531cc3!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1718670000000!5m2!1sid!2sid"
+            className="w-full h-[220px] border-0 rounded-xl"
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
       </div>
 
       {/* Type Filter Chips */}

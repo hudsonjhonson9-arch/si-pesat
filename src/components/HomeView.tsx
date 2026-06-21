@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { TargetEntity, OpdAudit } from '../types';
-import { Map as MapIcon, Building, Activity, BarChart3, CheckCircle, FileText, AlertTriangle, FolderOpen, Clock } from 'lucide-react';
+import { Building, BarChart3, CheckCircle, FileText, AlertTriangle, Clock } from 'lucide-react';
 
 interface HomeViewProps {
   targetEntities: TargetEntity[];
@@ -156,43 +156,8 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Map Section - smaller */}
-        <div className="lg:col-span-1 bg-white rounded-3xl p-4 border border-dark-gray/10 shadow-sm relative overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="font-bold text-dark-gray text-sm flex items-center gap-1.5">
-                <MapIcon className="w-4 h-4 text-peach-accent" />
-                Peta Wilayah
-              </h3>
-              <p className="text-[10px] text-dark-gray/60 mt-0.5">
-                Kecamatan Loli, Sumba Barat
-              </p>
-            </div>
-          </div>
-
-          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden relative min-h-[220px] z-10 rounded-xl flex-1">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126214.41014169992!2d119.34440050478051!3d-9.630045468500208!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c473138b79b2ed3%3A0xc3abf299c8531cc3!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1718670000000!5m2!1sid!2sid"
-              className="absolute inset-0 w-full h-full border-0"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
-        </div>
-
-        {/* Audit Objects Table - moved to Wilayah Penugasan */}
-        <div className="lg:col-span-1 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col items-center justify-center text-center">
-          <Building className="w-12 h-12 text-dark-gray/20 mx-auto mb-3" />
-          <h3 className="font-bold text-dark-gray text-base mb-1">Wilayah Penugasan</h3>
-          <p className="text-xs text-dark-gray/60 max-w-sm">
-            Daftar objek pemeriksaan telah dipindahkan ke menu <strong>Wilayah Penugasan</strong>.
-          </p>
-        </div>
-
-        {/* Analytics Section */}
-        <div className="lg:col-span-1 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-dark-gray/10 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-bold text-dark-gray text-base flex items-center gap-2">

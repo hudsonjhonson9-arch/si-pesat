@@ -843,6 +843,8 @@ export default function App() {
             onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
             userRole={userRole}
             isAdmin={isAdmin}
+            userBidangId={userBidangId}
+            bidangList={bidangList}
           />
         );
       case 'statistik':
