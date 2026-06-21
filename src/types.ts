@@ -16,6 +16,7 @@ export interface UserProfile {
   nip?: string;
   golongan?: string;
   pangkat?: string;
+  jenis_asn?: 'PNS' | 'PPPK';
   is_admin?: boolean;
   bidang_id?: number;
 }

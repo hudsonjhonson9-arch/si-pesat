@@ -5,8 +5,11 @@ CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   email TEXT NOT NULL,
   full_name TEXT,
-  role TEXT CHECK (role IN ('Auditor', 'Inspektur Pembantu', 'Inspektur')),
+  role TEXT,
   avatar_url TEXT,
+  is_admin BOOLEAN DEFAULT false,
+  bidang_id INTEGER,
+  jenis_asn TEXT CHECK (jenis_asn IN ('PNS', 'PPPK')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -15,7 +18,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, full_name, avatar_url, role)
-  VALUES (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', 'Auditor');
+  VALUES (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', 'Auditor Pelaksana');
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

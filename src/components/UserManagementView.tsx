@@ -51,8 +51,11 @@ const GOLONGAN_ORDER: Record<string, number> = {
   'IV/e': 0, 'IV/d': 1, 'IV/c': 2, 'IV/b': 3, 'IV/a': 4,
   'III/d': 5, 'III/c': 6, 'III/b': 7, 'III/a': 8,
   'II/d': 9, 'II/c': 10, 'II/b': 11, 'II/a': 12,
-  'I/d': 13, 'I/c': 14, 'I/b': 15, 'I/a': 16
+  'I/d': 13, 'I/c': 14, 'I/b': 15, 'I/a': 16,
 };
+
+const PNS_GOLONGAN = ['I/a','I/b','I/c','I/d','II/a','II/b','II/c','II/d','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c','IV/d','IV/e'];
+const PPPK_GOLONGAN = ['IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII'];
 
 const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string; border: string }> = {
   Inspektur: { label: 'Inspektur', icon: <Crown className="w-3.5 h-3.5" />, bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
@@ -86,6 +89,7 @@ export default function UserManagementView({
   const [editEmail, setEditEmail] = useState('');
   const [editMfaRequired, setEditMfaRequired] = useState(false);
   const [editIsAdmin, setEditIsAdmin] = useState(false);
+  const [editJenisAsn, setEditJenisAsn] = useState<'PNS' | 'PPPK' | ''>('');
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -99,6 +103,7 @@ export default function UserManagementView({
   const [addGolongan, setAddGolongan] = useState('');
   const [addPangkat, setAddPangkat] = useState('');
   const [addIsAdmin, setAddIsAdmin] = useState(false);
+  const [addJenisAsn, setAddJenisAsn] = useState<'PNS' | 'PPPK' | ''>('');
   const [addBidangId, setAddBidangId] = useState<number | ''>('');
   const [editBidangId, setEditBidangId] = useState<number | ''>('');
   const [showPassword, setShowPassword] = useState(false);
@@ -109,7 +114,7 @@ export default function UserManagementView({
     setAddEmail(''); setAddPassword(''); setAddFullName('');
     setAddRole('Auditor Pelaksana'); setAddNip('');
     setAddGolongan(''); setAddPangkat('');
-    setAddIsAdmin(false); setAddBidangId('');
+    setAddIsAdmin(false); setAddJenisAsn(''); setAddBidangId('');
     setAddError(null); setShowPassword(false);
   };
 
@@ -144,6 +149,7 @@ export default function UserManagementView({
         golongan: addGolongan || null,
         pangkat: addPangkat.trim() || null,
         is_admin: addIsAdmin,
+        jenis_asn: addJenisAsn || null,
         bidang_id: addBidangId || null,
       }, { onConflict: 'id' });
       if (profileError) throw profileError;
@@ -215,6 +221,7 @@ export default function UserManagementView({
     setEditEmail(profile.email || '');
     setEditMfaRequired((profile as any).mfa_required || false);
     setEditIsAdmin((profile as any).is_admin || false);
+    setEditJenisAsn((profile as any).jenis_asn || '');
     setEditBidangId(profile.bidang_id ?? '');
   };
 
@@ -237,6 +244,7 @@ export default function UserManagementView({
           full_name: editFullName || null,
           mfa_required: editMfaRequired,
           is_admin: editIsAdmin,
+          jenis_asn: editJenisAsn || null,
           bidang_id: editBidangId || null,
           ...(emailChanged && !isEditingSelf ? { email_pending: editEmail.trim() } : {}),
         })
@@ -425,13 +433,24 @@ export default function UserManagementView({
                             className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400 font-mono" />
                         </div>
 
+                        {/* Jenis ASN */}
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Jenis ASN</label>
+                          <select value={editJenisAsn} onChange={e => { setEditJenisAsn(e.target.value as 'PNS' | 'PPPK' | ''); if (!e.target.value) setEditGolongan(''); }}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400">
+                            <option value="">— Pilih Jenis ASN —</option>
+                            <option value="PNS">PNS</option>
+                            <option value="PPPK">PPPK / P3K</option>
+                          </select>
+                        </div>
+
                         {/* Golongan */}
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Golongan</label>
                           <select value={editGolongan} onChange={e => setEditGolongan(e.target.value)}
                             className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400">
                             <option value="">— Pilih Golongan —</option>
-                            {['I/a','I/b','I/c','I/d','II/a','II/b','II/c','II/d','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c','IV/d','IV/e'].map(g => (
+                            {(editJenisAsn === 'PPPK' ? PPPK_GOLONGAN : PNS_GOLONGAN).map(g => (
                               <option key={g} value={g}>{g}</option>
                             ))}
                           </select>
@@ -548,6 +567,13 @@ export default function UserManagementView({
                             <span className="text-[10px] text-slate-400 font-medium">{[profile.pangkat, profile.golongan].filter(Boolean).join(' · Gol. ')}</span>
                           </div>
                         )}
+                        {profile.jenis_asn && (
+                          <div className="mt-1">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              profile.jenis_asn === 'PPPK' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-blue-50 text-blue-700 border-blue-200'
+                            }`}>{profile.jenis_asn}</span>
+                          </div>
+                        )}
                         {profile.bidang_id && (() => {
                           const bidang = bidangList.find(b => b.id === profile.bidang_id);
                           return bidang ? (
@@ -656,13 +682,24 @@ export default function UserManagementView({
                     className="w-full text-xs font-bold font-mono border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
                 </div>
 
+                {/* Jenis ASN */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Jenis ASN</label>
+                  <select value={addJenisAsn} onChange={e => { setAddJenisAsn(e.target.value as 'PNS' | 'PPPK' | ''); if (!e.target.value) setAddGolongan(''); }}
+                    className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all">
+                    <option value="">— Pilih Jenis ASN —</option>
+                    <option value="PNS">PNS</option>
+                    <option value="PPPK">PPPK / P3K</option>
+                  </select>
+                </div>
+
                 {/* Golongan */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Golongan</label>
                   <select value={addGolongan} onChange={e => setAddGolongan(e.target.value)}
                     className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all">
                     <option value="">— Pilih Golongan —</option>
-                    {['I/a','I/b','I/c','I/d','II/a','II/b','II/c','II/d','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c','IV/d','IV/e'].map(g => (
+                    {(addJenisAsn === 'PPPK' ? PPPK_GOLONGAN : PNS_GOLONGAN).map(g => (
                       <option key={g} value={g}>{g}</option>
                     ))}
                   </select>
