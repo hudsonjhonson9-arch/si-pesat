@@ -25,23 +25,26 @@ interface UserManagementViewProps {
   currentUserRole: string;
   isAdmin?: boolean;
   currentUserId?: string;
+  bidangList?: { id: number; name: string }[];
   onShowToast?: (message: string, type: 'success' | 'info' | 'error') => void;
   onRefreshProfiles?: () => void;
 }
 
 const ROLE_OPTIONS = [
-  'Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
-  'Auditor Ahli Pertama', 'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
-  'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
-  'Inspektur Pembantu', 'Inspektur'
+  'Inspektur', 'Sekretaris', 'Inspektur Pembantu',
+  'Auditor Ahli Utama', 'Auditor Ahli Madya', 'Auditor Ahli Muda', 'Auditor Ahli Pertama',
+  'Auditor Penyelia', 'Auditor Pelaksana Lanjutan', 'Auditor Pelaksana',
+  'PPUPD Ahli Utama', 'PPUPD Ahli Madya', 'PPUPD Ahli Muda', 'PPUPD Ahli Pertama',
+  'PPPK'
 ] as const;
 type RoleType = typeof ROLE_OPTIONS[number];
 
 const ROLE_ORDER: Record<string, number> = {
-  'Inspektur': 0, 'Inspektur Pembantu': 1,
-  'Auditor Ahli Utama': 2, 'Auditor Ahli Madya': 3, 'Auditor Ahli Muda': 4, 'Auditor Ahli Pertama': 5,
-  'Auditor Penyelia': 6, 'Auditor Pelaksana Lanjutan': 7, 'Auditor Pelaksana': 8,
-  'PPUPD Ahli Utama': 9, 'PPUPD Ahli Madya': 10, 'PPUPD Ahli Muda': 11, 'PPUPD Ahli Pertama': 12,
+  'Inspektur': 0, 'Sekretaris': 1, 'Inspektur Pembantu': 2,
+  'Auditor Ahli Utama': 3, 'Auditor Ahli Madya': 4, 'Auditor Ahli Muda': 5, 'Auditor Ahli Pertama': 6,
+  'Auditor Penyelia': 7, 'Auditor Pelaksana Lanjutan': 8, 'Auditor Pelaksana': 9,
+  'PPUPD Ahli Utama': 10, 'PPUPD Ahli Madya': 11, 'PPUPD Ahli Muda': 12, 'PPUPD Ahli Pertama': 13,
+  'PPPK': 14,
 };
 
 const GOLONGAN_ORDER: Record<string, number> = {
@@ -52,23 +55,25 @@ const GOLONGAN_ORDER: Record<string, number> = {
 };
 
 const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; bg: string; text: string; border: string }> = {
-  'Auditor Pelaksana': { label: 'Pelaksana', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  'Auditor Pelaksana Lanjutan': { label: 'Pelaksana Lanjutan', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  'Auditor Penyelia': { label: 'Penyelia', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  'Auditor Ahli Pertama': { label: 'Ahli Pertama', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-  'Auditor Ahli Muda': { label: 'Ahli Muda', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-  'Auditor Ahli Madya': { label: 'Ahli Madya', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-  'Auditor Ahli Utama': { label: 'Ahli Utama', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-  'PPUPD Ahli Pertama': { label: 'PPUPD Ahli Pertama', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
-  'PPUPD Ahli Muda': { label: 'PPUPD Ahli Muda', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
-  'PPUPD Ahli Madya': { label: 'PPUPD Ahli Madya', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
-  'PPUPD Ahli Utama': { label: 'PPUPD Ahli Utama', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
-  'Inspektur Pembantu': { label: 'Irban', icon: <Star className="w-3.5 h-3.5" />, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   Inspektur: { label: 'Inspektur', icon: <Crown className="w-3.5 h-3.5" />, bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  Sekretaris: { label: 'Sekretaris', icon: <ShieldCheck className="w-3.5 h-3.5" />, bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+  'Inspektur Pembantu': { label: 'Irban', icon: <Star className="w-3.5 h-3.5" />, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  'Auditor Ahli Utama': { label: 'Ahli Utama', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Auditor Ahli Madya': { label: 'Ahli Madya', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Auditor Ahli Muda': { label: 'Ahli Muda', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Auditor Ahli Pertama': { label: 'Ahli Pertama', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  'Auditor Penyelia': { label: 'Penyelia', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'Auditor Pelaksana Lanjutan': { label: 'Pelaksana Lanjutan', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'Auditor Pelaksana': { label: 'Pelaksana', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  'PPUPD Ahli Utama': { label: 'PPUPD Ahli Utama', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  'PPUPD Ahli Madya': { label: 'PPUPD Ahli Madya', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  'PPUPD Ahli Muda': { label: 'PPUPD Ahli Muda', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  'PPUPD Ahli Pertama': { label: 'PPUPD Ahli Pertama', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  PPPK: { label: 'PPPK', icon: <ShieldCheck className="w-3.5 h-3.5" />, bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
 };
 
 export default function UserManagementView({
-  userProfiles, currentUserRole, isAdmin = false, currentUserId, onShowToast, onRefreshProfiles,
+  userProfiles, currentUserRole, isAdmin = false, currentUserId, bidangList = [], onShowToast, onRefreshProfiles,
 }: UserManagementViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('Semua');
@@ -94,6 +99,8 @@ export default function UserManagementView({
   const [addGolongan, setAddGolongan] = useState('');
   const [addPangkat, setAddPangkat] = useState('');
   const [addIsAdmin, setAddIsAdmin] = useState(false);
+  const [addBidangId, setAddBidangId] = useState<number | ''>('');
+  const [editBidangId, setEditBidangId] = useState<number | ''>('');
   const [showPassword, setShowPassword] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
@@ -102,7 +109,8 @@ export default function UserManagementView({
     setAddEmail(''); setAddPassword(''); setAddFullName('');
     setAddRole('Auditor Pelaksana'); setAddNip('');
     setAddGolongan(''); setAddPangkat('');
-    setAddIsAdmin(false); setAddError(null); setShowPassword(false);
+    setAddIsAdmin(false); setAddBidangId('');
+    setAddError(null); setShowPassword(false);
   };
 
   const handleAddUser = async () => {
@@ -136,6 +144,7 @@ export default function UserManagementView({
         golongan: addGolongan || null,
         pangkat: addPangkat.trim() || null,
         is_admin: addIsAdmin,
+        bidang_id: addBidangId || null,
       }, { onConflict: 'id' });
       if (profileError) throw profileError;
 
@@ -158,9 +167,9 @@ export default function UserManagementView({
     }
   };
 
-  const canEdit = currentUserRole === 'Inspektur' || currentUserRole === 'Inspektur Pembantu' || isAdmin;
-  const canEditRole = currentUserRole === 'Inspektur' || isAdmin;
-  const canToggleMfa = currentUserRole === 'Inspektur' || isAdmin;
+  const canEdit = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || currentUserRole === 'Inspektur Pembantu' || isAdmin;
+  const canEditRole = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
+  const canToggleMfa = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
 
   const filteredProfiles = useMemo(() => {
     return userProfiles
@@ -206,6 +215,7 @@ export default function UserManagementView({
     setEditEmail(profile.email || '');
     setEditMfaRequired((profile as any).mfa_required || false);
     setEditIsAdmin((profile as any).is_admin || false);
+    setEditBidangId(profile.bidang_id ?? '');
   };
 
   const cancelEdit = () => setEditingUserId(null);
@@ -227,6 +237,7 @@ export default function UserManagementView({
           full_name: editFullName || null,
           mfa_required: editMfaRequired,
           is_admin: editIsAdmin,
+          bidang_id: editBidangId || null,
           ...(emailChanged && !isEditingSelf ? { email_pending: editEmail.trim() } : {}),
         })
         .eq('id', userId);
@@ -285,12 +296,13 @@ export default function UserManagementView({
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
           { label: 'Total Pengguna', value: userProfiles.length, icon: <Users className="w-5 h-5 text-slate-600" />, bg: 'bg-slate-100' },
           { label: 'Auditor Fungsional', value: FUNGSIONAL_COUNT, icon: <UserIcon className="w-5 h-5 text-blue-600" />, bg: 'bg-blue-100' },
           { label: 'Inspektur Pembantu', value: roleCounts['Inspektur Pembantu'] || 0, icon: <Star className="w-5 h-5 text-amber-600" />, bg: 'bg-amber-100' },
           { label: 'Inspektur', value: roleCounts['Inspektur'] || 0, icon: <Crown className="w-5 h-5 text-purple-600" />, bg: 'bg-purple-100' },
+          { label: 'Sekretaris', value: roleCounts['Sekretaris'] || 0, icon: <ShieldCheck className="w-5 h-5 text-indigo-600" />, bg: 'bg-indigo-100' },
         ].map((card, i) => (
           <div key={i} className="bg-white rounded-2xl p-4 border border-dark-gray/10 shadow-sm">
             <div className={`w-10 h-10 ${card.bg} rounded-xl flex items-center justify-center mb-3`}>{card.icon}</div>
@@ -330,7 +342,7 @@ export default function UserManagementView({
           <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
           <div>
             <p className="text-xs font-bold text-amber-800">Hak Akses Terbatas</p>
-            <p className="text-[11px] text-amber-700 mt-0.5">Anda hanya dapat melihat daftar pengguna. Hanya Inspektur dan Inspektur Pembantu yang dapat mengubah data kepegawaian.</p>
+            <p className="text-[11px] text-amber-700 mt-0.5">Anda hanya dapat melihat daftar pengguna. Hanya Inspektur, Sekretaris, dan Inspektur Pembantu yang dapat mengubah data kepegawaian.</p>
           </div>
         </div>
       )}
@@ -433,6 +445,16 @@ export default function UserManagementView({
                             className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400" />
                         </div>
 
+                        {/* Bidang */}
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Bidang</label>
+                          <select value={editBidangId} onChange={e => setEditBidangId(e.target.value ? Number(e.target.value) : '')}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400">
+                            <option value="">— Pilih Bidang —</option>
+                            {bidangList.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                          </select>
+                        </div>
+
                         {/* Toggle MFA */}
                         <div className="md:col-span-2">
                           <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${editMfaRequired ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -526,6 +548,14 @@ export default function UserManagementView({
                             <span className="text-[10px] text-slate-400 font-medium">{[profile.pangkat, profile.golongan].filter(Boolean).join(' · Gol. ')}</span>
                           </div>
                         )}
+                        {profile.bidang_id && (() => {
+                          const bidang = bidangList.find(b => b.id === profile.bidang_id);
+                          return bidang ? (
+                            <div className="mt-1">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">{bidang.name}</span>
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                       {canEdit && (
                         <button onClick={() => startEdit(profile)}
@@ -644,6 +674,16 @@ export default function UserManagementView({
                   <input type="text" value={addPangkat} onChange={e => setAddPangkat(e.target.value)}
                     placeholder="Contoh: Penata Muda, Pembina..."
                     className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all placeholder:font-normal placeholder:text-slate-300" />
+                </div>
+
+                {/* Bidang */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Bidang</label>
+                  <select value={addBidangId} onChange={e => setAddBidangId(e.target.value ? Number(e.target.value) : '')}
+                    className="w-full text-xs font-bold border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent focus:bg-white transition-all">
+                    <option value="">— Pilih Bidang —</option>
+                    {bidangList.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
                 </div>
 
                 {/* Admin Toggle */}

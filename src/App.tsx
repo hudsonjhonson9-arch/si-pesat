@@ -724,6 +724,7 @@ export default function App() {
             currentUserRole={userRole}
             isAdmin={isAdmin}
             currentUserId={user?.id}
+            bidangList={bidangList}
             onShowToast={showToast}
             onRefreshProfiles={() => {
               supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id').then(({ data, error }) => {
