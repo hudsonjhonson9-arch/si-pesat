@@ -21,7 +21,8 @@ import {
   ShieldAlert,
   Info,
   PlusCircle,
-  PieChart
+  PieChart,
+  Shield
 } from 'lucide-react';
 
 import { Bidang, OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity, Role, Permission, RolePermission } from './types';
@@ -40,10 +41,11 @@ import NewAuditView from './components/NewAuditView';
 import StatistikView from './components/StatistikView';
 import UserProfileView from './components/UserProfileView';
 import UserManagementView from './components/UserManagementView';
+import RolePermissionView from './components/RolePermissionView';
 
 export default function App() {
   // Navigation & General Tabs based on URL Hash
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'audits' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna' | 'role-permission'>('dashboard');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
@@ -58,7 +60,7 @@ export default function App() {
         setActiveTab('audits');
         setSelectedAuditId(id);
         setSelectedCategoryId(catId);
-      } else if (['jenis-audit', 'audits', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna'].includes(hash)) {
+      } else if (['jenis-audit', 'audits', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna', 'role-permission'].includes(hash)) {
         setActiveTab(hash as any);
         setSelectedAuditId(null);
         setSelectedCategoryId(null);
@@ -757,6 +759,8 @@ export default function App() {
             onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
           />
         );
+      case 'role-permission':
+        return <RolePermissionView rolesList={rolesList} permissionsList={permissionsList} bidangList={bidangList} onShowToast={showToast} />;
       case 'jenis-audit':
         return (
           <TemplateConfiguratorView
@@ -885,6 +889,18 @@ export default function App() {
                   <UserIcon className="w-4 h-4" /> Pengguna
                 </button>
               )}
+              {permissionChecker.can('role.manage') && (
+                <button
+                  onClick={() => navigateTo('role-permission')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
+                    activeTab === 'role-permission'
+                      ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5'
+                      : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
+                  }`}
+                >
+                  <Shield className="w-4 h-4" /> Role & Permission
+                </button>
+              )}
             </nav>
 
             {/* Mulai Audit Baru CTA */}
@@ -943,7 +959,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16 pb-safe">
-          <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${5 + (permissionChecker.can('template.manage') ? 1 : 0) + (permissionChecker.can('user.manage') ? 1 : 0)}, 1fr)` }}>
+          <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${5 + (permissionChecker.can('template.manage') ? 1 : 0) + (permissionChecker.can('user.manage') ? 1 : 0) + (permissionChecker.can('role.manage') ? 1 : 0)}, 1fr)` }}>
             <button
               onClick={() => navigateTo('dashboard')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -1004,6 +1020,17 @@ export default function App() {
               >
                 <UserIcon className="w-5 h-5" />
                 <span className="text-[9px] tracking-wide">Pengguna</span>
+              </button>
+            )}
+            {permissionChecker.can('role.manage') && (
+              <button
+                onClick={() => navigateTo('role-permission')}
+                className={`flex flex-col items-center justify-center gap-1 transition ${
+                  activeTab === 'role-permission' ? 'text-dark-gray font-bold' : 'text-slate-400 hover:text-slate-700'
+                }`}
+              >
+                <Shield className="w-5 h-5" />
+                <span className="text-[9px] tracking-wide">Role</span>
               </button>
             )}
             <button
