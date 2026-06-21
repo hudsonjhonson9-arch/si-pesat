@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart3, 
@@ -24,10 +24,11 @@ import {
   PieChart
 } from 'lucide-react';
 
-import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity } from './types';
+import { Bidang, OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity, Role, Permission, RolePermission } from './types';
 import { EMPTY_KKA_TEMPLATE } from './data';
 import { supabase } from './lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
+import { permissionChecker } from './lib/permissions';
 
 // Custom subcomponents
 import HomeView from './components/HomeView';
@@ -108,6 +109,10 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [targetEntities, setTargetEntities] = useState<TargetEntity[]>([]);
+  const [bidangList, setBidangList] = useState<Bidang[]>([]);
+  const [userBidangId, setUserBidangId] = useState<number | null>(null);
+  const [rolesList, setRolesList] = useState<Role[]>([]);
+  const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
 
   // Form notifications
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
@@ -119,6 +124,41 @@ export default function App() {
       setToast(null);
     }, 5000);
   }, []);
+
+  // Fetch audits from Supabase with bidang filtering
+  const fetchAudits = useCallback(() => {
+    let query = supabase.from('audits').select('*');
+    const scope = permissionChecker.getScope('audit.view');
+    if (scope !== 'all' && userBidangId) {
+      query = query.eq('bidang_id', userBidangId);
+    }
+    query.then(({ data, error }) => {
+      if (!error && data) {
+        const mapped = data.map(d => ({
+          id: d.id,
+          opdName: d.opd_name,
+          opdType: d.opd_type,
+          auditType: d.audit_type || 'Audit Keuangan',
+          fiscalYear: d.fiscal_year,
+          auditorName: d.auditor_name,
+          auditDate: d.audit_date,
+          status: d.status,
+          progress: d.progress,
+          teamMembers: d.team_members || [],
+          categories: d.categories || [],
+          lastSyncedAt: d.updated_at || new Date().toISOString(),
+          schedule: d.schedule || []
+        }));
+
+        setAudits(prevLocalAudits => {
+          const offlineCreatedAudits = prevLocalAudits.filter(
+            local => !mapped.find(m => m.id === local.id) && !local.lastSyncedAt
+          );
+          return [...mapped, ...offlineCreatedAudits];
+        });
+      }
+    });
+  }, [userBidangId]);
 
   // 1. Load data from localStorage on component mount
   useEffect(() => {
@@ -179,36 +219,6 @@ export default function App() {
       }
     }
 
-    // Try to fetch real data from Supabase to overwrite local cache if online
-    const fetchAudits = () => {
-      supabase.from('audits').select('*').then(({ data, error }) => {
-        if (!error && data) {
-          const mapped = data.map(d => ({
-            id: d.id,
-            opdName: d.opd_name,
-            opdType: d.opd_type,
-            auditType: d.audit_type || 'Audit Keuangan',
-            fiscalYear: d.fiscal_year,
-            auditorName: d.auditor_name,
-            auditDate: d.audit_date,
-            status: d.status,
-            progress: d.progress,
-            teamMembers: d.team_members || [],
-            categories: d.categories || [],
-            lastSyncedAt: d.updated_at || new Date().toISOString(),
-            schedule: d.schedule || []
-          }));
-          
-          setAudits(prevLocalAudits => {
-            const offlineCreatedAudits = prevLocalAudits.filter(
-              local => !mapped.find(m => m.id === local.id) && !local.lastSyncedAt
-            );
-            return [...mapped, ...offlineCreatedAudits];
-          });
-        }
-      });
-    };
-
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'si_pesat_audits' && e.newValue) {
         try {
@@ -219,15 +229,6 @@ export default function App() {
     window.addEventListener('storage', handleStorageChange);
 
     if (navigator.onLine) {
-      fetchAudits();
-
-      // Realtime subscription
-      const auditsChannel = supabase.channel('audits_changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'audits' }, () => {
-          fetchAudits();
-        })
-        .subscribe();
-
       supabase.from('templates').select('*').then(({ data, error }) => {
         if (!error && data) {
           const fetchedTemplates = data.map(d => ({
@@ -254,6 +255,20 @@ export default function App() {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
+
+  // Fetch audits from Supabase with bidang filtering + realtime subscription
+  useEffect(() => {
+    if (!navigator.onLine) return;
+    fetchAudits();
+    const auditsChannel = supabase.channel('audits_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'audits' }, () => {
+        fetchAudits();
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(auditsChannel);
+    };
+  }, [fetchAudits]);
 
   // 2. Persist state changes in localStorage
   useEffect(() => {
@@ -303,7 +318,8 @@ export default function App() {
               categories: a.categories,
               team_members: a.teamMembers || [],
               schedule: a.schedule || [],
-              updated_at: new Date().toISOString()
+              updated_at: new Date().toISOString(),
+              bidang_id: userBidangId
             }));
 
             const { error } = await supabase.from('audits').upsert(payload, { onConflict: 'id' });
@@ -395,21 +411,57 @@ export default function App() {
            if (!error && data) setUserProfiles(data as UserProfile[]);
          });
 
-         supabase.from('target_entities').select('*').order('type').then(({ data, error }) => {
+         let entityQuery = supabase.from('target_entities').select('*');
+         const entityScope = permissionChecker.getScope('entity.view');
+         if (entityScope !== 'all' && userBidangId) {
+           entityQuery = entityQuery.eq('bidang_id', userBidangId);
+         }
+         entityQuery.order('type').then(({ data, error }) => {
            if (!error && data) setTargetEntities(data as TargetEntity[]);
          });
 
          supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
-            .then(({ data }) => {
-               if (data) {
-                 if (data.role) {
-                   setUserRole(data.role as any);
-                   localStorage.setItem('si_pesat_user_role', data.role);
-                 }
-                 setIsAdmin(data.is_admin || false);
-                 localStorage.setItem('si_pesat_is_admin', JSON.stringify(data.is_admin));
+             .then(({ data }) => {
+                if (data) {
+                  if (data.role) {
+                    setUserRole(data.role as any);
+                    localStorage.setItem('si_pesat_user_role', data.role);
+                  }
+                  setIsAdmin(data.is_admin || false);
+                  localStorage.setItem('si_pesat_is_admin', JSON.stringify(data.is_admin));
+                }
+             });
+
+         // Set permission checker for current user
+         supabase.from('profiles').select('role, bidang_id').eq('id', session.user.id).single().then(({ data }) => {
+           if (data?.role) {
+             supabase.from('roles').select('id').eq('name', data.role).single().then(({ data: roleData }) => {
+               if (roleData) {
+                 permissionChecker.setUser(roleData.id, data.bidang_id ?? null);
+                 if (data.bidang_id) setUserBidangId(data.bidang_id);
                }
-            });
+             });
+           }
+         });
+
+         // Fetch bidang, roles, permissions for RBAC
+         supabase.from('bidang').select('*').then(({ data }) => {
+           if (data) setBidangList(data);
+         });
+         supabase.from('roles').select('*').then(({ data }) => {
+           if (data) setRolesList(data);
+         });
+         supabase.from('permissions').select('*').then(({ data }) => {
+           if (data) {
+             setPermissionsList(data);
+             const map = new Map<number, string>();
+             data.forEach((p: Permission) => map.set(p.id, p.code));
+             permissionChecker.setPermissionCodeMap(map);
+           }
+         });
+         supabase.from('role_permissions').select('*').then(({ data }) => {
+           if (data) permissionChecker.setRolePermissions(data as RolePermission[]);
+         });
       } else {
          setIsSessionActive(false);
          localStorage.removeItem('si_pesat_session_active');
