@@ -7,6 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile, KKATemplate, AuditMilestone } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
 import { supabase } from '../lib/supabase';
+import { permissionChecker } from '../lib/permissions';
 import EvidencePanel from './EvidencePanel';
 import CoverDocumentGenerator from './CoverDocumentGenerator';
 import SuratTugasGenerator from './SuratTugasGenerator';
@@ -268,9 +269,9 @@ export default function AuditWorkspaceView({
 
   const isReadOnly = !isTeamMember ||
     (FUNGSIONAL_ROLES.includes(userRole) && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
-    ((STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (activeCategory?.status === 'Selesai' || audit.status === 'Selesai'));
+    (permissionChecker.can('audit.review') && (activeCategory?.status === 'Selesai' || audit.status === 'Selesai'));
 
-  const isReviewerPanelVisible = (STRUKTURAL_ROLES.includes(userRole) || isAdmin) && audit.status === 'Direview';
+  const isReviewerPanelVisible = permissionChecker.can('audit.review') && audit.status === 'Direview';
 
   // Handle saving general metadata updates
   const handleSaveMetadata = () => {
@@ -628,7 +629,7 @@ export default function AuditWorkspaceView({
                   <span className="text-[10px] bg-white/40 px-2 py-0.5 rounded font-extrabold text-dark-gray uppercase">
                     Profil Auditi
                   </span>
-                  {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (
+                  {permissionChecker.can('audit.review') && (
                     <button
                       onClick={() => setIsEditingMetadata(true)}
                       className="p-1 text-dark-gray hover:text-dark-gray/80 rounded transition cursor-pointer"
@@ -741,7 +742,7 @@ export default function AuditWorkspaceView({
             <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3 text-dark-gray">
               <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
                 <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider block">Jenis Audit Pemeriksaan</span>
-                {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && !isReadOnly && (
+                {permissionChecker.can('audit.review') && !isReadOnly && (
                   <button
                     onClick={() => setIsAddingCategory(true)}
                     className="text-xs text-dark-gray hover:text-dark-gray/70 inline-flex items-center gap-0.5 font-extrabold cursor-pointer"
@@ -790,7 +791,7 @@ export default function AuditWorkspaceView({
                         )}
 
                         {/* Delete category button */}
-                        {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && !isReadOnly && (
+                        {permissionChecker.can('audit.review') && !isReadOnly && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1001,7 +1002,7 @@ export default function AuditWorkspaceView({
                 <div className="space-y-1.5">
                   <h3 className="text-base font-extrabold tracking-tight text-white leading-tight flex items-center gap-2">
                     {activeCategory.name}
-                    {(currentUserName === activeCategory.auditorName || STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (
+                    {(currentUserName === activeCategory.auditorName || permissionChecker.can('audit.review')) && (
                       <button onClick={openEditCategoryTeam} className="p-1 hover:bg-white/10 rounded cursor-pointer transition-colors" title="Edit Tim & Tahun Jenis Audit">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -1074,7 +1075,7 @@ export default function AuditWorkspaceView({
                         </button>
                       )}
 
-                      {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && activeCategory.status === 'Direview' && (
+                      {permissionChecker.can('audit.review') && activeCategory.status === 'Direview' && (
                         <>
                           <button
                             onClick={() => {
@@ -1357,7 +1358,7 @@ export default function AuditWorkspaceView({
                       )}
                     </div>
 
-                    {(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (item.status === 'Temuan' || item.status === 'Sesuai') && (
+                    {permissionChecker.can('audit.review') && (item.status === 'Temuan' || item.status === 'Sesuai') && (
                       <div className="bg-blue-50 border border-blue-200 rounded p-2 flex items-start gap-2 mt-2">
                         <AlertTriangle className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
                         <p className="text-[10px] text-blue-800 font-semibold leading-relaxed">

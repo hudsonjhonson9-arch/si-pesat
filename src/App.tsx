@@ -696,7 +696,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)} userRole={userRole} isAdmin={isAdmin} />;
+        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)} userRole={userRole} isAdmin={isAdmin} bidangName={bidangList.find(b => b.id === userBidangId)?.name || 'IRBAN'} />;
       case 'audits':
         return (
           <AuditListView
@@ -860,7 +860,7 @@ export default function App() {
               >
                 <PieChart className="w-4 h-4" /> Statistik
               </button>
-              {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
+              {permissionChecker.can('template.manage') && (
                 <button
                   onClick={() => navigateTo('jenis-audit')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
@@ -872,7 +872,7 @@ export default function App() {
                   <Settings className="w-4 h-4" /> Jenis Audit
                 </button>
               )}
-              {['Inspektur', 'Inspektur Pembantu'].includes(userRole) && (
+              {permissionChecker.can('user.manage') && (
                 <button
                   onClick={() => navigateTo('pengguna')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
@@ -942,7 +942,7 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (Floating styled - visible ONLY on mobile) */}
       {isSessionActive && (
         <footer className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-100 block md:hidden shadow-lg h-16 pb-safe">
-          <div className={`grid h-full ${['Inspektur', 'Inspektur Pembantu'].includes(userRole) ? 'grid-cols-7' : isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${5 + (permissionChecker.can('template.manage') ? 1 : 0) + (permissionChecker.can('user.manage') ? 1 : 0)}, 1fr)` }}>
             <button
               onClick={() => navigateTo('dashboard')}
               className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -983,7 +983,7 @@ export default function App() {
               <span className="text-[9px] tracking-wide">Mulai Audit</span>
             </button>
 
-            {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
+            {permissionChecker.can('template.manage') && (
               <button
                 onClick={() => navigateTo('jenis-audit')}
                 className={`flex flex-col items-center justify-center gap-1 transition ${
@@ -994,7 +994,7 @@ export default function App() {
                 <span className="text-[9px] tracking-wide">Jenis Audit</span>
               </button>
             )}
-            {['Inspektur', 'Inspektur Pembantu'].includes(userRole) && (
+            {permissionChecker.can('user.manage') && (
               <button
                 onClick={() => navigateTo('pengguna')}
                 className={`flex flex-col items-center justify-center gap-1 transition ${

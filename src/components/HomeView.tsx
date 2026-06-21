@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { TargetEntity, OpdAudit } from '../types';
 import { Map as MapIcon, Building, Activity, BarChart3, CheckCircle, FileText, AlertTriangle, FolderOpen, ChevronDown, ChevronUp, Clock, Upload } from 'lucide-react';
+import { permissionChecker } from '../lib/permissions';
 
 interface HomeViewProps {
   targetEntities: TargetEntity[];
@@ -8,6 +9,7 @@ interface HomeViewProps {
   onSelectAudit?: (audit: OpdAudit, categoryId?: string) => void;
   userRole?: string;
   isAdmin?: boolean;
+  bidangName?: string;
 }
 
 const OPD_TYPE_FILTERS = ['Semua', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'SD', 'SMP', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'] as const;
@@ -24,7 +26,7 @@ const OPD_TYPE_COLORS: Record<string, string> = {
   Lainnya: 'bg-slate-100 text-slate-800 border-slate-200',
 };
 
-export default function HomeView({ targetEntities, audits = [], onSelectAudit, userRole, isAdmin = false }: HomeViewProps) {
+export default function HomeView({ targetEntities, audits = [], onSelectAudit, userRole, isAdmin = false, bidangName = 'IRBAN' }: HomeViewProps) {
   const [typeFilter, setTypeFilter] = useState<string>('Semua');
   const [yearFilter, setYearFilter] = useState<string>('Semua');
   const [expandedEntityId, setExpandedEntityId] = useState<string | null>(null);
@@ -101,7 +103,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
   return (
     <div className="space-y-6 animate-fade-in" id="home-view">
       {/* Notifications Banner */}
-      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur' || isAdmin) && categoriesToReview.length > 0 && (
+      {permissionChecker.can('audit.review') && categoriesToReview.length > 0 && (
         <div className="bg-amber-100 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl shadow-sm">
           <div className="flex items-center gap-3 mb-3">
             <div className="bg-amber-200/50 p-2 rounded-full">
@@ -133,7 +135,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
       )}
 
       {/* Overdue Milestone Banner — untuk Inspektur/Irban */}
-      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur' || isAdmin) && overdueItems.length > 0 && (
+      {permissionChecker.can('audit.review') && overdueItems.length > 0 && (
         <div className="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl shadow-sm">
           <div className="flex items-center gap-3 mb-3">
             <div className="bg-rose-200/50 p-2 rounded-full">
@@ -186,10 +188,10 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
             <Building className="w-3.5 h-3.5" /> Inspektorat Kabupaten Sumba Barat
           </span>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-2">
-            SI-PESAT IRBAN IV
+            SI-PESAT {bidangName}
           </h1>
           <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi Inspektur Pembantu Wilayah IV
+            Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi {bidangName}
           </p>
         </div>
       </div>
@@ -226,7 +228,7 @@ export default function HomeView({ targetEntities, audits = [], onSelectAudit, u
             <div>
               <h3 className="font-bold text-dark-gray text-base">Daftar Objek Audit</h3>
               <p className="text-xs text-dark-gray/60 mt-0.5">
-                Penatausahaan KKA Irban IV.
+                Penatausahaan KKA {bidangName}.
               </p>
             </div>
             <div className="flex flex-col items-end gap-2">

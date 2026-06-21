@@ -6,6 +6,7 @@
 import React, { useMemo } from 'react';
 import { UserProfile, OpdAudit } from '../types';
 import { CheckCircle, AlertTriangle, Clock, FileText, User, ChevronRight, Upload, TrendingUp } from 'lucide-react';
+import { permissionChecker } from '../lib/permissions';
 
 interface UserProfileViewProps {
   currentUser: UserProfile | null;
@@ -111,7 +112,7 @@ export default function UserProfileView({ currentUser, userRole, isAdmin = false
       </div>
 
       {/* === PANEL UNTUK INSPEKTUR / IRBAN === */}
-      {(userRole === 'Inspektur Pembantu' || userRole === 'Inspektur' || isAdmin) && (
+      {permissionChecker.can('audit.review') && (
         <>
           {/* Pending Reviews */}
           <div className="bg-white rounded-2xl p-6 border border-dark-gray/10 shadow-sm">
