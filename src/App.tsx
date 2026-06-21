@@ -1016,16 +1016,6 @@ export default function App() {
                   </button>
                 </div>
               </div>
-              <button
-                onClick={() => navigateTo('statistik')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                  activeTab === 'statistik' && !selectedAuditId
-                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
-                    : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
-                }`}
-              >
-                <PieChart className="w-4 h-4" /> Statistik
-              </button>
               {(permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
                 <div className="relative group">
                   <button
