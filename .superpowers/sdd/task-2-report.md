@@ -1,44 +1,35 @@
-# Task 2 Report: App.tsx — isAdmin State + Prop Passing
+# Task 2 Report: Update TypeScript Types
 
 ## What I implemented
 
-### Step 1: Add `isAdmin` state
-- Added `const [isAdmin, setIsAdmin] = useState(...)` after `userRole` state declaration (App.tsx:95)
-- Initialized from localStorage `si_pesat_is_admin` key
+### Step 1: Add `bidang_id` to existing interfaces
+- **UserProfile** (`src/types.ts:20`): added `bidang_id?: number`
+- **OpdAudit** (`src/types.ts:78`): added `bidang_id?: number`
+- **KKATemplate** (`src/types.ts:99`): added `bidang_id?: number`
+- **TargetEntity** (`src/types.ts:119`): added `bidang_id?: number`
 
-### Step 2: Fetch `is_admin` in auth flow
-- Updated both `supabase.from('profiles').select('role')` calls to `.select('role, is_admin')` in `getSession()` and `onAuthStateChange` handlers
-- Added `setIsAdmin(data.is_admin || false)` in both locations
-- Added `localStorage.setItem('si_pesat_is_admin', ...)` persistence in auth state handler
-- Added `useEffect` to persist isAdmin to localStorage on change
-- Updated `handleSessionLogin` (offline mode) to set `setIsAdmin(false)`
+All four fields are optional (`?:`) to maintain backward compatibility.
 
-### Step 3: Pass `isAdmin` to child components
-- Added `isAdmin={isAdmin}` prop to: HomeView, AuditListView, AuditWorkspaceView, UserManagementView
-- Did NOT touch NewAuditView (as specified)
-- Added `isAdmin?: boolean` to all four component prop interfaces (TypeScript fix)
-
-### Step 4: Update nav permission checks
-- Desktop "Jenis Audit": `['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole)` → `(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin)`
-- Mobile "Jenis Audit": same replacement
-- Mobile grid-cols: `['Admin'].includes(userRole) ? 'grid-cols-6' : 'grid-cols-5'` → `isAdmin ? 'grid-cols-6' : 'grid-cols-5'`
+### Step 2: Add new RBAC interfaces
+Added 4 new interfaces at the end of the file (lines 122–145):
+- **Bidang** — id, name, optional wilayah
+- **Role** — id, name
+- **Permission** — id, code, label
+- **RolePermission** — role_id, permission_id, scope (`'bidang' | 'all'`)
 
 ## Test Results
-- `npm run lint` (tsc --noEmit): **PASS** — no errors
+- `tsc --noEmit`: **PASS** — no errors
 
 ## Files Changed
 | File | Change |
 |------|--------|
-| `src/App.tsx` | +34/-13 — isAdmin state, auth fetch, prop passing, nav checks |
-| `src/components/HomeView.tsx` | +1 — added `isAdmin?: boolean` to props interface |
-| `src/components/AuditListView.tsx` | +1 — added `isAdmin?: boolean` to props interface |
-| `src/components/AuditWorkspaceView.tsx` | +1 — added `isAdmin?: boolean` to props interface |
-| `src/components/UserManagementView.tsx` | +1 — added `isAdmin?: boolean` to props interface |
+| `src/types.ts` | +29 lines — 4 optional bidang_id fields + 4 new interfaces |
 
 ## Self-review findings
-- Task brief only instructed `git add src/App.tsx` but the prop interface additions to 4 component files were required for TypeScript compilation. These were included in the commit.
-- All 6 checklist items from the brief were completed.
-- No regressions introduced; all changes are additive (optional boolean prop).
+- All fields optional (`?:`) — no breaking changes to existing consumers
+- New interfaces are pure data types with no dependencies on other types
+- `RolePermission.scope` uses union string literal (`'bidang' | 'all'`) for type safety
+- No circular dependencies introduced
 
 ## Issues or Concerns
-- None. The changes compile cleanly and are fully backward compatible.
+- None. Clean compile, backward compatible.

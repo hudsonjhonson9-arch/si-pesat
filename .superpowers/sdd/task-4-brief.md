@@ -1,129 +1,118 @@
-### Task 4: All Remaining File Updates — Ketua Tim Filter + Permission Checks
+# Task 4: Integrate Permission System into App.tsx
 
 **Files:**
-- Modify: `src/components/NewAuditView.tsx`
-- Modify: `src/components/AuditWorkspaceView.tsx`
-- Modify: `src/components/AuditListView.tsx`
-- Modify: `src/components/HomeView.tsx`
-- Modify: `src/components/UserProfileView.tsx`
+- Modify: `src/App.tsx`
 
-**Interfaces:**
-- Consumes: `isAdmin` prop from App.tsx (Task 2); new roles from Task 3; `isAdmin?: boolean` already in HomeView/AuditListView/AuditWorkspaceView interfaces from Task 2
-- Produces: All permission checks updated; Ketua Tim dropdowns filtered
+**Goal:** Add bidang/permission state to App.tsx, load data from Supabase on auth, filter audits/target_entities by bidang_id, include bidang_id in sync payload.
 
----
+## Requirements
 
-**IMPORTANT:** Some components already have `isAdmin?: boolean` in their interfaces (HomeView, AuditListView, AuditWorkspaceView) from Task 2. DO NOT re-add it. For NewAuditView, you need to add it.
-
----
-
-- [ ] **Step 1: Add helper arrays in each file**
-
-**In `NewAuditView.tsx`, add after imports:**
+### 1. New imports
+Add to existing imports in App.tsx:
 ```typescript
-const KETUA_TIM_ROLES = [
-  'Inspektur', 'Inspektur Pembantu',
-  'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
-  'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
-];
+import { Bidang, Role, Permission, RolePermission } from './types';
+import { permissionChecker } from './lib/permissions';
 ```
 
-**In `AuditWorkspaceView.tsx`, add after imports:**
+### 2. New state variables (after line 111, after targetEntities state)
 ```typescript
-const KETUA_TIM_ROLES = [
-  'Inspektur', 'Inspektur Pembantu',
-  'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
-  'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
-];
-const STRUKTURAL_ROLES = ['Inspektur', 'Inspektur Pembantu'];
+const [bidangList, setBidangList] = useState<Bidang[]>([]);
+const [userBidangId, setUserBidangId] = useState<number | null>(null);
+const [rolesList, setRolesList] = useState<Role[]>([]);
+const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
 ```
 
-**In `AuditListView.tsx`, add after imports:**
+### 3. Load bidang/permissions data on auth
+In the auth state change effect (the one with `supabase.auth.onAuthStateChange`), after the existing profile fetch, add:
+
 ```typescript
-const STRUKTURAL_ROLES = ['Inspektur', 'Inspektur Pembantu'];
+// Fetch bidang, roles, permissions for RBAC
+supabase.from('bidang').select('*').then(({ data }) => {
+  if (data) setBidangList(data);
+});
+supabase.from('roles').select('*').then(({ data }) => {
+  if (data) setRolesList(data);
+});
+supabase.from('permissions').select('*').then(({ data }) => {
+  if (data) {
+    setPermissionsList(data);
+    const map = new Map<number, string>();
+    data.forEach((p: Permission) => map.set(p.id, p.code));
+    permissionChecker.setPermissionCodeMap(map);
+  }
+});
+supabase.from('role_permissions').select('*').then(({ data }) => {
+  if (data) permissionChecker.setRolePermissions(data as RolePermission[]);
+});
 ```
 
-- [ ] **Step 2: NewAuditView.tsx — filter Ketua Tim dropdown**
-
-First, add `isAdmin?: boolean` to the component's Props interface and destructure it. The interface name is the first one that includes `userProfiles`.
-
-Find the Ketua Tim dropdown user filter (it shows ALL profiles, now filter to only Ketua Tim eligible):
-
-Change line that looks like:
+### 4. Set user's bidang_id and role_id in permissionChecker
+After getting profile data (where userRole is set), add:
 ```typescript
-{userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).map(p => {
+// Set permission checker
+supabase.from('roles').select('id').eq('name', userRole).single().then(({ data }) => {
+  if (data) {
+    permissionChecker.setUser(data.id, profileData.bidang_id ?? null);
+    if (profileData.bidang_id) setUserBidangId(profileData.bidang_id);
+  }
+});
 ```
 
-To:
+### 5. Filter audits by bidang_id
+In the `fetchAudits` function (where `supabase.from('audits').select('*')` is called), modify the query:
+
 ```typescript
-{userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).map(p => {
+const fetchAudits = () => {
+  let query = supabase.from('audits').select('*');
+  
+  const scope = permissionChecker.getScope('audit.view');
+  if (scope !== 'all' && userBidangId) {
+    query = query.eq('bidang_id', userBidangId);
+  }
+  
+  query.then(({ data, error }) => {
+    // ... existing code ...
+  });
+};
 ```
 
-- [ ] **Step 3: AuditWorkspaceView.tsx — Ketua Tim filtering + role checks**
-
-**3a: Filter Ketua Tim in "Add Category" form**
-
-Find the new category Ketua Tim dropdown filter (similar pattern to Step 2) and add `KETUA_TIM_ROLES.includes(p.role) &&` to the filter.
-
-**3b: Filter Ketua Tim in "Edit Team" form**
-
-Find the edit category Ketua Tim dropdown filter and add `KETUA_TIM_ROLES.includes(p.role) &&` to the filter.
-
-**3c: Update role checks involving `'Admin'` or structural roles**
-
-Search for:
-- `STRUKTURAL_ROLES.includes(userRole) || isAdmin` — replace any `['Inspektur', 'Inspektur Pembantu', 'Admin']` or similar patterns
-- `userRole === 'Inspektur' || isAdmin` — for Inspektur-only checks
-
-**3d: UPDATE `userRole === 'Auditor'` checks to use FUNGSIONAL_ROLES**
-
-The old code uses `userRole === 'Auditor'` to check if a user can edit audit items. Now these roles should also be treated as functional auditor roles: Auditor Pelaksana, Pelaksana Lanjutan, Penyelia, Ahli Pertama, Ahli Muda, Ahli Madya, Ahli Utama, PPUPD Ahli Pertama, PPUPD Ahli Muda, PPUPD Ahli Madya, PPUPD Ahli Utama.
-
-Add this constant after the other constants:
+### 6. Filter target_entities by bidang_id
+In the auth effect where `target_entities` is fetched (line ~399):
 ```typescript
-const FUNGSIONAL_ROLES = [
-  'Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
-  'Auditor Ahli Pertama', 'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
-  'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
-];
+let entityQuery = supabase.from('target_entities').select('*');
+const entityScope = permissionChecker.getScope('entity.view');
+if (entityScope !== 'all' && userBidangId) {
+  entityQuery = entityQuery.eq('bidang_id', userBidangId);
+}
+entityQuery.order('type').then(({ data, error }) => {
+  if (!error && data) setTargetEntities(data as TargetEntity[]);
+});
 ```
 
-Replace ALL occurrences of:
-- `userRole === 'Auditor'` → `FUNGSIONAL_ROLES.includes(userRole)`
-- `userRole !== 'Auditor'` → `!FUNGSIONAL_ROLES.includes(userRole) && !isAdmin`
-
-Search the entire file for these patterns. There are likely ~10+ occurrences.
-
-- [ ] **Step 4: AuditListView.tsx — delete KKA permission**
-
-Find the delete button check (it uses `'Admin'` string). Replace:
+### 7. Include bidang_id in sync payload
+In the debounced sync effect, add `bidang_id` to the audit upsert payload:
 ```typescript
-{['Inspektur', 'Inspektur Pembantu', 'Admin'].includes(userRole) && (
+const payload = validAudits.map(a => ({
+  // ... existing fields ...
+  bidang_id: userBidangId, // ADD THIS
+}));
 ```
-With:
-```typescript
-{(STRUKTURAL_ROLES.includes(userRole) || isAdmin) && (
-```
 
-- [ ] **Step 5: HomeView.tsx — role checks**
+**Important:** The `fetchAudits` function call occurs inside a useEffect at mount time. The bidang filter depends on userBidangId being set, which happens inside the auth state change effect. Since the order of these effects is important, wrap the fetchAudits call so it only runs after userBidangId is available.
 
-Find role checks that use `userRole === 'Inspektur Pembantu' || userRole === 'Inspektur'` and also include `|| isAdmin`.
+## Implementation steps:
+1. Read current `src/App.tsx`
+2. Apply each change above
+3. Read `src/lib/permissions.ts` to understand permissionChecker API
+4. Run `npm run lint` to verify
+5. Commit: `git add src/App.tsx && git commit -m "feat: integrate permission system into App.tsx"`
 
-HomeView already has `isAdmin?: boolean` in its props from Task 2. Just destructure it with default `false`.
+## Report format
+Write to `.superpowers/sdd/task-4-report.md`:
+- What you implemented
+- Files changed
+- Test results (lint output)
+- Self-review findings
+- Any concerns
 
-- [ ] **Step 6: UserProfileView.tsx — role checks**
-
-Similarly find role checks and add `|| isAdmin` to any structural-only checks.
-
-Note: `UserProfileView.tsx` does NOT yet have `isAdmin` prop. Add it to the interface, destructure it, and use it in role checks.
-
-- [ ] **Step 7: Verify**
-
-Run: `npm run lint` — Expected: no errors
-
-- [ ] **Step 8: Commit**
-
-```bash
-git add src/components/NewAuditView.tsx src/components/AuditWorkspaceView.tsx src/components/AuditListView.tsx src/components/HomeView.tsx src/components/UserProfileView.tsx
-git commit -m "feat: add Ketua Tim role filtering, update permission checks across all components"
-```
+Then report back with Status, Commits, Test summary, Concerns, Report path.

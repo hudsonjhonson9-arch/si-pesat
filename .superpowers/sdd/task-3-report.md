@@ -1,31 +1,21 @@
-# Task 3 Report: UserManagementView — New Roles + is_admin Toggle
+# Task 3 Report: Permission Hook
 
-## What was implemented
+## What Was Implemented
+Created `src/lib/permissions.ts` containing a `PermissionChecker` class (singleton pattern) for centralized RBAC permission checks.
 
-1. **ROLE_OPTIONS** — replaced 3 roles with 13 roles (Auditor Pelaksana, Auditor Pelaksana Lanjutan, Auditor Penyelia, Auditor Ahli Pertama/Muda/Madya/Utama, PPUPD Ahli Pertama/Muda/Madya/Utama, Inspektur Pembantu, Inspektur)
-2. **ROLE_ORDER** — updated priority order for all 13 roles
-3. **ROLE_CONFIG** — added all 13 roles with grouped icons/colors (blue for Pelaksana, sky for Ahli, teal for PPUPD, amber for Irban, purple for Inspektur)
-4. **Permission logic** — `canEdit`, `canEditRole`, `canToggleMfa` now include `|| isAdmin`
-5. **is_admin state** — added `editIsAdmin` state, populated in `startEdit`, saved in `saveEdit` payload
-6. **is_admin toggle UI** — added toggle switch in edit form (visible only to Inspektur or admin), with ShieldCheck icon and descriptive text
+## Files Changed
+- **Created:** `src/lib/permissions.ts` (47 lines)
 
-## Test results
+## Test Results (Lint)
+`tsc --noEmit` passed with zero errors.
 
-- `npm run lint` (tsc --noEmit): **passed with no errors**
+## Self-Review Findings
+- The `PermissionChecker` is a plain TypeScript class (no React hooks), as specified.
+- Uses a singleton `permissionChecker` export for app-wide use.
+- Requires `setPermissionCodeMap()` to be called before `can()`/`getScope()` work correctly — this is a runtime coupling that should be documented or enforced at the App.tsx initialization level.
+- The `UserProfile` type in `types.ts` still has `role: string` (not `role_id: number`). This is a separate concern, but App.tsx will need to bridge between the old `user.role` string and the new `userRoleId` number when populating the checker.
+- No circular dependencies introduced.
 
-## Files changed
-
-- `src/components/UserManagementView.tsx` — 56 insertions, 10 deletions
-
-## Self-review findings
-
-- Default `editRole` changed from `'Auditor'` to `'Auditor Pelaksana'` to match new ROLE_OPTIONS
-- Fallback in `startEdit` changed from `|| 'Auditor'` to `|| 'Auditor Pelaksana'`
-- ROLE_CONFIG lookup fallback changed from `ROLE_CONFIG['Auditor']` to `ROLE_CONFIG['Auditor Pelaksana']`
-- `isAdmin` is destructured in function signature with `= false` default (already in interface from Task 2, not re-added)
-- Stats row still shows old role cards (e.g., 'Auditor') — these now show 0 counts since 'Auditor' no longer exists in ROLE_OPTIONS. This is a minor visual issue but was not part of the task scope.
-- Info box at bottom still references 'Auditor' in the description text — also not part of task scope.
-
-## Issues or concerns
-
-None. All changes compile cleanly.
+## Concerns
+- **Runtime dependency:** The permission code map must be populated before any `can()` call. If App.tsx fails to call `setPermissionCodeMap()` first, all checks return `false`. Consider adding a runtime warning or guard in a follow-up.
+- **Type mismatch:** Existing `UserProfile.role` is still `string`. The new system expects `role_id: number`. This will be resolved when App.tsx is updated (future task).

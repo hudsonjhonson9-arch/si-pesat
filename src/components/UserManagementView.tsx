@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { UserProfile } from '../types';
+import { Bidang, UserProfile } from '../types';
 import { supabase } from '../lib/supabase';
 import {
   Users, Search, ShieldCheck, Shield, User as UserIcon,
@@ -17,6 +17,7 @@ interface UserManagementViewProps {
   currentUserRole: string;
   isAdmin?: boolean;
   currentUserId?: string;
+  bidangList: Bidang[];
   onShowToast?: (message: string, type: 'success' | 'info' | 'error') => void;
   onRefreshProfiles?: () => void;
 }
@@ -25,15 +26,16 @@ const ROLE_OPTIONS = [
   'Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
   'Auditor Ahli Pertama', 'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
   'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
-  'Inspektur Pembantu', 'Inspektur'
+  'Inspektur Pembantu', 'Inspektur', 'Sekretaris', 'PPPK'
 ] as const;
 type RoleType = typeof ROLE_OPTIONS[number];
 
 const ROLE_ORDER: Record<string, number> = {
-  'Inspektur': 0, 'Inspektur Pembantu': 1,
-  'Auditor Ahli Utama': 2, 'Auditor Ahli Madya': 3, 'Auditor Ahli Muda': 4, 'Auditor Ahli Pertama': 5,
-  'Auditor Penyelia': 6, 'Auditor Pelaksana Lanjutan': 7, 'Auditor Pelaksana': 8,
-  'PPUPD Ahli Utama': 9, 'PPUPD Ahli Madya': 10, 'PPUPD Ahli Muda': 11, 'PPUPD Ahli Pertama': 12,
+  'Inspektur': 0, 'Sekretaris': 1, 'Inspektur Pembantu': 2,
+  'Auditor Ahli Utama': 3, 'Auditor Ahli Madya': 4, 'Auditor Ahli Muda': 5, 'Auditor Ahli Pertama': 6,
+  'Auditor Penyelia': 7, 'Auditor Pelaksana Lanjutan': 8, 'Auditor Pelaksana': 9,
+  'PPUPD Ahli Utama': 10, 'PPUPD Ahli Madya': 11, 'PPUPD Ahli Muda': 12, 'PPUPD Ahli Pertama': 13,
+  'PPPK': 14,
 };
 
 const GOLONGAN_ORDER: Record<string, number> = {
@@ -57,10 +59,12 @@ const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; bg: st
   'PPUPD Ahli Utama': { label: 'PPUPD Ahli Utama', icon: <Shield className="w-3.5 h-3.5" />, bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
   'Inspektur Pembantu': { label: 'Irban', icon: <Star className="w-3.5 h-3.5" />, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
   Inspektur: { label: 'Inspektur', icon: <Crown className="w-3.5 h-3.5" />, bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  'Sekretaris': { label: 'Sekretaris', icon: <ShieldCheck className="w-3.5 h-3.5" />, bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
+  'PPPK': { label: 'PPPK', icon: <UserIcon className="w-3.5 h-3.5" />, bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
 };
 
 export default function UserManagementView({
-  userProfiles, currentUserRole, isAdmin = false, currentUserId, onShowToast, onRefreshProfiles,
+  userProfiles, currentUserRole, isAdmin = false, currentUserId, bidangList, onShowToast, onRefreshProfiles,
 }: UserManagementViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('Semua');
@@ -73,6 +77,7 @@ export default function UserManagementView({
   const [editEmail, setEditEmail] = useState('');
   const [editMfaRequired, setEditMfaRequired] = useState(false);
   const [editIsAdmin, setEditIsAdmin] = useState(false);
+  const [editBidangId, setEditBidangId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -90,6 +95,8 @@ export default function UserManagementView({
         return matchSearch && (roleFilter === 'Semua' || p.role === roleFilter);
       })
       .sort((a, b) => {
+        const bidangDiff = (a.bidang_id ?? 99) - (b.bidang_id ?? 99);
+        if (bidangDiff !== 0) return bidangDiff;
         const roleDiff = (ROLE_ORDER[a.role] ?? 99) - (ROLE_ORDER[b.role] ?? 99);
         if (roleDiff !== 0) return roleDiff;
 
@@ -124,6 +131,7 @@ export default function UserManagementView({
     setEditEmail(profile.email || '');
     setEditMfaRequired((profile as any).mfa_required || false);
     setEditIsAdmin((profile as any).is_admin || false);
+    setEditBidangId((profile as any).bidang_id ?? null);
   };
 
   const cancelEdit = () => setEditingUserId(null);
@@ -145,6 +153,7 @@ export default function UserManagementView({
           full_name: editFullName || null,
           mfa_required: editMfaRequired,
           is_admin: editIsAdmin,
+          bidang_id: editBidangId,
           ...(emailChanged && !isEditingSelf ? { email_pending: editEmail.trim() } : {}),
         })
         .eq('id', userId);
@@ -341,6 +350,16 @@ export default function UserManagementView({
                             className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400" />
                         </div>
 
+                        {/* Bidang */}
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Bidang / Irban</label>
+                          <select value={editBidangId ?? ''} onChange={e => setEditBidangId(e.target.value ? Number(e.target.value) : null)}
+                            className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400">
+                            <option value="">— Pilih Bidang —</option>
+                            {bidangList.map(b => <option key={b.id} value={b.id}>{b.name}{b.wilayah ? ` (${b.wilayah})` : ''}</option>)}
+                          </select>
+                        </div>
+
                         {/* Toggle MFA */}
                         <div className="md:col-span-2">
                           <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${editMfaRequired ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -413,6 +432,11 @@ export default function UserManagementView({
                           <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${roleConf.bg} ${roleConf.text} ${roleConf.border}`}>
                             {roleConf.icon} {roleConf.label}
                           </span>
+                          {profile.bidang_id && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                              {bidangList.find(b => b.id === profile.bidang_id)?.name || '—'}
+                            </span>
+                          )}
                           {hasMfa ? (
                             <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                               <Smartphone className="w-2.5 h-2.5" /> MFA Aktif
