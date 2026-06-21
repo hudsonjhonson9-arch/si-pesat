@@ -142,7 +142,7 @@ export default function AuditListView({
     let result = audits.filter(audit => {
       const matchSearch = audit.opdName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         audit.auditorName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchJenis = jenisAuditFilter === 'all' || audit.auditType === jenisAuditFilter;
+      const matchJenis = jenisAuditFilter === 'all' || audit.categories.some(c => c.name === jenisAuditFilter);
       const matchType = typeFilter === 'all' || audit.opdType === typeFilter;
       const matchYear = yearFilter === 'all' || audit.fiscalYear === yearFilter;
 
@@ -164,10 +164,12 @@ export default function AuditListView({
     return Array.from(new Set(years)).sort().reverse();
   }, [audits]);
 
-  // Unique jenis audit (audit types) from templates
+  // Unique jenis audit (kategori/seksi) dari setiap KKA
   const availableJenisAudit = useMemo(() => {
-    return templates.map(t => t.name).filter(Boolean);
-  }, [templates]);
+    const cats = new Set<string>();
+    audits.forEach(a => a.categories.forEach(c => { if (c.name) cats.add(c.name); }));
+    return Array.from(cats);
+  }, [audits]);
 
   const handleSubmitNewAudit = (e: React.FormEvent) => {
     e.preventDefault();
