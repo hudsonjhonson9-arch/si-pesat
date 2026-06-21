@@ -961,18 +961,18 @@ export default function App() {
                   <School className="w-4 h-4" /> Pengawasan <ChevronDown className="w-3 h-3 ml-0.5" />
                 </button>
                 {/* Dropdown Menu */}
-                <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[200px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  {/* Audit with nested dropdown */}
-                  <div className="relative group/nested">
-                    <button
-                      onClick={() => navigateToPengawasan('audit')}
-                      className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                    >
-                      <span className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> Audit</span>
-                      <ChevronDown className="w-3 h-3 -rotate-90" />
-                    </button>
-                    {/* Nested: KKA & Statistik KKA */}
-                    <div className="absolute left-full top-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] opacity-0 invisible group-hover/nested:opacity-100 group-hover/nested:visible transition-all duration-200 z-50 ml-1">
+                  <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[200px] hidden group-hover:block z-50">
+                    {/* Audit with nested dropdown */}
+                    <div className="relative group/nested">
+                      <button
+                        onClick={() => navigateToPengawasan('audit')}
+                        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                      >
+                        <span className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> Audit</span>
+                        <ChevronDown className="w-3 h-3 -rotate-90" />
+                      </button>
+                      {/* Nested: KKA & Statistik KKA */}
+                      <div className="absolute left-full top-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] hidden group-hover/nested:block z-50 ml-1">
                       <button
                         onClick={() => navigateToPengawasan('audit')}
                         className="w-full text-left px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg flex items-center gap-2"
@@ -1037,7 +1037,7 @@ export default function App() {
                   >
                     <Settings className="w-4 h-4" /> Pengaturan <ChevronDown className="w-3 h-3 ml-0.5" />
                   </button>
-                  <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] hidden group-hover:block z-50">
                     {permissionChecker.can('user.manage') && (
                       <button
                         onClick={() => navigateTo('pengguna')}
