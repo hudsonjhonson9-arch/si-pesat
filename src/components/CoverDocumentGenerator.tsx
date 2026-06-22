@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { X, Printer, FileText, Search, CheckSquare, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { OpdAudit, UserProfile } from '../types';
+import { escapeHtml } from '../lib/escape';
 import html2pdf from 'html2pdf.js';
 
 interface CoverDocumentGeneratorProps {
@@ -71,7 +72,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       ? finalTeamList.map((name, i) => `
         <div style="margin-bottom: 4px;">
           <span style="display: inline-block; width: 25px; vertical-align: top;">${i + 1}.</span>
-          <span style="display: inline-block; width: 350px; vertical-align: top;">${name}</span>
+          <span style="display: inline-block; width: 350px; vertical-align: top;">${escapeHtml(name)}</span>
         </div>
       `).join('')
       : `<div style="margin-bottom: 4px;">(Belum ada tim pemeriksa)</div>`;
@@ -80,7 +81,7 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Cetak Sampul KKP - ${pada} - ${judul2}</title>
+        <title>Cetak Sampul KKP - ${escapeHtml(pada)} - ${escapeHtml(judul2)}</title>
       </head>
       <body style="margin: 0; padding: 0; background: white;">
         <div id="clip-container" style="width: 100%; overflow: hidden; display: flex; justify-content: center; background: white;">
@@ -88,11 +89,11 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
             <div id="pdf-content" style="width: 210mm; height: 295mm; max-height: 295mm; overflow: hidden; padding: 25mm; box-sizing: border-box; background: white; font-family: 'Times New Roman', Times, serif; color: #000000;">
               
               <div style="text-align: center; margin-top: 40px;">
-                <div style="font-size: ${fontSizeKop}pt; font-weight: bold; margin-bottom: 5px;">${instansi}</div>
-                <div style="font-size: ${fontSizeKop + 2}pt; font-weight: bold; margin-bottom: 10px;">${lembaga}</div>
-                <div style="font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px;">${alamat.replace(/\n/g, '<br/>')}</div>
-                <div style="font-size: ${fontSizeKop - 2}pt; font-weight: bold; margin-bottom: 10px;">${judul1}</div>
-                <div style="font-size: ${fontSizeKop - 2}pt; font-weight: bold; margin-bottom: 10px;">${judul2}</div>
+                <div style="font-size: ${fontSizeKop}pt; font-weight: bold; margin-bottom: 5px;">${escapeHtml(instansi)}</div>
+                <div style="font-size: ${fontSizeKop + 2}pt; font-weight: bold; margin-bottom: 10px;">${escapeHtml(lembaga)}</div>
+                <div style="font-size: ${fontSizeKop - 4}pt; margin-bottom: 40px;">${escapeHtml(alamat).replace(/\n/g, '<br/>')}</div>
+                <div style="font-size: ${fontSizeKop - 2}pt; font-weight: bold; margin-bottom: 10px;">${escapeHtml(judul1)}</div>
+                <div style="font-size: ${fontSizeKop - 2}pt; font-weight: bold; margin-bottom: 10px;">${escapeHtml(judul2)}</div>
               </div>
 
               <div style="display: flex; justify-content: center; margin: 60px 0; height: 150px;">
@@ -107,22 +108,22 @@ export default function CoverDocumentGenerator({ audit, activeCategory, userProf
                 <tr>
                   <td style="width: 220px; vertical-align: top; padding: 4px 0;">PADA</td>
                   <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-                  <td style="vertical-align: top; padding: 4px 0;">${pada}</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${escapeHtml(pada)}</td>
                 </tr>
                 <tr>
                   <td style="width: 220px; vertical-align: top; padding: 4px 0;">KECAMATAN</td>
                   <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-                  <td style="vertical-align: top; padding: 4px 0;">${kecamatan}</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${escapeHtml(kecamatan)}</td>
                 </tr>
                 <tr>
                   <td style="width: 220px; vertical-align: top; padding: 4px 0;">KABUPATEN</td>
                   <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-                  <td style="vertical-align: top; padding: 4px 0;">${kabupaten}</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${escapeHtml(kabupaten)}</td>
                 </tr>
                 <tr>
                   <td style="width: 220px; vertical-align: top; padding: 4px 0;">TANGGAL</td>
                   <td style="width: 20px; text-align: center; vertical-align: top; padding: 4px 0;">:</td>
-                  <td style="vertical-align: top; padding: 4px 0;">${tanggal}</td>
+                  <td style="vertical-align: top; padding: 4px 0;">${escapeHtml(tanggal)}</td>
                 </tr>
                 <tr>
                   <td style="width: 220px; vertical-align: top; padding: 4px 0;">TIM PEMERIKSA</td>

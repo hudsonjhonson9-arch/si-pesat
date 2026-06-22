@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { X, Printer, FileText, Trash2, Plus } from 'lucide-react';
 import { OpdAudit, UserProfile } from '../types';
+import { escapeHtml } from '../lib/escape';
 import html2pdf from 'html2pdf.js';
 import SearchableSelect from './SearchableSelect';
 
@@ -116,9 +117,9 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
               <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
             </td>
             <td style="text-align: center; vertical-align: middle;">
-              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px; white-space: nowrap;">${instansi}</div>
-              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; white-space: nowrap;">${lembaga}</div>
-              <div style="font-size: 10pt; line-height: 1.2;">${alamat}</div>
+              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px; white-space: nowrap;">${escapeHtml(instansi)}</div>
+              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; white-space: nowrap;">${escapeHtml(lembaga)}</div>
+              <div style="font-size: 10pt; line-height: 1.2;">${escapeHtml(alamat)}</div>
             </td>
             <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
           </tr>
@@ -129,7 +130,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
           <table style="width: 300px;">
             <tr><td style="width: 80px;">Lembar Ke</td><td style="width: 10px;">:</td><td></td></tr>
             <tr><td>Kode No.</td><td>:</td><td></td></tr>
-            <tr><td>Nomor</td><td>:</td><td>${member.nomorSurat}</td></tr>
+            <tr><td>Nomor</td><td>:</td><td>${escapeHtml(member.nomorSurat)}</td></tr>
           </table>
         </div>
 
@@ -147,7 +148,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
             <td style="border: 1px solid black; padding: 6px; text-align: center; vertical-align: top;">2</td>
             <td style="border: 1px solid black; padding: 6px; vertical-align: top;">Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td>
             <td style="border: 1px solid black; padding: 6px; vertical-align: top; font-weight: bold;">
-              ${member.nama} /<br/>${member.nip}
+              ${escapeHtml(member.nama)} /<br/>${escapeHtml(member.nip)}
             </td>
           </tr>
           <tr>
@@ -158,15 +159,15 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
               c. Tingkat Biaya Perjalanan Dinas
             </td>
             <td style="border: 1px solid black; padding: 6px; vertical-align: top;">
-              a. ${member.pangkat}<br/>
-              b. ${member.jabatan}<br/>
+              a. ${escapeHtml(member.pangkat)}<br/>
+              b. ${escapeHtml(member.jabatan)}<br/>
               c. 
             </td>
           </tr>
           <tr>
             <td style="border: 1px solid black; padding: 6px; text-align: center; vertical-align: top;">4</td>
             <td style="border: 1px solid black; padding: 6px; vertical-align: top;">Maksud Perjalanan Dinas</td>
-            <td style="border: 1px solid black; padding: 6px; vertical-align: top;">${maksud}</td>
+            <td style="border: 1px solid black; padding: 6px; vertical-align: top;">${escapeHtml(maksud)}</td>
           </tr>
           <tr>
             <td style="border: 1px solid black; padding: 6px; text-align: center; vertical-align: top;">5</td>
@@ -181,7 +182,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
             </td>
             <td style="border: 1px solid black; padding: 6px; vertical-align: top;">
               a. Waikabubak<br/>
-              b. ${tempatTujuan}
+              b. ${escapeHtml(tempatTujuan)}
             </td>
           </tr>
           <tr>
@@ -192,9 +193,9 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
               c. Tanggal harus kembali
             </td>
             <td style="border: 1px solid black; padding: 6px; vertical-align: top;">
-              a. ${lamanya}<br/>
-              b. ${tglBerangkat}<br/>
-              c. ${tglKembali}
+              a. ${escapeHtml(lamanya)}<br/>
+              b. ${escapeHtml(tglBerangkat)}<br/>
+              c. ${escapeHtml(tglKembali)}
             </td>
           </tr>
           <tr>
@@ -231,9 +232,9 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
             <div style="text-align: center;">
               <div>INSPEKTUR KABUPATEN SUMBA BARAT,</div>
               <div style="height: 80px;"></div>
-              <div style="font-weight: bold; text-decoration: underline;">${inspekturNama}</div>
-              <div>${inspekturPangkat}</div>
-              <div>NIP. ${inspekturNip}</div>
+              <div style="font-weight: bold; text-decoration: underline;">${escapeHtml(inspekturNama)}</div>
+              <div>${escapeHtml(inspekturPangkat)}</div>
+              <div>NIP. ${escapeHtml(inspekturNip)}</div>
             </div>
           </div>
         </div>
@@ -245,7 +246,7 @@ export default function SPPDGenerator({ audit, activeCategory, userProfiles = []
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Cetak SPPD - ${audit.opdName}</title>
+        <title>Cetak SPPD - ${escapeHtml(audit.opdName)}</title>
         <style>
           @media print {
             @page { 

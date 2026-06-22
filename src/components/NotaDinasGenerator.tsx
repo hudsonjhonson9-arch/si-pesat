@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { X, Printer, FileText, Trash2, Plus } from 'lucide-react';
 import { OpdAudit, UserProfile } from '../types';
+import { escapeHtml } from '../lib/escape';
 import html2pdf from 'html2pdf.js';
 import SearchableSelect from './SearchableSelect';
 
@@ -103,8 +104,8 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
     const teamRows = teamList.map((member, i) => `
       <tr>
         <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">${i + 1}</td>
-        <td style="border: 1px solid black; padding: 8px 10px;">${member.nama}</td>
-        <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">${member.jabatan}</td>
+        <td style="border: 1px solid black; padding: 8px 10px;">${escapeHtml(member.nama)}</td>
+        <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">${escapeHtml(member.jabatan)}</td>
       </tr>
     `).join('');
 
@@ -112,7 +113,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Cetak Nota Dinas - ${audit.opdName}</title>
+        <title>Cetak Nota Dinas - ${escapeHtml(audit.opdName)}</title>
         <style>
           @media print {
             @page { 
@@ -147,9 +148,9 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
               <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
             </td>
             <td style="text-align: center; vertical-align: middle;">
-              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px; white-space: nowrap;">${instansi}</div>
-              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; white-space: nowrap;">${lembaga}</div>
-              <div style="font-size: 10pt; line-height: 1.2;">${alamat}</div>
+              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px; white-space: nowrap;">${escapeHtml(instansi)}</div>
+              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; white-space: nowrap;">${escapeHtml(lembaga)}</div>
+              <div style="font-size: 10pt; line-height: 1.2;">${escapeHtml(alamat)}</div>
             </td>
             <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
           </tr>
@@ -164,39 +165,39 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
           <tr>
             <td style="width: 100px; padding: 2px 0;">Kepada</td>
             <td style="width: 20px; padding: 2px 0;">:</td>
-            <td style="padding: 2px 0;">${kepada}</td>
+            <td style="padding: 2px 0;">${escapeHtml(kepada)}</td>
           </tr>
           <tr>
             <td style="padding: 2px 0;">Dari</td>
             <td style="padding: 2px 0;">:</td>
-            <td style="padding: 2px 0;">${dari}</td>
+            <td style="padding: 2px 0;">${escapeHtml(dari)}</td>
           </tr>
           <tr>
             <td style="padding: 2px 0;">Nomor</td>
             <td style="padding: 2px 0;">:</td>
-            <td style="padding: 2px 0;">${nomorSurat}</td>
+            <td style="padding: 2px 0;">${escapeHtml(nomorSurat)}</td>
           </tr>
           <tr>
             <td style="padding: 2px 0;">Tanggal</td>
             <td style="padding: 2px 0;">:</td>
-            <td style="padding: 2px 0;">${tanggal}</td>
+            <td style="padding: 2px 0;">${escapeHtml(tanggal)}</td>
           </tr>
           <tr>
             <td style="padding: 2px 0;">Lampiran</td>
             <td style="padding: 2px 0;">:</td>
-            <td style="padding: 2px 0;">${lampiran}</td>
+            <td style="padding: 2px 0;">${escapeHtml(lampiran)}</td>
           </tr>
           <tr>
             <td style="padding: 2px 0;">Perihal</td>
             <td style="padding: 2px 0;">:</td>
-            <td style="padding: 2px 0;">${perihal}</td>
+            <td style="padding: 2px 0;">${escapeHtml(perihal)}</td>
           </tr>
         </table>
         
         <hr style="border-top: 1px solid black; margin-bottom: 20px;" />
 
         <div style="text-align: justify; margin-bottom: 15px;">
-          ${pembuka}
+          ${escapeHtml(pembuka)}
         </div>
 
         <div style="font-weight: bold; margin-bottom: 10px;">Susunan Tim dan Obrik</div>
@@ -206,7 +207,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
             <td style="width: 20px; vertical-align: top;">:</td>
             <td style="vertical-align: top;">
               <ul style="margin: 0; padding-left: 20px;">
-                <li>${audit.opdName}</li>
+                <li>${escapeHtml(audit.opdName)}</li>
               </ul>
             </td>
           </tr>
@@ -222,7 +223,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
           </tr>
           <tr>
             <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">1</td>
-            <td style="border: 1px solid black; padding: 8px 10px;">${pengendaliNama}</td>
+            <td style="border: 1px solid black; padding: 8px 10px;">${escapeHtml(pengendaliNama)}</td>
             <td style="border: 1px solid black; padding: 8px 10px; text-align: center;">Pengendali Teknis</td>
           </tr>
         </table>
@@ -239,7 +240,7 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
 
         <div style="font-weight: bold; margin-bottom: 5px;">Pelaksanaan Pemeriksaan</div>
         <div style="text-align: justify; margin-bottom: 25px;">
-          ${waktu}
+          ${escapeHtml(waktu)}
         </div>
 
         <div class="avoid-break" style="width: 100%; page-break-inside: avoid;">
@@ -250,8 +251,8 @@ export default function NotaDinasGenerator({ audit, activeCategory, userProfiles
           <div style="margin-left: auto; width: 250px; text-align: center;">
             <div>Inspektur Pembantu Wilayah IV</div>
             <div style="height: 80px;"></div>
-            <div style="font-weight: bold; text-decoration: underline;">${pengendaliNama}</div>
-            <div>NIP. ${pengendaliNip}</div>
+            <div style="font-weight: bold; text-decoration: underline;">${escapeHtml(pengendaliNama)}</div>
+            <div>NIP. ${escapeHtml(pengendaliNip)}</div>
           </div>
         </div>
 

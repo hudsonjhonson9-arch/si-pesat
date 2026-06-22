@@ -464,10 +464,18 @@ export default function EvidencePanel({
                   <input
                     ref={fileInputRef}
                     type="file"
+                    accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar"
                     disabled={isUploading}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) { initiateUpload(file); }
+                      if (file) {
+                        if (file.size > 15 * 1024 * 1024) {
+                          alert('Ukuran file maksimal 15 MB.');
+                          if (fileInputRef.current) fileInputRef.current.value = '';
+                          return;
+                        }
+                        initiateUpload(file);
+                      }
                     }}
                     className="hidden"
                   />

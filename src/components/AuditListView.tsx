@@ -196,6 +196,12 @@ export default function AuditListView({
 
   return (
     <div className="space-y-6 text-dark-gray" id="audit-list-view">
+      {/* Title */}
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-6 bg-peach-accent rounded-full" />
+        <h2 className="text-lg font-black text-dark-gray tracking-tight">Kertas Kerja Audit</h2>
+      </div>
+
       {/* Search and Filters panel */}
       <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-4 text-dark-gray">
         <div className="flex flex-col md:flex-row gap-3">
@@ -317,7 +323,7 @@ export default function AuditListView({
                   </p>
                 </div>
                 <div className="bg-white border border-dark-gray/10 px-2.5 py-1 rounded-full text-[10px] font-black text-dark-gray shadow-xs">
-                  {group.audits.reduce((sum, a) => sum + Math.max(1, a.categories?.length || 0), 0)} Audit
+                  {group.audits.reduce((sum, a) => sum + Math.max(1, a.categories?.length || 0), 0)} KKA
                 </div>
               </div>
               <div className="divide-y divide-dark-gray/5">
@@ -409,13 +415,13 @@ export default function AuditListView({
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus kertas kerja pemeriksaan untuk ${audit.opdName}?`);
+                              const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus KKA untuk ${audit.opdName}?`);
                               if (confirmed) {
                                 onDeleteAudit(audit.id);
                               }
                             }}
                             className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 border border-rose-100 rounded-xl transition cursor-pointer shadow-sm"
-                            title="Hapus Pemeriksaan"
+                            title="Hapus KKA"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -570,7 +576,7 @@ export default function AuditListView({
                   type="submit"
                   className="flex-1 bg-peach-accent hover:opacity-90 text-dark-gray text-xs font-extrabold py-2.5 rounded-lg transition shadow-md cursor-pointer border border-dark-gray/5"
                 >
-                  Mulai Pemeriksaan
+                  Mulai KKA
                 </button>
               </div>
             </form>

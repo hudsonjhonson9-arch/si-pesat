@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { X, Printer, FileText, Search, Save, Trash2, Plus } from 'lucide-react';
 import { OpdAudit, UserProfile } from '../types';
+import { escapeHtml } from '../lib/escape';
 import html2pdf from 'html2pdf.js';
 import SearchableSelect from './SearchableSelect';
 
@@ -109,22 +110,22 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
       <tr>
         <td style="width: 140px; padding: 4px 0; vertical-align: top;">Nama</td>
         <td style="width: 20px; padding: 4px 0; vertical-align: top;">:</td>
-        <td style="padding: 4px 0; vertical-align: top; font-weight: bold;">${member.nama}</td>
+        <td style="padding: 4px 0; vertical-align: top; font-weight: bold;">${escapeHtml(member.nama)}</td>
       </tr>
       <tr>
         <td style="padding: 4px 0; vertical-align: top;">NIP</td>
         <td style="padding: 4px 0; vertical-align: top;">:</td>
-        <td style="padding: 4px 0; vertical-align: top;">${member.nip}</td>
+        <td style="padding: 4px 0; vertical-align: top;">${escapeHtml(member.nip)}</td>
       </tr>
       <tr>
         <td style="padding: 4px 0; vertical-align: top;">Pangkat / Golongan</td>
         <td style="padding: 4px 0; vertical-align: top;">:</td>
-        <td style="padding: 4px 0; vertical-align: top;">${member.pangkat}</td>
+        <td style="padding: 4px 0; vertical-align: top;">${escapeHtml(member.pangkat)}</td>
       </tr>
       <tr>
         <td style="padding: 4px 0; vertical-align: top;">Jabatan</td>
         <td style="padding: 4px 0; vertical-align: top;">:</td>
-        <td style="padding: 4px 0; vertical-align: top;">${member.jabatan}</td>
+        <td style="padding: 4px 0; vertical-align: top;">${escapeHtml(member.jabatan)}</td>
       </tr>
       <tr><td colspan="3" style="height: 10px;"></td></tr>
     `).join('');
@@ -133,7 +134,7 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Cetak Surat Tugas - ${audit.opdName}</title>
+        <title>Cetak Surat Tugas - ${escapeHtml(audit.opdName)}</title>
         <style>
           @media print {
             @page { 
@@ -168,9 +169,9 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
               <img src="https://raw.githubusercontent.com/hudsonjhonson9-arch/sekrebot/454f3b4b2c805ec163bf4525d82586c8944fb6c8/Lambang_Kabupaten_Sumba_Barat.png" alt="Logo" style="width: 80px; height: auto;" />
             </td>
             <td style="text-align: center; vertical-align: middle;">
-              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px; white-space: nowrap;">${instansi}</div>
-              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; white-space: nowrap;">${lembaga}</div>
-              <div style="font-size: 10pt; line-height: 1.2;">${alamat}</div>
+              <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px; white-space: nowrap;">${escapeHtml(instansi)}</div>
+              <div style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; white-space: nowrap;">${escapeHtml(lembaga)}</div>
+              <div style="font-size: 10pt; line-height: 1.2;">${escapeHtml(alamat)}</div>
             </td>
             <td style="width: 90px;"></td> <!-- Dummy cell for centering -->
           </tr>
@@ -180,7 +181,7 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
         <!-- JUDUL -->
         <div style="text-align: center; margin-bottom: 25px;">
           <div style="font-size: 12pt; font-weight: bold; text-decoration: underline;">SURAT PERINTAH TUGAS</div>
-          <div>Nomor : ${nomorSurat}</div>
+          <div>Nomor : ${escapeHtml(nomorSurat)}</div>
         </div>
 
         <!-- DASAR -->
@@ -190,8 +191,8 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
             <td style="width: 20px; vertical-align: top;">:</td>
             <td style="vertical-align: top; text-align: justify;">
               <ol style="margin: 0; padding-left: 20px;">
-                <li style="margin-bottom: 5px;">${dasar1}</li>
-                <li>${dasar2}</li>
+                <li style="margin-bottom: 5px;">${escapeHtml(dasar1)}</li>
+                <li>${escapeHtml(dasar2)}</li>
               </ol>
             </td>
           </tr>
@@ -217,7 +218,7 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
             <td style="vertical-align: top; padding-top: 10px;">Untuk</td>
             <td style="vertical-align: top; padding-top: 10px;">:</td>
             <td style="vertical-align: top; padding-top: 10px; text-align: justify;">
-              ${untuk}
+              ${escapeHtml(untuk)}
             </td>
           </tr>
         </table>
@@ -233,9 +234,9 @@ export default function SuratTugasGenerator({ audit, activeCategory, userProfile
             <div style="text-align: center;">
               <div>INSPEKTUR KABUPATEN SUMBA BARAT,</div>
               <div style="height: 80px;"></div>
-              <div style="font-weight: bold; text-decoration: underline;">${inspekturNama}</div>
-              <div>${inspekturPangkat}</div>
-              <div>NIP. ${inspekturNip}</div>
+              <div style="font-weight: bold; text-decoration: underline;">${escapeHtml(inspekturNama)}</div>
+              <div>${escapeHtml(inspekturPangkat)}</div>
+              <div>NIP. ${escapeHtml(inspekturNip)}</div>
             </div>
           </div>
         </div>

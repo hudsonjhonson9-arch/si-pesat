@@ -18,6 +18,8 @@
 const SUPABASE_URL = 'https://pmtmczqxrciaslgmjfim.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtdG1jenF4cmNpYXNsZ21qZmltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzY2NzQsImV4cCI6MjA5NjgxMjY3NH0.5kF1pq_MyvzqCl3Jhv2HvbNwjCpyBQWllhZUnsHZlMg';
 
+const UPLOAD_FOLDER_ID = 'YOUR_FOLDER_ID';
+const ROOT_FOLDER_NAME = 'SI-PESAT KKA Inspektorat';
 const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
@@ -34,7 +36,6 @@ const ALLOWED_MIME_TYPES = [
   'application/vnd.google-apps.document',
   'application/vnd.google-apps.presentation',
 ];
-const ROOT_FOLDER_NAME = 'SI-PESAT KKA Inspektorat';
 
 /**
  * Verifikasi Supabase JWT token via Supabase Auth API
