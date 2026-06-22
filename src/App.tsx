@@ -161,10 +161,28 @@ export default function App() {
     }, 400);
   };
 
+  const toggleDropdown = (name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    clearDropdownTimer(name);
+    setOpenDropdowns(prev => ({ ...prev, [name]: !prev[name] }));
+  };
+
   const closeAllDropdowns = () => {
     Object.keys(dropdownTimers.current).forEach(k => clearDropdownTimer(k));
     setOpenDropdowns({});
   };
+
+  // Tutup dropdown saat klik di luar container
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-dropdown]')) {
+        closeAllDropdowns();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Form notifications
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
@@ -964,8 +982,9 @@ export default function App() {
               >
                 <Building className="w-4 h-4" /> Wilayah Penugasan
               </button>
-              <div className="relative" onPointerEnter={() => handleDropdownEnter('pengawasan')} onPointerLeave={() => handleDropdownLeave('pengawasan')}>
+              <div data-dropdown="pengawasan" className="relative" onPointerEnter={() => handleDropdownEnter('pengawasan')} onPointerLeave={() => handleDropdownLeave('pengawasan')}>
                 <button
+                  onClick={(e) => toggleDropdown('pengawasan', e)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                     activeTab === 'pengawasan' || selectedAuditId
                       ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
@@ -981,7 +1000,7 @@ export default function App() {
                       {/* Audit with nested dropdown */}
                       <div className="relative" onPointerEnter={() => handleDropdownEnter('audit-nested')} onPointerLeave={() => handleDropdownLeave('audit-nested')}>
                         <button
-                          onClick={() => navigateToPengawasan('audit')}
+                          onClick={(e) => { navigateToPengawasan('audit'); toggleDropdown('audit-nested', e); }}
                           className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
                         >
                           <span className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> Audit</span>
@@ -1039,8 +1058,9 @@ export default function App() {
                 )}
               </div>
               {(isAdmin || permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
-                <div className="relative" onPointerEnter={() => handleDropdownEnter('pengaturan')} onPointerLeave={() => handleDropdownLeave('pengaturan')}>
+                <div data-dropdown="pengaturan" className="relative" onPointerEnter={() => handleDropdownEnter('pengaturan')} onPointerLeave={() => handleDropdownLeave('pengaturan')}>
                   <button
+                    onClick={(e) => toggleDropdown('pengaturan', e)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
                       activeTab === 'pengguna' || activeTab === 'role-permission'
                         ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
