@@ -1,78 +1,100 @@
 # Security Assessment — SI-PESAT
 
-**Date:** 2026-06-22
-**Version:** 1.0
+**Tanggal:** 22 Juni 2026
+**Versi:** 1.0
 
-## Overview
+## Ringkasan
 
-Security assessment for SI-PESAT (Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi), a React + Supabase audit management application for the Inspectorate of West Sumba Regency.
+Dokumen ini berisi hasil assessment keamanan untuk SI-PESAT (Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi), aplikasi manajemen audit berbasis React + Supabase untuk Inspektorat Kabupaten Sumba Barat.
 
-## Critical Vulnerabilities Fixed
+---
+
+## Kerentanan Kritis (Telah Diperbaiki)
 
 ### 1. Row Level Security (RLS)
 
 | Status | Detail |
 |--------|--------|
-| ✅ **Fixed** | RLS enabled on all 8 tables |
+| ✅ **Diperbaiki** | RLS aktif di seluruh 8 tabel |
 
-**Policies implemented:**
-- **profiles** — users read/update their own, admin read/update all
-- **audits** — creator/team/admin access, others blocked
-- **templates** — authenticated read, admin write
-- **target_entities** — authenticated read, admin write
-- **roles / permissions / role_permissions / bidang** — authenticated read, admin write
+**Kebijakan yang diterapkan:**
+- **profiles** — pengguna baca/ubah profil sendiri, admin baca/ubah semua
+- **audits** — akses untuk pembuat/anggota tim/admin, lainnya ditolak
+- **templates** — terautentikasi baca, admin tulis
+- **target_entities** — terautentikasi baca, admin tulis
+- **roles / permissions / role_permissions / bidang** — terautentikasi baca, admin tulis
 
-### 2. Google Apps Script Authentication
-
-| Status | Detail |
-|--------|--------|
-| ✅ **Fixed** | JWT token verification via Supabase Auth API |
-
-- All requests must include `Authorization: Bearer <supabase_jwt>`
-- Tokens verified against `SUPABASE_URL/auth/v1/user`
-- User identity (email + ID) recorded in Drive file description
-- Unauthorized requests return 401
-
-### 3. Client-Side Access Control
+### 2. Google Apps Script — Akses Tanpa Autentikasi
 
 | Status | Detail |
 |--------|--------|
-| ✅ **Fixed** | All auth state now comes from Supabase session |
+| ✅ **Diperbaiki** | Verifikasi JWT token via Supabase Auth API |
 
-- Removed all `localStorage` reads/writes for `is_admin`, `user_role`, `session_active`
-- Removed offline login bypass (`handleSessionLogin`)
-- Role/permissions fetched from Supabase `profiles` table on every login
+- Semua request upload wajib menyertakan `Authorization: Bearer <supabase_jwt>`
+- Token diverifikasi ke `SUPABASE_URL/auth/v1/user`
+- Identitas pengguna (email + ID) dicatat di deskripsi file Drive
+- Request tanpa token valid ditolak (401)
 
-### 4. Login Flow
+### 3. Akses Control Berbasis Client-Side Saja
 
 | Status | Detail |
 |--------|--------|
-| ✅ **Fixed** | Role check before dashboard access |
+| ✅ **Diperbaiki** | Semua state auth berasal dari Supabase session |
 
-- Loading spinner persists until profile role is confirmed
-- Button text changed from "Masuk Sesi" to "Masuk"
+- Dihapus: semua `localStorage` read/write untuk `is_admin`, `user_role`, `session_active`
+- Dihapus: fungsi `handleSessionLogin` (offline bypass)
+- Role/permissions diambil dari tabel `profiles` setiap login
 
-## Current Security Posture
+### 4. Alur Login
 
-### ✅ Protected
-- **RLS** — all 8 tables have RLS policies
-- **Authentication** — Supabase Auth (email/password + MFA)
-- **File Upload** — JWT-verified, user identity logged
-- **Authorization** — server-enforced via RLS, not client-only
+| Status | Detail |
+|--------|--------|
+| ✅ **Diperbaiki** | Cek role sebelum akses dashboard |
 
-### ⚠️ Medium (Melanjutkan)
-- **Password policy** — minimum 8 chars, no complexity requirement
-- **Rate limiting** — relies on Supabase default, no custom throttle
-- **Leaked password protection** — disabled (enable via Supabase dashboard: Authentication > Settings > Bot Protection)
+- Loading spinner tampil sampai role profil terkonfirmasi
+- Tombol ganti dari "Masuk Sesi" menjadi "Masuk"
 
-### ℹ️ Informational
-- **Supabase anon key** exposed in client — this is by design for Supabase SPAs. Security relies on RLS (now active).
-- **Google Drive files** set to `ANYONE_WITH_LINK` — needed for preview. Files are inside a centralized Drive folder controlled by Inspectorate.
+---
 
-## Recommended Next Steps
+## Posisi Keamanan Saat Ini
 
-1. **Enable Leaked Password Protection** — Supabase dashboard > Authentication > Settings > Bot Protection
-2. **Add password complexity** — require uppercase + number + special char
-3. **Rate limiting** — add custom rate limiting for login attempts
-4. **File size validation** — add server-side file size/type check in Google Apps Script
-5. **CSP Headers** — add Content-Security-Policy via deployment platform (Vercel/Netlify)
+### ✅ Terlindungi
+| Area | Keterangan |
+|------|------------|
+| **RLS Database** | 8 tabel memiliki kebijakan RLS |
+| **Autentikasi** | Supabase Auth (email/password + MFA opsional) |
+| **Upload File** | Wajib JWT valid, identitas pengguna tercatat |
+| **Otorisasi** | Diterapkan di server via RLS, tidak hanya client |
+
+### ⚠️ Sedang (Lanjutan)
+| Area | Keterangan |
+|------|------------|
+| **Kebijakan password** | Minimal 8 karakter, tanpa kompleksitas |
+| **Rate limiting login** | Mengandalkan bawaan Supabase |
+| **Leaked password protection** | Nonaktif — aktifkan via Dashboard Supabase |
+| **Validasi file upload** | Hanya client-side (hint UI 10MB) |
+
+### ℹ️ Catatan
+- **Anon key Supabase** terekspos di client — ini desain bawaan Supabase SPA. Keamanan bertumpu pada RLS (sekarang sudah aktif).
+- **File Google Drive** diset `ANYONE_WITH_LINK` — diperlukan untuk preview. File berada di folder Drive terpusat milik Inspektorat.
+
+---
+
+## Langkah Selanjutnya (Rekomendasi)
+
+1. **Aktifkan Leaked Password Protection**
+   - Dashboard Supabase → Authentication → Settings → Bot Protection
+   - Cegah penggunaan password yang sudah bocor
+
+2. **Tambah kompleksitas password**
+   - Require huruf besar + angka + karakter khusus
+   - File: `UserManagementView.tsx:126-128`
+
+3. **Rate limiting**
+   - Tambah pembatasan percobaan login gagal
+
+4. **Validasi file server-side**
+   - Tambah pengecekan ukuran file dan tipe MIME di Google Apps Script
+
+5. **CSP Headers**
+   - Tambah Content-Security-Policy di platform deployment (Vercel/Netlify)
