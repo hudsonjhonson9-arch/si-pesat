@@ -65,7 +65,6 @@ export default function AuditListView({
 }: AuditListViewProps) {
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [jenisAuditFilter, setJenisAuditFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'newest'>('name');
@@ -142,11 +141,10 @@ export default function AuditListView({
     let result = audits.filter(audit => {
       const matchSearch = audit.opdName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         audit.auditorName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchJenis = jenisAuditFilter === 'all' || audit.categories.some(c => c.name === jenisAuditFilter);
       const matchType = typeFilter === 'all' || audit.opdType === typeFilter;
       const matchYear = yearFilter === 'all' || audit.fiscalYear === yearFilter;
 
-      return matchSearch && matchJenis && matchType && matchYear;
+      return matchSearch && matchType && matchYear;
     });
 
     if (sortBy === 'name') {
@@ -156,19 +154,12 @@ export default function AuditListView({
     }
 
     return result;
-  }, [audits, searchQuery, jenisAuditFilter, typeFilter, yearFilter, sortBy]);
+  }, [audits, searchQuery, typeFilter, yearFilter, sortBy]);
 
   // Unique fiscal years
   const availableYears = useMemo(() => {
     const years = audits.map(a => a.fiscalYear);
     return Array.from(new Set(years)).sort().reverse();
-  }, [audits]);
-
-  // Unique jenis audit (kategori/seksi) dari setiap KKA
-  const availableJenisAudit = useMemo(() => {
-    const cats = new Set<string>();
-    audits.forEach(a => a.categories.forEach(c => { if (c.name) cats.add(c.name); }));
-    return Array.from(cats);
   }, [audits]);
 
   const handleSubmitNewAudit = (e: React.FormEvent) => {
@@ -221,21 +212,7 @@ export default function AuditListView({
         </div>
 
         {/* Extended drop-downs for filtering */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-dark-gray/10 font-semibold">
-          <div>
-            <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider block mb-1">Jenis Audit</label>
-            <select
-              value={jenisAuditFilter}
-              onChange={e => setJenisAuditFilter(e.target.value)}
-              className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded-md bg-white/70 text-dark-gray focus:bg-white focus:outline-hidden focus:border-peach-accent"
-            >
-              <option value="all">Semua Jenis</option>
-              {availableJenisAudit.map(jenis => (
-                <option key={jenis} value={jenis}>{jenis}</option>
-              ))}
-            </select>
-          </div>
-
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 pt-2 border-t border-dark-gray/10 font-semibold">
           <div>
             <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider block mb-1">Tipe Objek</label>
             <select
@@ -313,16 +290,20 @@ export default function AuditListView({
           ).map(([key, group]: [string, { opdName: string, opdType: string, fiscalYear: string, audits: OpdAudit[] }]) => (
             <div key={key} className="bg-white rounded-2xl border border-dark-gray/15 overflow-hidden shadow-sm">
               <div className="bg-dark-gray/5 border-b border-dark-gray/10 px-5 py-3 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-dark-gray flex items-center gap-2">
-                    <Building className="w-4 h-4 text-dark-gray/50" />
-                    {group.opdName}
-                  </h3>
-                  <p className="text-[10px] font-semibold text-dark-gray/60 uppercase tracking-widest mt-0.5">
-                    Jenjang {group.opdType} • Tahun Anggaran {group.fiscalYear}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-peach-accent/20 flex items-center justify-center shrink-0">
+                    <Building className="w-4 h-4 text-dark-gray" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-dark-gray">
+                      {group.opdName}
+                    </h3>
+                    <p className="text-[10px] font-bold text-dark-gray/50 uppercase tracking-widest">
+                      {group.opdType} • TA {group.fiscalYear}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-white border border-dark-gray/10 px-2.5 py-1 rounded-full text-[10px] font-black text-dark-gray shadow-xs">
+                <div className="bg-peach-accent/20 px-3 py-1 rounded-full text-[10px] font-black text-dark-gray">
                   {group.audits.reduce((sum, a) => sum + Math.max(1, a.categories?.length || 0), 0)} KKA
                 </div>
               </div>
