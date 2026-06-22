@@ -512,8 +512,52 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Rate limiting login — lacak percobaan gagal
+  const LOGIN_LOCK_KEY = 'si_pesat_login_lock';
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_MINUTES = 5;
+
+  const checkLoginRateLimit = (): string | null => {
+    try {
+      const stored = localStorage.getItem(LOGIN_LOCK_KEY);
+      if (!stored) return null;
+      const data = JSON.parse(stored);
+      if (data.lockedUntil && Date.now() < data.lockedUntil) {
+        const remaining = Math.ceil((data.lockedUntil - Date.now()) / 1000 / 60);
+        return `Akun terkunci. Coba lagi dalam ${remaining} menit.`;
+      }
+      if (data.lockedUntil && Date.now() >= data.lockedUntil) {
+        localStorage.removeItem(LOGIN_LOCK_KEY);
+      }
+    } catch {}
+    return null;
+  };
+
+  const recordFailedAttempt = () => {
+    try {
+      const stored = localStorage.getItem(LOGIN_LOCK_KEY);
+      const data = stored ? JSON.parse(stored) : { count: 0 };
+      data.count = (data.count || 0) + 1;
+      data.lastAttempt = Date.now();
+      if (data.count >= MAX_ATTEMPTS) {
+        data.lockedUntil = Date.now() + LOCKOUT_MINUTES * 60 * 1000;
+      }
+      localStorage.setItem(LOGIN_LOCK_KEY, JSON.stringify(data));
+    } catch {}
+  };
+
+  const resetLoginAttempts = () => {
+    localStorage.removeItem(LOGIN_LOCK_KEY);
+  };
+
   // Login handlers via Supabase Email/Password
   const handleEmailSignIn = async (email: string, pass: string) => {
+    const lockMsg = checkLoginRateLimit();
+    if (lockMsg) {
+      showToast(lockMsg, 'error');
+      return;
+    }
+
     setIsSyncing(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -521,6 +565,8 @@ export default function App() {
         password: pass,
       });
       if (error) throw error;
+
+      resetLoginAttempts();
 
       // Tunggu profil & role selesai dimuat sebelum menampilkan dashboard
       const { data: profileData } = await supabase
@@ -538,7 +584,9 @@ export default function App() {
       setIsSessionActive(true);
       showToast(`Berhasil masuk sebagai ${data.user.email}`, 'success');
     } catch (err: any) {
-      showToast(`Login gagal: ${err.message}`, 'error');
+      recordFailedAttempt();
+      const isLocked = checkLoginRateLimit();
+      showToast(isLocked || `Login gagal: ${err.message}`, 'error');
     } finally {
       setIsSyncing(false);
     }

@@ -123,8 +123,14 @@ export default function UserManagementView({
       setAddError('Email, password, dan nama lengkap wajib diisi.');
       return;
     }
-    if (addPassword.length < 8) {
-      setAddError('Password minimal 8 karakter.');
+    const pwdErrors: string[] = [];
+    if (addPassword.length < 8) pwdErrors.push('minimal 8 karakter');
+    if (!/[A-Z]/.test(addPassword)) pwdErrors.push('huruf besar');
+    if (!/[a-z]/.test(addPassword)) pwdErrors.push('huruf kecil');
+    if (!/[0-9]/.test(addPassword)) pwdErrors.push('angka');
+    if (!/[!@#$%^&*(),.?":{}|<>_\-]/.test(addPassword)) pwdErrors.push('karakter khusus');
+    if (pwdErrors.length > 0) {
+      setAddError('Password harus mengandung: ' + pwdErrors.join(', ') + '.');
       return;
     }
     setIsAdding(true);

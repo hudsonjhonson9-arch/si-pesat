@@ -18,7 +18,22 @@
 const SUPABASE_URL = 'https://pmtmczqxrciaslgmjfim.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtdG1jenF4cmNpYXNsZ21qZmltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzY2NzQsImV4cCI6MjA5NjgxMjY3NH0.5kF1pq_MyvzqCl3Jhv2HvbNwjCpyBQWllhZUnsHZlMg';
 
-const UPLOAD_FOLDER_ID = 'YOUR_FOLDER_ID';
+const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
+const ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-excel', // .xls
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/msword', // .doc
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+  'application/vnd.ms-powerpoint', // .ppt
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'text/plain', 'text/csv',
+  'application/zip', 'application/x-rar-compressed',
+  'application/vnd.google-apps.spreadsheet',
+  'application/vnd.google-apps.document',
+  'application/vnd.google-apps.presentation',
+];
 const ROOT_FOLDER_NAME = 'SI-PESAT KKA Inspektorat';
 
 /**
@@ -84,6 +99,25 @@ function doPost(e) {
       if (!fileName || !base64Data) {
         return responseError('Missing name or base64 data for upload');
       }
+
+      // Validasi ukuran file — decode dulu untuk cek ukuran sebenarnya
+      var decodedBytes = Utilities.base64Decode(base64Data);
+      if (decodedBytes.length > MAX_FILE_SIZE_BYTES) {
+        var sizeMB = Math.round(decodedBytes.length / 1024 / 1024);
+        var maxMB = Math.round(MAX_FILE_SIZE_BYTES / 1024 / 1024);
+        return responseError('Ukuran file (' + sizeMB + 'MB) melebihi batas maksimal ' + maxMB + 'MB.');
+      }
+
+      // Validasi tipe MIME
+      if (mimeType && ALLOWED_MIME_TYPES.indexOf(mimeType) === -1) {
+        return responseError('Tipe file ' + mimeType + ' tidak diizinkan. Hanya dokumen perkantoran (PDF, Excel, Word, PPT), gambar, dan CSV yang diperbolehkan.');
+      }
+
+      // Sanitasi nama file — cegah path traversal
+      var sanitizedName = fileName.replace(/[\/\\:*?"<>|]/g, '_').trim();
+      if (!sanitizedName) {
+        return responseError('Nama file tidak valid setelah sanitasi.');
+      }
     } else {
       if (!payload.sourceId) {
         return responseError('Missing sourceId for copy action');
@@ -142,8 +176,7 @@ function doPost(e) {
       const newName = fileName || sourceFile.getName();
       file = sourceFile.makeCopy(newName, currentFolder);
     } else {
-      const decodedBytes = Utilities.base64Decode(base64Data);
-      const blob = Utilities.newBlob(decodedBytes, mimeType || 'application/octet-stream', fileName);
+      var blob = Utilities.newBlob(decodedBytes, mimeType || 'application/octet-stream', sanitizedName);
       file = currentFolder.createFile(blob);
     }
 
