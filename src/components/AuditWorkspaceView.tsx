@@ -267,10 +267,9 @@ export default function AuditWorkspaceView({
            (cat.teamMembers || []).some(m => m.toLowerCase().trim() === currNameLower);
   });
 
-  // isReadOnly: admin dan struktural TIDAK pernah readonly kecuali audit sudah Selesai total
   const isReadOnly = !isTeamMember ||
-    (FUNGSIONAL_ROLES.includes(userRole) && (activeCategory?.status === 'Direview' || activeCategory?.status === 'Selesai' || audit.status === 'Selesai')) ||
-    (STRUKTURAL_ROLES.includes(userRole) && (activeCategory?.status === 'Selesai' && audit.status === 'Selesai'));
+    (activeCategory?.status === 'Selesai' || audit.status === 'Selesai') ||
+    (FUNGSIONAL_ROLES.includes(userRole) && activeCategory?.status === 'Direview');
 
   const isReviewerPanelVisible = STRUKTURAL_ROLES.includes(userRole);
 
