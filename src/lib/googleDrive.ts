@@ -1,9 +1,29 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { OpdAudit } from '../types';
+import { supabase } from './supabase';
+
+/**
+ * Dapatkan session token untuk autentikasi ke Google Apps Script
+ */
+async function getAuthToken(): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error('Sesi tidak ditemukan. Silakan login ulang.');
+  }
+  return session.access_token;
+}
+
+/**
+ * Build authorization payload with JWT token
+ */
+async function buildAuthorizedPayload(body: Record<string, any>): Promise<{ body: string; headers: Record<string, string> }> {
+  const token = await getAuthToken();
+  return {
+    body: JSON.stringify({ ...body, authorization: 'Bearer ' + token }),
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    }
+  };
+}
 
 /**
  * Upload an evidence document (pdf, excel, docx, etc.) to the Centralized Google Drive
@@ -26,9 +46,8 @@ export async function uploadEvidenceFile(
     reader.onload = async () => {
       try {
         const fileContent = reader.result as string;
-        // The reader.result is a data URL: "data:application/pdf;base64,JVBERi0xLjc..."
         const base64Data = fileContent.split(',')[1];
-        
+
         const payload = {
           name: file.name,
           mimeType: file.type || 'application/octet-stream',
@@ -38,20 +57,24 @@ export async function uploadEvidenceFile(
           auditType: auditType
         };
 
+        const { body, headers } = await buildAuthorizedPayload(payload);
+
         const response = await fetch(SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify(payload),
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
-          }
+          body: body,
+          headers: headers
         });
 
+        if (response.status === 401) {
+          throw new Error('Sesi telah kedaluwarsa. Silakan login ulang.');
+        }
+
         if (!response.ok) {
-          throw new Error(`Upload failed with status: ${response.status}`);
+          throw new Error(`Upload gagal dengan status: ${response.status}`);
         }
 
         const result = await response.json();
-        
+
         if (!result.success) {
           throw new Error(result.error || 'Unknown upload error');
         }
@@ -66,13 +89,12 @@ export async function uploadEvidenceFile(
       }
     };
     reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file); // Read as Data URL to get base64 easily
+    reader.readAsDataURL(file);
   });
 }
 
 /**
  * Copy a file from a Google Drive URL to the Centralized Google Drive
- * via Google Apps Script Web App.
  */
 export async function copyEvidenceFileFromUrl(
   sourceUrl: string,
@@ -87,7 +109,6 @@ export async function copyEvidenceFileFromUrl(
     throw new Error("VITE_GOOGLE_SCRIPT_URL belum diatur di environment variable.");
   }
 
-  // Extract File ID from Google Drive URL
   let sourceId = '';
   const matchD = sourceUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
   const matchId = sourceUrl.match(/id=([a-zA-Z0-9_-]+)/);
@@ -108,20 +129,24 @@ export async function copyEvidenceFileFromUrl(
     auditType: auditType
   };
 
+  const { body, headers } = await buildAuthorizedPayload(payload);
+
   const response = await fetch(SCRIPT_URL, {
     method: 'POST',
-    body: JSON.stringify(payload),
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8',
-    }
+    body: body,
+    headers: headers
   });
 
+  if (response.status === 401) {
+    throw new Error('Sesi telah kedaluwarsa. Silakan login ulang.');
+  }
+
   if (!response.ok) {
-    throw new Error(`Copy failed with status: ${response.status}`);
+    throw new Error(`Copy gagal dengan status: ${response.status}`);
   }
 
   const result = await response.json();
-  
+
   if (!result.success) {
     throw new Error(result.error || 'Unknown copy error. Pastikan link dapat diakses (Anyone with link can view).');
   }

@@ -122,26 +122,10 @@ export default function App() {
   const [templates, setTemplates] = useState<KKATemplate[]>([EMPTY_KKA_TEMPLATE]);
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
 
-  // Simulated internal account role ('Auditor' | 'Inspektur Pembantu' | 'Inspektur')
-  const [userRole, setUserRole] = useState<string>(
-    localStorage.getItem('si_pesat_user_role') || 'Auditor Pelaksana'
-  );
-  const [isAdmin, setIsAdmin] = useState(localStorage.getItem('si_pesat_is_admin') === 'true');
-
-  // Session Login gate state
-  const [isSessionActive, setIsSessionActive] = useState<boolean>(() => {
-    return localStorage.getItem('si_pesat_session_active') === 'true';
-  });
-  const [customAuditorName, setCustomAuditorName] = useState<string>(() => {
-    return localStorage.getItem('si_pesat_custom_name') || '';
-  });
-
-  // Sync permissionChecker from localStorage at init (biar tidak ada jeda)
-  React.useEffect(() => {
-    if (localStorage.getItem('si_pesat_is_admin') === 'true') {
-      permissionChecker.setUser(null, null, true);
-    }
-  }, []);
+  const [userRole, setUserRole] = useState<string>('Auditor Pelaksana');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
+  const [customAuditorName, setCustomAuditorName] = useState<string>('');
 
   // Authentication & Cloud Sync
   const [user, setUser] = useState<User | null>(null);
@@ -343,13 +327,7 @@ export default function App() {
     localStorage.setItem('si_pesat_logs', JSON.stringify(syncLogs));
   }, [syncLogs]);
 
-  useEffect(() => {
-    localStorage.setItem('si_pesat_user_role', userRole);
-  }, [userRole]);
 
-  useEffect(() => {
-    localStorage.setItem('si_pesat_is_admin', JSON.stringify(isAdmin));
-  }, [isAdmin]);
 
 
   // Supabase Background Sync (Debounced)
@@ -437,7 +415,6 @@ export default function App() {
       setUser(session?.user || null);
       if (session) {
         setIsSessionActive(true);
-        localStorage.setItem('si_pesat_session_active', 'true');
         const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
         setCustomAuditorName(name);
         
@@ -460,7 +437,6 @@ export default function App() {
       setUser(session?.user || null);
       if (session) {
          setIsSessionActive(true);
-         localStorage.setItem('si_pesat_session_active', 'true');
          const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
          setCustomAuditorName(name);
          
@@ -473,16 +449,12 @@ export default function App() {
          });
 
           supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
-             .then(({ data }) => {
-                if (data) {
-                  if (data.role) {
-                    setUserRole(data.role as any);
-                    localStorage.setItem('si_pesat_user_role', data.role);
-                  }
-                  setIsAdmin(data.is_admin || false);
-                  localStorage.setItem('si_pesat_is_admin', JSON.stringify(data.is_admin));
-                }
-             });
+              .then(({ data }) => {
+                 if (data) {
+                   if (data.role) setUserRole(data.role as any);
+                   setIsAdmin(data.is_admin || false);
+                 }
+              });
 
           supabase.from('profiles').select('role, bidang_id, is_admin').eq('id', session.user.id).single().then(({ data }) => {
             if (!data) return;
@@ -516,7 +488,6 @@ export default function App() {
           });
       } else {
          setIsSessionActive(false);
-         localStorage.removeItem('si_pesat_session_active');
       }
     });
 
@@ -540,25 +511,12 @@ export default function App() {
     }
   };
 
-  const handleSessionLogin = (name: string, role: string) => {
-    setCustomAuditorName(name);
-    setUserRole(role);
-    setIsAdmin(false);
-    setIsSessionActive(true);
-    localStorage.setItem('si_pesat_session_active', 'true');
-    localStorage.setItem('si_pesat_custom_name', name);
-    localStorage.setItem('si_pesat_user_role', role);
-    localStorage.setItem('si_pesat_is_admin', 'false');
-    showToast(`Berhasil masuk offline sebagai ${name} (${role})`, 'success');
-  };
-
   const handleSessionLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setIsSessionActive(false);
-    localStorage.removeItem('si_pesat_session_active');
-    localStorage.removeItem('si_pesat_custom_name');
+    setCustomAuditorName('');
     showToast('Telah keluar dari sesi SI-PESAT.', 'info');
   };
 

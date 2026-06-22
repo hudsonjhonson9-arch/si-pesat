@@ -1,28 +1,76 @@
 /**
  * Google Apps Script Web App for Centralized SI-PESAT Drive Storage
- * 
- * Instructions:
+ *
+ * Security:
+ * - All requests MUST include a valid Supabase JWT in Authorization header
+ * - Token diverifikasi via Supabase Auth API sebelum memproses upload
+ * - User identity dicatat di audit trail Drive
+ *
+ * Deployment:
  * 1. Go to script.google.com and create a new project.
  * 2. Paste this code into Code.gs.
- * 3. (Optional) Replace 'YOUR_FOLDER_ID' with the ID of the specific root folder in your
- *    Google Drive. If left as 'YOUR_FOLDER_ID', a folder named ROOT_FOLDER_NAME will be
- *    created automatically in My Drive.
- * 4. Click 'Deploy' -> 'New deployment'.
- * 5. Select type 'Web app'.
- * 6. Execute as 'Me' (your account).
- * 7. Who has access: 'Anyone'.
- * 8. Click 'Deploy' and authorize the app.
- * 9. Copy the "Web app URL" and paste it into your SI-PESAT `.env.local` as VITE_GOOGLE_SCRIPT_URL.
+ * 3. Set SUPABASE_URL and SUPABASE_ANON_KEY below.
+ * 4. Deploy -> New deployment -> Web app.
+ * 5. Execute as 'Me'. Who has access: 'Anyone'.
+ * 6. Copy URL ke .env.local sebagai VITE_GOOGLE_SCRIPT_URL.
  */
 
-// ID Folder root di Google Drive (opsional). Jika tidak diisi, akan dibuat folder baru.
-const UPLOAD_FOLDER_ID = 'YOUR_FOLDER_ID';
+const SUPABASE_URL = 'https://pmtmczqxrciaslgmjfim.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtdG1jenF4cmNpYXNsZ21qZmltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzY2NzQsImV4cCI6MjA5NjgxMjY3NH0.5kF1pq_MyvzqCl3Jhv2HvbNwjCpyBQWllhZUnsHZlMg';
 
-// Nama folder root yang akan dibuat otomatis jika UPLOAD_FOLDER_ID tidak valid
+const UPLOAD_FOLDER_ID = 'YOUR_FOLDER_ID';
 const ROOT_FOLDER_NAME = 'SI-PESAT KKA Inspektorat';
+
+/**
+ * Verifikasi Supabase JWT token via Supabase Auth API
+ */
+function verifyToken(accessToken) {
+  if (!accessToken) return null;
+  try {
+    const response = UrlFetchApp.fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: {
+        'Authorization': 'Bearer ' + accessToken,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      muteHttpExceptions: true
+    });
+    if (response.getResponseCode() === 200) {
+      return JSON.parse(response.getContentText());
+    }
+    return null;
+  } catch (e) {
+    console.error('Token verification error: ' + e.toString());
+    return null;
+  }
+}
 
 function doPost(e) {
   try {
+    // Verifikasi JWT token
+    var authHeader = '';
+    if (e && e.parameter && e.parameter.authorization) {
+      authHeader = e.parameter.authorization;
+    }
+    if (!authHeader && e && e.postData && e.postData.contents) {
+      try {
+        var parsed = JSON.parse(e.postData.contents);
+        if (parsed.authorization) authHeader = parsed.authorization;
+      } catch (err) {}
+    }
+
+    var token = null;
+    if (authHeader && authHeader.indexOf('Bearer ') === 0) {
+      token = authHeader.substring(7);
+    }
+
+    var user = verifyToken(token);
+    if (!user) {
+      return responseError('Unauthorized: Supabase token tidak valid atau telah kedaluwarsa. Silakan login ulang.');
+    }
+
+    var userId = user.id || 'unknown';
+    var userEmail = user.email || 'unknown@email';
+
     if (!e || !e.postData || !e.postData.contents) {
       return responseError('No data received');
     }
@@ -42,14 +90,12 @@ function doPost(e) {
       }
     }
 
-    // Get or create root folder
-    let rootFolder;
+    var rootFolder;
     try {
       rootFolder = DriveApp.getFolderById(UPLOAD_FOLDER_ID);
     } catch (err) {
-      // Gunakan LockService untuk mencegah duplikasi folder jika diakses bersamaan
       const lock = LockService.getScriptLock();
-      lock.waitLock(10000); // Tunggu hingga 10 detik
+      lock.waitLock(10000);
       try {
         const existingFolders = DriveApp.getFoldersByName(ROOT_FOLDER_NAME);
         if (existingFolders.hasNext()) {
@@ -62,11 +108,9 @@ function doPost(e) {
       }
     }
 
-    // Helper: get or create subfolder
     function getOrCreateFolder(parent, folderName) {
       if (!folderName) return parent;
       const sanitized = folderName.replace(/[\/\\:*?"<>|]/g, '_').trim();
-      
       const lock = LockService.getScriptLock();
       lock.waitLock(10000);
       try {
@@ -81,8 +125,7 @@ function doPost(e) {
       }
     }
 
-    // Folder structure: Root -> TA {year} -> {OPD Name}
-    let currentFolder = rootFolder;
+    var currentFolder = rootFolder;
     if (payload.year) {
       currentFolder = getOrCreateFolder(currentFolder, 'TA ' + payload.year);
     }
@@ -93,27 +136,28 @@ function doPost(e) {
       currentFolder = getOrCreateFolder(currentFolder, payload.auditType);
     }
 
-    let file;
+    var file;
     if (payload.action === 'copy') {
-      // Copy existing file from Drive
       const sourceFile = DriveApp.getFileById(payload.sourceId);
       const newName = fileName || sourceFile.getName();
       file = sourceFile.makeCopy(newName, currentFolder);
     } else {
-      // Decode base64 and upload new file
       const decodedBytes = Utilities.base64Decode(base64Data);
       const blob = Utilities.newBlob(decodedBytes, mimeType || 'application/octet-stream', fileName);
       file = currentFolder.createFile(blob);
     }
-    
-    // Set sharing: anyone with link can view
+
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    // Tambahkan deskripsi file dengan info user untuk audit trail
+    file.setDescription('Diunggah oleh: ' + userEmail + ' (ID: ' + userId + ')\nWaktu: ' + new Date().toISOString());
 
     const result = {
       id: file.getId(),
       name: file.getName(),
       webViewLink: file.getUrl(),
-      folderPath: buildFolderPath(currentFolder)
+      folderPath: buildFolderPath(currentFolder),
+      uploadedBy: userEmail
     };
 
     return responseSuccess(result);
@@ -123,11 +167,10 @@ function doPost(e) {
   }
 }
 
-// Build a readable folder path string for response
 function buildFolderPath(folder) {
   try {
     const parts = [];
-    let current = folder;
+    var current = folder;
     while (current) {
       parts.unshift(current.getName());
       const parents = current.getParents();
@@ -154,7 +197,6 @@ function responseError(message) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Support OPTIONS for CORS preflight
 function doOptions(e) {
   return ContentService.createTextOutput('')
     .setMimeType(ContentService.MimeType.TEXT);
