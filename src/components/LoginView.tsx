@@ -129,7 +129,7 @@ export default function LoginView({
               ) : (
                 <ShieldCheck className="w-4 h-4 text-peach-accent" />
               )}
-              <span>Masuk Sesi</span>
+              <span>Masuk</span>
             </button>
           </div>
         </form>

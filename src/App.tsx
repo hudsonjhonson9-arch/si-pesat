@@ -503,6 +503,21 @@ export default function App() {
         password: pass,
       });
       if (error) throw error;
+
+      // Tunggu profil & role selesai dimuat sebelum menampilkan dashboard
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role, is_admin, full_name')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileData) {
+        if (profileData.role) setUserRole(profileData.role as any);
+        setIsAdmin(profileData.is_admin || false);
+        setCustomAuditorName(profileData.full_name || data.user.email || 'Auditor');
+      }
+
+      setIsSessionActive(true);
       showToast(`Berhasil masuk sebagai ${data.user.email}`, 'success');
     } catch (err: any) {
       showToast(`Login gagal: ${err.message}`, 'error');
