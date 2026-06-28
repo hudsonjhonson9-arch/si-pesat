@@ -31,10 +31,18 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
   const [yearFilter, setYearFilter] = useState<string>('Semua');
   const [expandedEntityId, setExpandedEntityId] = useState<string | null>(null);
 
-  const userBidangName = useMemo(() => {
+  const userBidang = useMemo(() => {
     if (!userBidangId) return null;
-    return bidangList.find(b => b.id === userBidangId)?.name || null;
+    return bidangList.find(b => b.id === userBidangId) || null;
   }, [userBidangId, bidangList]);
+
+  const userBidangName = userBidang?.name || null;
+  const userBidangWilayah = userBidang?.wilayah || null;
+
+  const mapSrc = useMemo(() => {
+    const q = userBidangWilayah || userBidangName || 'Kecamatan Loli, Sumba Barat';
+    return `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
+  }, [userBidangWilayah, userBidangName]);
 
   const bidangFilteredEntities = useMemo(() => {
     if (isAdmin || !userBidangId) return targetEntities;
@@ -69,7 +77,7 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
           <h2 className="font-black text-dark-gray text-lg">Wilayah Penugasan</h2>
           <p className="text-xs text-dark-gray/60 mt-0.5">
             {userBidangName
-              ? `Objek pemeriksaan wilayah ${userBidangName} — Inspektorat Kabupaten Sumba Barat`
+              ? `Objek pemeriksaan ${userBidangWilayah ? `${userBidangWilayah} (` : ''}${userBidangName}${userBidangWilayah ? ')' : ''} — Inspektorat Kabupaten Sumba Barat`
               : 'Daftar objek pemeriksaan Inspektorat Kabupaten Sumba Barat'}
           </p>
         </div>
@@ -82,25 +90,25 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
         {/* Left: Map */}
         <div className="lg:col-span-1 bg-white rounded-3xl p-4 border border-dark-gray/10 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="font-bold text-dark-gray text-sm flex items-center gap-1.5">
-                <MapIcon className="w-4 h-4 text-peach-accent" />
-                Peta Wilayah
-              </h3>
-              <p className="text-[10px] text-dark-gray/60 mt-0.5">
-                Kecamatan Loli, Sumba Barat
-              </p>
+              <div>
+                <h3 className="font-bold text-dark-gray text-sm flex items-center gap-1.5">
+                  <MapIcon className="w-4 h-4 text-peach-accent" />
+                  Peta Wilayah
+                </h3>
+                <p className="text-[10px] text-dark-gray/60 mt-0.5">
+                  {userBidangWilayah || userBidangName || 'Kecamatan Loli, Sumba Barat'}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden relative rounded-xl flex-1 min-h-[300px]">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126214.41014169992!2d119.34440050478051!3d-9.630045468500208!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2c473138b79b2ed3%3A0xc3abf299c8531cc3!2sLoli%2C%20Kabupaten%20Sumba%20Barat%2C%20Nusa%20Tenggara%20Tim.!5e0!3m2!1sid!2sid!4v1718670000000!5m2!1sid!2sid"
-              className="absolute inset-0 w-full h-full border-0"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
+            <div className="w-full bg-slate-50 border border-slate-100 overflow-hidden relative rounded-xl flex-1 min-h-[300px]">
+              <iframe
+                src={mapSrc}
+                className="absolute inset-0 w-full h-full border-0"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
           </div>
         </div>
 

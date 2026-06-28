@@ -225,7 +225,8 @@ export default function App() {
           teamMembers: d.team_members || [],
           categories: d.categories || [],
           lastSyncedAt: d.updated_at || new Date().toISOString(),
-          schedule: d.schedule || []
+          schedule: d.schedule || [],
+          bidang_id: d.bidang_id || null
         }));
         setAudits(prevLocalAudits => {
           const offlineCreatedAudits = prevLocalAudits.filter(
@@ -384,6 +385,7 @@ export default function App() {
               categories: a.categories,
               team_members: a.teamMembers || [],
               schedule: a.schedule || [],
+              bidang_id: a.bidang_id || null,
               updated_at: new Date().toISOString()
             }));
 
@@ -756,6 +758,8 @@ export default function App() {
 
     logActivity('create_audit', 'audit', opdName, { auditType, fiscalYear, templateId });
 
+    const entityBidangId = targetEntities.find(t => t.name.toLowerCase() === opdName.trim().toLowerCase())?.bidang_id || userBidangId || null;
+
     const newAudit: OpdAudit = {
       id: auditId,
       opdName,
@@ -768,7 +772,8 @@ export default function App() {
       progress: 0,
       categories: initialCategories,
       teamMembers,
-      schedule: defaultSchedule
+      schedule: defaultSchedule,
+      bidang_id: entityBidangId
     };
 
     setAudits(prev => [newAudit, ...prev]);
@@ -950,6 +955,7 @@ export default function App() {
                 isAdmin={isAdmin}
                 defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || customAuditorName || ''}
                 userProfiles={userProfiles}
+                userBidangId={userBidangId}
               />
             )}
             {pengawasanSubTab === 'reviu' && (

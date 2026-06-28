@@ -47,6 +47,7 @@ interface AuditListViewProps {
   isAdmin?: boolean;
   defaultAuditorName?: string;
   userProfiles: UserProfile[];
+  userBidangId?: number | null;
 }
 
 export default function AuditListView({
@@ -61,7 +62,8 @@ export default function AuditListView({
   userRole = 'Auditor',
   isAdmin = false,
   defaultAuditorName = '',
-  userProfiles = []
+  userProfiles = [],
+  userBidangId
 }: AuditListViewProps) {
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -143,8 +145,9 @@ export default function AuditListView({
         audit.auditorName.toLowerCase().includes(searchQuery.toLowerCase());
       const matchType = typeFilter === 'all' || audit.opdType === typeFilter;
       const matchYear = yearFilter === 'all' || audit.fiscalYear === yearFilter;
+      const matchBidang = isAdmin || !userBidangId || audit.bidang_id === userBidangId || !audit.bidang_id;
 
-      return matchSearch && matchType && matchYear;
+      return matchSearch && matchType && matchYear && matchBidang;
     });
 
     if (sortBy === 'name') {
