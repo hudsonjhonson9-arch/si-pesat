@@ -70,6 +70,12 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
+
+      // Skip if hash contains Supabase auth tokens (email confirmation, password reset, invite)
+      if (hash.startsWith('access_token=') || hash.includes('type=signup') || hash.includes('type=recovery') || hash.includes('type=invite')) {
+        return;
+      }
+
       if (hash.startsWith('workspace/')) {
         const parts = hash.split('/');
         const id = parts[1];
@@ -440,6 +446,11 @@ export default function App() {
       setUser(session?.user || null);
       if (session) {
         setIsSessionActive(true);
+        // After auth from token URL, if hash is empty or was auth token, redirect to dashboard
+        const hash = window.location.hash.replace('#', '');
+        if (!hash || hash.startsWith('access_token=') || hash.includes('type=')) {
+          window.history.replaceState(null, '', '#dashboard');
+        }
         const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
         setCustomAuditorName(name);
         
