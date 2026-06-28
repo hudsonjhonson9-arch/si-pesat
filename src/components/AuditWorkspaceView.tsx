@@ -1065,8 +1065,8 @@ export default function AuditWorkspaceView({
                             if (confirmed) {
                               const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Direview' as any } : c);
                               const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
-                              onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
-                              alert('Notifikasi: Jenis Audit telah diajukan ke Irban untuk direview.');
+                               onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
+                              onShowToast?.('Jenis Audit telah diajukan ke Irban untuk direview.', 'success');
                             }
                           }}
                           className="text-[10px] px-2 py-1 rounded-md font-extrabold inline-flex items-center gap-1 transition-all cursor-pointer border bg-blue-500 text-white border-blue-600 hover:bg-blue-600 shadow-xs"
@@ -1084,7 +1084,7 @@ export default function AuditWorkspaceView({
                                 const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Selesai' as any } : c);
                                 const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
                                 onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
-                                alert('Notifikasi: Jenis Audit telah disetujui. Auditor akan mendapatkan notifikasi.');
+                                onShowToast?.('Jenis Audit telah disetujui. Auditor akan mendapatkan notifikasi.', 'success');
                               }
                             }}
                             className="text-[10px] px-2 py-1 rounded-md font-extrabold inline-flex items-center gap-1 transition-all cursor-pointer border bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-xs"
@@ -1098,7 +1098,7 @@ export default function AuditWorkspaceView({
                                 const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Sedang Berjalan' as any } : c);
                                 const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
                                 onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
-                                alert('Notifikasi: Jenis Audit dikembalikan. Auditor akan mendapatkan notifikasi revisi.');
+                                onShowToast?.('Jenis Audit dikembalikan. Auditor akan mendapatkan notifikasi revisi.', 'info');
                               }
                             }}
                             className="text-[10px] px-2 py-1 rounded-md font-extrabold inline-flex items-center gap-1 transition-all cursor-pointer border bg-rose-500 text-white border-rose-600 hover:bg-rose-600 shadow-xs"
