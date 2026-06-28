@@ -259,7 +259,10 @@ export default function UserManagementView({
       if (profileError) throw profileError;
 
       if (emailChanged && isEditingSelf) {
-        const { error: emailError } = await supabase.auth.updateUser({ email: editEmail.trim() });
+        const { error: emailError } = await supabase.auth.updateUser(
+          { email: editEmail.trim() },
+          { emailRedirectTo: 'https://si-pesat.vercel.app' }
+        );
         if (emailError) {
           onShowToast?.(`Profil disimpan, tapi gagal update email: ${emailError.message}`, 'info');
         } else {
