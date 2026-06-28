@@ -308,44 +308,6 @@ export default function AuditListView({
                 </div>
               </div>
 
-              {/* ponytail: per-OPD stat cards, simple counts */}
-              {(() => {
-                const allCats = group.audits.flatMap(a => a.categories || []);
-                const total = allCats.length;
-                const selesai = allCats.filter(c => c.status === 'Selesai').length;
-                const berjalan = allCats.filter(c => c.status === 'Sedang Berjalan').length;
-                const draft = allCats.filter(c => !c.status || c.status === 'Draft' || c.status === 'Direview').length;
-                const findings = allCats.flatMap(c => c.items.filter(i => i.status === 'Temuan'));
-                const findingVal = findings.reduce((s, i) => s + (i.nilaiTemuan || 0), 0);
-                if (total === 0) return null;
-                return (
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 px-5 py-3 bg-dark-gray/[0.02] border-b border-dark-gray/5">
-                    <div className="bg-white rounded-xl border border-dark-gray/10 px-3 py-2 text-center">
-                      <div className="text-lg font-black text-dark-gray">{total}</div>
-                      <div className="text-[9px] font-bold text-dark-gray/50 uppercase tracking-wider">Jenis</div>
-                    </div>
-                    <div className="bg-white rounded-xl border border-emerald-200/60 px-3 py-2 text-center">
-                      <div className="text-lg font-black text-emerald-700">{selesai}</div>
-                      <div className="text-[9px] font-bold text-emerald-600/60 uppercase tracking-wider">Selesai</div>
-                    </div>
-                    <div className="bg-white rounded-xl border border-blue-200/60 px-3 py-2 text-center">
-                      <div className="text-lg font-black text-blue-700">{berjalan}</div>
-                      <div className="text-[9px] font-bold text-blue-600/60 uppercase tracking-wider">Berjalan</div>
-                    </div>
-                    <div className="bg-white rounded-xl border border-slate-200/60 px-3 py-2 text-center">
-                      <div className="text-lg font-black text-slate-600">{draft}</div>
-                      <div className="text-[9px] font-bold text-slate-500/60 uppercase tracking-wider">{draft > 0 ? 'Draft/Review' : 'Draft'}</div>
-                    </div>
-                    <div className="bg-white rounded-xl border border-rose-200/60 px-3 py-2 text-center sm:col-span-1 col-span-2">
-                      <div className="text-sm font-black text-rose-700 truncate" title={findingVal > 0 ? formatIDR(findingVal) : 'Rp0'}>
-                        {findingVal > 0 ? formatIDR(findingVal) : 'Rp0'}
-                      </div>
-                      <div className="text-[9px] font-bold text-rose-600/60 uppercase tracking-wider">{findings.length} Temuan</div>
-                    </div>
-                  </div>
-                );
-              })()}
-
               <div className="divide-y divide-dark-gray/5">
                 {group.audits.map((audit) => {
                   return (
