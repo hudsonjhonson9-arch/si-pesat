@@ -195,6 +195,34 @@ export default function App() {
     }, 5000);
   }, []);
 
+  const fetchAudits = () => {
+    supabase.from('audits').select('*').then(({ data, error }) => {
+      if (!error && data) {
+        const mapped = data.map(d => ({
+          id: d.id,
+          opdName: d.opd_name,
+          opdType: d.opd_type,
+          auditType: d.audit_type || 'Audit Keuangan',
+          fiscalYear: d.fiscal_year,
+          auditorName: d.auditor_name,
+          auditDate: d.audit_date,
+          status: d.status,
+          progress: d.progress,
+          teamMembers: d.team_members || [],
+          categories: d.categories || [],
+          lastSyncedAt: d.updated_at || new Date().toISOString(),
+          schedule: d.schedule || []
+        }));
+        setAudits(prevLocalAudits => {
+          const offlineCreatedAudits = prevLocalAudits.filter(
+            local => !mapped.find(m => m.id === local.id) && !local.lastSyncedAt
+          );
+          return [...mapped, ...offlineCreatedAudits];
+        });
+      }
+    });
+  };
+
   // 1. Load data from localStorage on component mount
   useEffect(() => {
     const cachedAudits = localStorage.getItem('si_pesat_audits');
@@ -253,36 +281,6 @@ export default function App() {
         setSyncLogs([]);
       }
     }
-
-    // Try to fetch real data from Supabase to overwrite local cache if online
-    const fetchAudits = () => {
-      supabase.from('audits').select('*').then(({ data, error }) => {
-        if (!error && data) {
-          const mapped = data.map(d => ({
-            id: d.id,
-            opdName: d.opd_name,
-            opdType: d.opd_type,
-            auditType: d.audit_type || 'Audit Keuangan',
-            fiscalYear: d.fiscal_year,
-            auditorName: d.auditor_name,
-            auditDate: d.audit_date,
-            status: d.status,
-            progress: d.progress,
-            teamMembers: d.team_members || [],
-            categories: d.categories || [],
-            lastSyncedAt: d.updated_at || new Date().toISOString(),
-            schedule: d.schedule || []
-          }));
-          
-          setAudits(prevLocalAudits => {
-            const offlineCreatedAudits = prevLocalAudits.filter(
-              local => !mapped.find(m => m.id === local.id) && !local.lastSyncedAt
-            );
-            return [...mapped, ...offlineCreatedAudits];
-          });
-        }
-      });
-    };
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'si_pesat_audits' && e.newValue) {
@@ -462,7 +460,9 @@ export default function App() {
            if (!error && data) setUserProfiles(data as UserProfile[]);
          });
 
-         supabase.from('target_entities').select('*').order('type').then(({ data, error }) => {
+          fetchAudits();
+
+          supabase.from('target_entities').select('*').order('type').then(({ data, error }) => {
            if (!error && data) setTargetEntities(data as TargetEntity[]);
          });
 
