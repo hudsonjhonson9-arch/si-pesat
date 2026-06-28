@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Building, Shield, Eye, Target, Users, MapPin, CheckCircle } from 'lucide-react';
+import { Building, Shield, Eye, Target, Users, MapPin, CheckCircle, BookOpen, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import GuideView from './GuideView';
 
 export default function HomeView() {
+  const [showGuide, setShowGuide] = useState(false);
   const [inspekturName, setInspekturName] = useState('');
 
   useEffect(() => {
@@ -115,6 +117,20 @@ export default function HomeView() {
           </div>
         ))}
       </div>
+
+      {/* Guide toggle */}
+      <div className="border-t border-dark-gray/10 pt-6">
+        <button
+          onClick={() => setShowGuide(!showGuide)}
+          className="flex items-center gap-2 text-xs font-bold text-dark-gray/60 hover:text-dark-gray transition-colors mx-auto"
+        >
+          <BookOpen className="w-4 h-4" />
+          {showGuide ? 'Tutup Panduan' : 'Buka Panduan Aplikasi'}
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showGuide ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+
+      {showGuide && <GuideView />}
     </div>
   );
 }
