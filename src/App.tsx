@@ -397,8 +397,9 @@ export default function App() {
           }
         }
 
-        if (templates && templates.length > 0) {
-          const templatePayloads = templates.map(t => ({
+        const realTemplates = templates.filter(t => t.id !== 'template_kosong' && t.categories.length > 0);
+        if (realTemplates.length > 0) {
+          const templatePayloads = realTemplates.map(t => ({
             id: t.id,
             name: t.name,
             is_default: t.isDefault,
