@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Plus, Save, X } from 'lucide-react';
 import { Role, Permission, RolePermission as RolePermType } from '../types';
 import { supabase } from '../lib/supabase';
+import { logActivity } from '../lib/log';
 import { permissionChecker } from '../lib/permissions';
 
 interface RolePermissionViewProps {
@@ -75,6 +76,8 @@ export default function RolePermissionView({ rolesList, permissionsList, bidangL
       const { data } = await supabase.from('role_permissions').select('*');
       if (data) permissionChecker.setRolePermissions(data as RolePermType[]);
 
+      const roleName = rolesList.find(r => r.id === selectedRoleId)?.name || String(selectedRoleId);
+      logActivity('update_role_permissions', 'role', roleName);
       onShowToast?.('Permission berhasil disimpan.', 'success');
     } catch (err: any) {
       onShowToast?.('Gagal menyimpan: ' + (err.message || err), 'error');
@@ -91,6 +94,7 @@ export default function RolePermissionView({ rolesList, permissionsList, bidangL
       onShowToast?.('Gagal menambah role: ' + error.message, 'error');
       return;
     }
+    logActivity('create_role', 'role', newRoleName.trim());
     onShowToast?.('Role berhasil ditambahkan.', 'success');
     setShowAddRole(false);
     setNewRoleName('');

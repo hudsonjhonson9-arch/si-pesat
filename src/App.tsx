@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
+import {
   BarChart3, 
   School, 
   Settings, 
@@ -23,12 +23,14 @@ import {
   Info,
   PlusCircle,
   PieChart,
-  Building
+  Building,
+  Clock
 } from 'lucide-react';
 
 import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity, Permission, Bidang, Role, RolePermission } from './types';
 import { EMPTY_KKA_TEMPLATE } from './data';
 import { supabase } from './lib/supabase';
+import { logActivity } from './lib/log';
 import { permissionChecker } from './lib/permissions';
 import { Session, User } from '@supabase/supabase-js';
 
@@ -44,13 +46,14 @@ import UserProfileView from './components/UserProfileView';
 import UserManagementView from './components/UserManagementView';
 import RolePermissionView from './components/RolePermissionView';
 import WilayahPenugasanView from './components/WilayahPenugasanView';
+import ActivityLogView from './components/ActivityLogView';
 import ReviuView from './components/ReviuView';
 import EvaluasiView from './components/EvaluasiView';
 import AsistensiView from './components/AsistensiView';
 
 export default function App() {
   // Navigation & General Tabs based on URL Hash
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'pengawasan' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna' | 'role-permission' | 'wilayah-penugasan'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'pengawasan' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna' | 'role-permission' | 'wilayah-penugasan' | 'activity-log'>('dashboard');
   const [pengawasanSubTab, setPengawasanSubTab] = useState<'audit' | 'reviu' | 'evaluasi' | 'asistensi'>('audit');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -82,7 +85,7 @@ export default function App() {
         setPengawasanSubTab(sub || 'audit');
         setSelectedAuditId(null);
         setSelectedCategoryId(null);
-      } else if (['jenis-audit', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna', 'role-permission', 'wilayah-penugasan'].includes(hash)) {
+      } else if (['jenis-audit', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log'].includes(hash)) {
         setActiveTab(hash as any);
         setSelectedAuditId(null);
         setSelectedCategoryId(null);
@@ -124,6 +127,7 @@ export default function App() {
 
   const [userRole, setUserRole] = useState<string>('Auditor Pelaksana');
   const [isAdmin, setIsAdmin] = useState(false);
+  const isIrbanOrInspektur = userRole === 'Inspektur Pembantu' || userRole === 'Inspektur';
   const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
   const [customAuditorName, setCustomAuditorName] = useState<string>('');
 
@@ -582,9 +586,11 @@ export default function App() {
       }
 
       setIsSessionActive(true);
+      logActivity('login');
       showToast(`Berhasil masuk sebagai ${data.user.email}`, 'success');
     } catch (err: any) {
       recordFailedAttempt();
+      logActivity('login_failed', 'user', null, { email });
       const isLocked = checkLoginRateLimit();
       showToast(isLocked || `Login gagal: ${err.message}`, 'error');
     } finally {
@@ -593,6 +599,7 @@ export default function App() {
   };
 
   const handleSessionLogout = async () => {
+    await logActivity('logout');
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
@@ -706,6 +713,8 @@ export default function App() {
       { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut', startDate: getFutureDate(30), targetDate: getFutureDate(45), status: 'Belum Mulai' as const, notes: 'Verifikasi tindak lanjut atas temuan LHP' }
     ];
 
+    logActivity('create_audit', 'audit', opdName, { auditType, fiscalYear, templateId });
+
     const newAudit: OpdAudit = {
       id: auditId,
       opdName,
@@ -727,6 +736,7 @@ export default function App() {
   };
 
   const handleUpdateAudit = (updatedAudit: OpdAudit) => {
+    logActivity('update_audit', 'audit', updatedAudit.opdName, { auditType: updatedAudit.auditType, fiscalYear: updatedAudit.fiscalYear, status: updatedAudit.status });
     setAudits(prev => prev.map(a => a.id === updatedAudit.id ? updatedAudit : a));
     
     // Auto sync to Drive in background if it has already been synced once
@@ -734,6 +744,8 @@ export default function App() {
   };
 
   const handleDeleteAudit = async (auditId: string) => {
+    const target = audits.find(a => a.id === auditId);
+    if (target) logActivity('delete_audit', 'audit', target.opdName, { auditType: target.auditType, fiscalYear: target.fiscalYear });
     if (navigator.onLine) {
       const { error } = await supabase.from('audits').delete().eq('id', auditId);
       if (error) {
@@ -939,18 +951,23 @@ export default function App() {
             onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
           />
         );
+      case 'activity-log':
+        return <ActivityLogView />;
       case 'jenis-audit':
         return (
           <TemplateConfiguratorView
             templates={templates}
             onUpdateTemplates={setTemplates}
             onDeleteTemplate={(id) => {
+              const tpl = templates.find(t => t.id === id);
+              if (tpl) logActivity('delete_template', 'template', tpl.name);
               if (navigator.onLine) {
                 supabase.from('templates').delete().eq('id', id).then();
               }
             }}
             onResetTemplates={() => {
               setTemplates([EMPTY_KKA_TEMPLATE]);
+              logActivity('reset_templates', 'template', 'all');
               showToast('Template master diatur ulang ke standar juknis.', 'info');
             }}
           />
@@ -1113,7 +1130,7 @@ export default function App() {
                   <button
                     onClick={(e) => toggleDropdown('pengaturan', e)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold text-xs ${
-                      activeTab === 'pengguna' || activeTab === 'role-permission'
+                      activeTab === 'pengguna' || activeTab === 'role-permission' || activeTab === 'activity-log'
                         ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5' 
                         : 'text-dark-gray/70 hover:bg-white/40 hover:text-dark-gray'
                     }`}
@@ -1138,6 +1155,14 @@ export default function App() {
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
                           >
                             <ShieldAlert className="w-4 h-4" /> Role & Permission
+                          </button>
+                        )}
+                        {(isAdmin || isIrbanOrInspektur) && (
+                          <button
+                            onClick={() => navigateTo('activity-log')}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                          >
+                            <Clock className="w-4 h-4" /> Log Aktivitas
                           </button>
                         )}
                       </div>
@@ -1268,6 +1293,16 @@ export default function App() {
                     <ShieldAlert className="w-4 h-4" /> Role & Permission
                   </button>
                 )}
+                {(isAdmin || isIrbanOrInspektur) && (
+                  <button
+                    onClick={() => { navigateTo('activity-log'); setIsMobileMoreOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
+                      activeTab === 'activity-log' ? 'text-dark-gray bg-peach-accent/10' : 'text-slate-600'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4" /> Log Aktivitas
+                  </button>
+                )}
 
                 <div className="h-3" />
               </div>
@@ -1329,7 +1364,7 @@ export default function App() {
               <button
                 onClick={() => setIsMobileMoreOpen(v => !v)}
                 className={`flex flex-col items-center justify-center gap-1 transition relative ${
-                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan'].includes(activeTab)
+                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log'].includes(activeTab)
                     ? 'text-dark-gray font-bold'
                     : 'text-slate-400'
                 }`}
@@ -1337,7 +1372,7 @@ export default function App() {
                 <Menu className="w-5 h-5" />
                 <span className="text-[9px] tracking-wide">Lainnya</span>
                 {/* Dot indikator kalau sedang di salah satu halaman "Lainnya" */}
-                {['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan'].includes(activeTab) && (
+                {['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log'].includes(activeTab) && (
                   <span className="absolute top-2 right-4 w-1.5 h-1.5 bg-peach-accent rounded-full" />
                 )}
               </button>

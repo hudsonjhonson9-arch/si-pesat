@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { UserProfile } from '../types';
 import { supabase } from '../lib/supabase';
+import { logActivity } from '../lib/log';
 import { createClient } from '@supabase/supabase-js';
 import {
   Users, Search, ShieldCheck, Shield, User as UserIcon,
@@ -163,6 +164,7 @@ export default function UserManagementView({
       // Sign out instance terpisah agar bersih
       await secondarySupabase.auth.signOut();
 
+      logActivity('create_user', 'user', addFullName.trim(), { email: addEmail.trim(), role: addRole });
       onShowToast?.(`Pengguna ${addFullName.trim()} berhasil ditambahkan.`, 'success');
       setShowAddModal(false);
       resetAddForm();
@@ -274,6 +276,7 @@ export default function UserManagementView({
         onShowToast?.('Profil pengguna berhasil diperbarui.', 'success');
       }
 
+      logActivity('update_user', 'user', profile.full_name || profile.email, { role: editRole, nip: editNip, golongan: editGolongan });
       setEditingUserId(null);
       onRefreshProfiles?.();
     } catch (err: any) {

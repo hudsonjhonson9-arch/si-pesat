@@ -144,3 +144,14 @@ export interface RolePermission {
   permission_id: number;
   scope: 'bidang' | 'all';
 }
+
+export interface ActivityLog {
+  id: string;
+  user_id: string;
+  user_name: string;
+  action: string;
+  entity_type: string | null;
+  entity_name: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string;
+}
