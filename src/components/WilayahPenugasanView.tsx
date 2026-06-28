@@ -45,7 +45,7 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
   }, [userBidangWilayah, userBidangName]);
 
   const bidangFilteredEntities = useMemo(() => {
-    if (isAdmin || !userBidangId) return targetEntities;
+    if ((userRole === 'Inspektur' || userRole === 'Sekretaris') || !userBidangId) return targetEntities;
     return targetEntities.filter(e => e.bidang_id === userBidangId);
   }, [targetEntities, userBidangId, isAdmin]);
 
