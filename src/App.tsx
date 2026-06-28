@@ -734,14 +734,17 @@ export default function App() {
   };
 
   const handleDeleteAudit = async (auditId: string) => {
+    if (navigator.onLine) {
+      const { error } = await supabase.from('audits').delete().eq('id', auditId);
+      if (error) {
+        console.error("Error deleting audit from Supabase", error);
+        showToast(`Gagal menghapus KKA: ${error.message}`, 'error');
+        return;
+      }
+    }
     setAudits(prev => prev.filter(a => a.id !== auditId));
     if (selectedAuditId === auditId) {
       setSelectedAuditId(null);
-    }
-    if (navigator.onLine) {
-      supabase.from('audits').delete().eq('id', auditId).then(({ error }) => {
-        if (error) console.error("Error deleting audit from Supabase", error);
-      });
     }
     showToast('KKA Berhasil dihapus.', 'info');
   };
