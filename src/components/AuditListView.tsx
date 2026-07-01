@@ -321,6 +321,14 @@ export default function AuditListView({
                     >
                       {/* Left side: Categories list with progress */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 py-1">
+                        {group.audits.length > 1 && (
+                          <div className="flex items-center gap-2 mb-1 pb-1 border-b border-dark-gray/10">
+                            <span className="text-[10px] font-extrabold bg-dark-gray/10 text-dark-gray px-2 py-0.5 rounded tracking-wide">
+                              {audit.auditType}
+                            </span>
+                            <span className="text-[9px] text-dark-gray/50 font-medium">{audit.auditorName}</span>
+                          </div>
+                        )}
                         {audit.categories && audit.categories.length > 0 ? (
                           audit.categories.map((cat, idx) => {
                             let evaluatedItems = 0;
