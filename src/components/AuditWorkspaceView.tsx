@@ -361,10 +361,10 @@ export default function AuditWorkspaceView({
       )}
 
       {/* Single Card: Profile + Categories + Team + Buttons + Schedule + Items */}
-      <div className="bg-baby-blue rounded-xl border border-dark-gray/10 shadow-xs divide-y divide-dark-gray/10">
+      <div className="bg-white rounded-xl border border-dark-gray/10 shadow-xs divide-y divide-dark-gray/10">
 
         {/* Profile Auditi + Jenis Audit + Team + Actions */}
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-3 bg-gradient-to-r from-pink-50 via-sky-50 to-violet-50 rounded-t-xl">
 
           {/* Profile Header */}
           {isEditingMetadata ? (
@@ -502,7 +502,7 @@ export default function AuditWorkspaceView({
         </div>
 
         {/* Schedule */}
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-3 bg-amber-50/30">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-dark-gray/60" />
             <h3 className="text-xs font-bold text-dark-gray/80 uppercase tracking-wide">Jadwal Pelaksanaan</h3>
@@ -533,7 +533,7 @@ export default function AuditWorkspaceView({
         </div>
 
         {/* Dokumen KKA */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 bg-sky-50/30 rounded-b-xl">
 
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-black uppercase tracking-wide text-dark-gray">Dokumen KKA</h2>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, FileText, FileSpreadsheet, File, Image, Link2, Loader2, AlertTriangle, Eye, ExternalLink, Download, Copy, CheckCircle2 } from 'lucide-react';
+import { Upload, X, FileText, FileSpreadsheet, File, Image, Link2, Loader2, AlertTriangle, Eye, ExternalLink, Download, Copy, CheckCircle2, Edit2 } from 'lucide-react';
 
 interface EvidencePanelProps {
   evidenceLink?: string;
@@ -84,6 +84,8 @@ export default function EvidencePanel({
   isCopying = false,
 }: EvidencePanelProps) {
   const [pasteUrl, setPasteUrl] = useState('');
+  const [isEditName, setIsEditName] = useState(false);
+  const [editNameVal, setEditNameVal] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const [tab, setTab] = useState<'upload' | 'link'>('upload');
   const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null);
@@ -160,7 +162,20 @@ export default function EvidencePanel({
               <FileIcon className={`w-3.5 h-3.5 ${fileInfo.color}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-dark-gray truncate">{evidenceName || 'Dokumen Bukti'}</p>
+              <div className="flex items-center gap-1">
+                {isEditName ? (
+                  <input type="text" value={editNameVal}
+                    onChange={e => setEditNameVal(e.target.value)}
+                    onBlur={() => { if (editNameVal.trim()) onChangeName(editNameVal.trim()); setIsEditName(false); }}
+                    onKeyDown={e => { if (e.key === 'Enter') { if (editNameVal.trim()) onChangeName(editNameVal.trim()); setIsEditName(false); } if (e.key === 'Escape') setIsEditName(false); }}
+                    className="text-xs font-bold text-dark-gray border border-dark-gray/30 rounded px-1 py-0.5 w-full outline-none" autoFocus />
+                ) : (
+                  <p className="text-xs font-bold text-dark-gray truncate">{evidenceName || 'Dokumen Bukti'}</p>
+                )}
+                {isAuditor && !isReadOnly && !isEditName && (
+                  <button onClick={() => { setIsEditName(true); setEditNameVal(evidenceName || ''); }} className="p-1 text-violet-500 hover:text-violet-700 hover:bg-violet-100 rounded cursor-pointer shrink-0" title="Edit nama dokumen"><Edit2 className="w-3.5 h-3.5" /></button>
+                )}
+              </div>
               <p className="text-[9px] text-violet-600/50 truncate">{evidenceLink}</p>
             </div>
           </div>
@@ -211,7 +226,7 @@ export default function EvidencePanel({
           {tab === 'upload' ? (
             <div onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }} onDragLeave={() => setIsDragOver(false)} onDrop={handleDrop}
               onClick={() => !isUploading && fileInputRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all cursor-pointer ${isUploading ? 'border-peach-accent/50 bg-peach-accent/5 cursor-wait' : isDragOver ? 'border-baby-blue bg-baby-blue/10' : 'border-dark-gray/15 bg-white/60 hover:border-peach-accent/50 hover:bg-peach-accent/5'}`}>
+              className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all cursor-pointer ${isUploading ? 'border-peach-accent/50 bg-peach-accent/5 cursor-wait' : isDragOver ? 'border-baby-blue bg-baby-blue/10' : 'border-dark-gray/15 bg-white hover:border-peach-accent/50 hover:bg-peach-accent/5'}`}>
               <input ref={fileInputRef} type="file" accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" disabled={isUploading}
                 onChange={(e) => { const file = e.target.files?.[0]; if (file) { if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; } initiateUpload(file); } }} className="hidden" />
               {isUploading ? (
