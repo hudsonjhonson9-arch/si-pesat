@@ -39,6 +39,13 @@ import {
   GripVertical
 } from 'lucide-react';
 
+const byNipAge = (a: UserProfile, b: UserProfile) => {
+  if (a.nip && b.nip) return a.nip.localeCompare(b.nip);
+  if (a.nip) return -1;
+  if (b.nip) return 1;
+  return (a.full_name || '').localeCompare(b.full_name || '');
+};
+
 const KETUA_TIM_ROLES = [
   'Inspektur', 'Inspektur Pembantu',
   'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
@@ -1586,6 +1593,7 @@ export default function AuditWorkspaceView({
                     <div className="overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
                       {userProfiles
                         .filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase()))
+                        .sort(byNipAge)
                         .map(p => {
                           const isSelected = newCatAuditorName === (p.full_name || p.email);
                           return (
@@ -1644,6 +1652,7 @@ export default function AuditWorkspaceView({
                       {userProfiles
                         .filter(p => p.role === 'Auditor Ahli Pertama')
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase()))
+                        .sort(byNipAge)
                         .map(p => {
                           const name = p.full_name || p.email;
                           const isSelected = newCatTeamMembers.includes(name);
@@ -1723,6 +1732,7 @@ export default function AuditWorkspaceView({
                     <div className="overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
                       {userProfiles
                         .filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(editCatAuditorSearchQuery.toLowerCase()))
+                        .sort(byNipAge)
                         .map(p => {
                           const isSelected = editCatAuditorName === (p.full_name || p.email);
                           return (
@@ -1778,6 +1788,7 @@ export default function AuditWorkspaceView({
                       {userProfiles
                         .filter(p => p.role === 'Auditor Ahli Pertama')
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase()))
+                        .sort(byNipAge)
                         .map(p => {
                           const name = p.full_name || p.email;
                           const isSelected = editCatTeamMembers.includes(name);

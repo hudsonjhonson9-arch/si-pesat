@@ -5,6 +5,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { KKATemplate, OpdAudit, UserProfile, TargetEntity, AuditMilestone } from '../types';
+
+const byNipAge = (a: UserProfile, b: UserProfile) => {
+  if (a.nip && b.nip) return a.nip.localeCompare(b.nip);
+  if (a.nip) return -1;
+  if (b.nip) return 1;
+  return (a.full_name || '').localeCompare(b.full_name || '');
+};
 import {
   ArrowLeft, Plus, Trash2, ChevronDown, FileCheck, Building,
   Calendar, User, Users, ClipboardList, Sparkles, X, Check, Clock
@@ -391,7 +398,7 @@ export default function NewAuditView({
                         </button>
                       )}
                       {/* Semua profil yang memenuhi syarat ketua */}
-                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).map(p => {
+                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).sort(byNipAge).map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catAuditorName === name;
                         return (
@@ -459,7 +466,7 @@ export default function NewAuditView({
                         className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-none focus:border-peach-accent" />
                     </div>
                     <div className="overflow-y-auto p-1 space-y-0.5">
-                      {userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).map(p => {
+                      {userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).sort(byNipAge).map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catTeamMembers.includes(name);
                         return (
