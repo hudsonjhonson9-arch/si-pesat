@@ -190,7 +190,7 @@ export default function EvidencePanel({
             {isAuditor && !isReadOnly && (
               <button onClick={onClear}
                 className="text-[10px] font-bold text-rose-600 hover:text-rose-800 px-2.5 py-1.5 cursor-pointer">
-                Hapus
+                Hapus Dokumen
               </button>
             )}
           </div>

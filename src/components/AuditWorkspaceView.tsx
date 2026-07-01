@@ -74,6 +74,8 @@ export default function AuditWorkspaceView({
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemDescription, setNewItemDescription] = useState('');
   const [dragItemIdx, setDragItemIdx] = useState<number | null>(null);
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
+  const [editItemTitle, setEditItemTitle] = useState('');
   const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -118,12 +120,10 @@ export default function AuditWorkspaceView({
         return d.toISOString().split('T')[0];
       };
       return [
-        { id: 'milestone_1', name: 'Persiapan', targetDate: getFutureDate(-7), status: 'Belum Mulai', notes: '' },
         { id: 'milestone_2', name: 'Pelaksanaan / KKA', targetDate: getFutureDate(0), status: 'Belum Mulai', notes: '' },
-        { id: 'milestone_3', name: 'Penyusunan Laporan', targetDate: getFutureDate(14), status: 'Belum Mulai', notes: '' },
       ];
     }
-    return data;
+    return data.filter(m => m.id === 'milestone_2');
   }, [audit.schedule, audit.auditDate]);
 
   const handleUpdateSchedule = (updatedMilestones: AuditMilestone[]) => {
@@ -602,42 +602,55 @@ export default function AuditWorkspaceView({
               <div key={item.id}
                 draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
                 onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
-                className={`bg-white rounded-xl border p-4 space-y-3 transition-all shadow-xs ${isTemuan ? 'border-l-4 border-l-rose-500 border-dark-gray/10' : 'border-dark-gray/10'}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-baby-blue text-dark-gray/70 font-bold shrink-0">Dokumen {idx + 1}</span>
-                      <h4 className="text-xs md:text-sm font-bold text-dark-gray">{item.title}</h4>
+                className={`bg-white rounded-xl border transition-all shadow-xs ${isTemuan ? 'border-l-4 border-l-rose-500 border-dark-gray/10' : 'border-dark-gray/10'}`}>
+                <div className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-baby-blue text-dark-gray/70 font-bold shrink-0">Dokumen {idx + 1}</span>
+                        {editingTitleId === item.id ? (
+                          <input type="text" value={editItemTitle}
+                            onChange={e => setEditItemTitle(e.target.value)}
+                            onBlur={() => { if (editItemTitle.trim()) handleFindingDetailChange(item.id, 'title', editItemTitle.trim()); setEditingTitleId(null); }}
+                            onKeyDown={e => { if (e.key === 'Enter') { if (editItemTitle.trim()) handleFindingDetailChange(item.id, 'title', editItemTitle.trim()); setEditingTitleId(null); } if (e.key === 'Escape') setEditingTitleId(null); }}
+                            className="text-xs md:text-sm font-bold text-dark-gray border border-dark-gray/30 rounded px-1.5 py-0.5 w-full outline-none focus:ring-1 focus:ring-dark-gray/30" autoFocus />
+                        ) : (
+                          <h4 className="text-xs md:text-sm font-bold text-dark-gray">{item.title}</h4>
+                        )}
+                        {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && editingTitleId !== item.id && (
+                          <button onClick={() => { setEditingTitleId(item.id); setEditItemTitle(item.title); }} className="p-0.5 text-dark-gray/30 hover:text-dark-gray/70 cursor-pointer shrink-0"><Edit2 className="w-3 h-3" /></button>
+                        )}
+                      </div>
+                      {item.description && <p className="text-xs text-dark-gray/70 mt-1">{item.description}</p>}
                     </div>
-                    {item.description && <p className="text-xs text-dark-gray/70 mt-1">{item.description}</p>}
-                  </div>
                   </div>
 
-                <EvidencePanel
-                  evidenceLink={item.evidenceLink} evidenceName={item.evidenceName}
-                  isReadOnly={isReadOnly} isAuditor={FUNGSIONAL_ROLES.includes(userRole)}
-                  isUploading={!!uploadingIds[item.id]} isCopying={!!copyingIds[item.id]}
-                  onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
-                  onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
-                  onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
-                  onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
-                  onClear={async () => {
-                    const hasConflict = await checkConflict(item.id, 'Hapus item');
-                    if (hasConflict) return;
-                    const prevHistory = item.evidenceHistory || [];
-                    handleFindingDetailsUpdate(item.id, { evidenceLink: '', evidenceName: '', evidenceHistory: [...prevHistory, { name: item.evidenceName || 'Dokumen', link: item.evidenceLink || '', uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] });
-                    onShowToast?.('Dokumen dihapus.', 'info');
-                  }}
-                />
+                  <EvidencePanel
+                    evidenceLink={item.evidenceLink} evidenceName={item.evidenceName}
+                    isReadOnly={isReadOnly} isAuditor={FUNGSIONAL_ROLES.includes(userRole)}
+                    isUploading={!!uploadingIds[item.id]} isCopying={!!copyingIds[item.id]}
+                    onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
+                    onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
+                    onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
+                    onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
+                    onClear={async () => {
+                      const hasConflict = await checkConflict(item.id, 'Hapus item');
+                      if (hasConflict) return;
+                      const prevHistory = item.evidenceHistory || [];
+                      handleFindingDetailsUpdate(item.id, { evidenceLink: '', evidenceName: '', evidenceHistory: [...prevHistory, { name: item.evidenceName || 'Dokumen', link: item.evidenceLink || '', uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] });
+                      onShowToast?.('Dokumen dihapus.', 'info');
+                    }}
+                  />
 
-                {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (
-                  <div className="flex justify-end pt-1">
-                    <button onClick={() => handleDeleteItem(item.id)}
-                      className="text-[10px] text-rose-700 hover:text-rose-950 font-bold inline-flex items-center gap-0.5 cursor-pointer bg-white border border-dark-gray/10 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors">
-                      <Trash2 className="w-3 h-3" /> Hapus item
-                    </button>
-                  </div>
-                )}
+                  {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (
+                    <div className="flex justify-end pt-1">
+                      <button onClick={() => handleDeleteItem(item.id)}
+                        className="text-[10px] text-rose-700 hover:text-rose-950 font-bold inline-flex items-center gap-0.5 cursor-pointer bg-white border border-dark-gray/10 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors">
+                        <Trash2 className="w-3 h-3" /> Hapus Dokumen
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
