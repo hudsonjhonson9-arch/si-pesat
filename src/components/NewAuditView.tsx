@@ -51,8 +51,9 @@ const FISCAL_YEARS = ['2026', '2025', '2024', '2023'];
 
 const KETUA_TIM_ROLES = [
   'Inspektur', 'Inspektur Pembantu',
+  'Auditor', 'Auditor Ahli Pertama',
   'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
-  'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
+  'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
 ];
 
 export default function NewAuditView({
