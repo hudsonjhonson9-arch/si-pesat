@@ -72,6 +72,8 @@ export default function AuditListView({
   const [sortBy, setSortBy] = useState<'name' | 'newest'>('name');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
+  const [deleteTargetGroup, setDeleteTargetGroup] = useState<{ opdName: string; audits: OpdAudit[] } | null>(null);
+  const [deleteSelectedAuditId, setDeleteSelectedAuditId] = useState<string>('');
 
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
@@ -306,8 +308,24 @@ export default function AuditListView({
                     </p>
                   </div>
                 </div>
-                <div className="bg-peach-accent/20 px-3 py-1 rounded-full text-[10px] font-black text-dark-gray">
-                  {group.audits.reduce((sum, a) => sum + Math.max(1, a.categories?.length || 0), 0)} KKA
+                <div className="flex items-center gap-2">
+                  {(isAdmin || (STRUKTURAL_ROLES.includes(userRole) && group.audits.length > 1)) && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTargetGroup({ opdName: group.opdName, audits: group.audits });
+                        setDeleteSelectedAuditId('');
+                      }}
+                      className="text-[10px] font-extrabold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-lg transition cursor-pointer inline-flex items-center gap-1"
+                      title="Hapus KKA"
+                    >
+                      <Trash2 className="w-3 h-3" /> Hapus
+                    </button>
+                  )}
+                  <div className="bg-peach-accent/20 px-3 py-1 rounded-full text-[10px] font-black text-dark-gray">
+                    {group.audits.length} KKA
+                  </div>
                 </div>
               </div>
 
@@ -403,22 +421,6 @@ export default function AuditListView({
 
                       {/* Right side: Actions */}
                       <div className="flex items-center md:flex-col justify-end md:justify-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-dark-gray/10 pt-3 md:pt-0 md:pl-6">
-                        {(isAdmin || (STRUKTURAL_ROLES.includes(userRole) && group.audits.length > 1)) && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus KKA "${audit.auditType}" untuk ${audit.opdName}?`);
-                              if (confirmed) {
-                                onDeleteAudit(audit.id);
-                              }
-                            }}
-                            className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 border border-rose-100 rounded-xl transition cursor-pointer shadow-sm"
-                            title="Hapus KKA"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
                         <div className="w-8 h-8 rounded-full bg-dark-gray text-white flex items-center justify-center shadow-md shadow-dark-gray/20 group-hover:scale-110 group-hover:bg-peach-accent transition-all duration-300">
                           <ArrowRight className="w-4 h-4" />
                         </div>
@@ -573,6 +575,78 @@ export default function AuditListView({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal hapus KKA — pilih KKA mana yang akan dihapus */}
+      {deleteTargetGroup && (
+        <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in" id="modal-backdrop">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray overflow-hidden">
+            <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
+              <span className="font-extrabold text-xs tracking-wide">Hapus KKA — {deleteTargetGroup.opdName}</span>
+              <button onClick={() => setDeleteTargetGroup(null)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-[11px] font-bold text-dark-gray/70">Pilih KKA yang akan dihapus:</p>
+              {deleteTargetGroup.audits.length === 0 ? (
+                <p className="text-xs text-dark-gray/50 italic">Tidak ada KKA tersedia.</p>
+              ) : (
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                  {deleteTargetGroup.audits.map((a) => (
+                    <label
+                      key={a.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                        deleteSelectedAuditId === a.id
+                          ? 'bg-rose-50 border-rose-300'
+                          : 'bg-white border-dark-gray/15 hover:bg-dark-gray/5'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="delete-audit"
+                        checked={deleteSelectedAuditId === a.id}
+                        onChange={() => setDeleteSelectedAuditId(a.id)}
+                        className="accent-rose-600"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">{a.auditType}</p>
+                        <p className="text-[10px] text-dark-gray/60 font-medium truncate">{a.auditorName} • {a.categories?.length || 0} kategori</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-3 pt-2 border-t border-dark-gray/10">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTargetGroup(null)}
+                  className="flex-1 bg-white hover:bg-white/80 text-dark-gray text-xs font-extrabold py-2 rounded-lg border border-dark-gray/10 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={!deleteSelectedAuditId}
+                  onClick={() => {
+                    if (!deleteSelectedAuditId) return;
+                    const audit = deleteTargetGroup.audits.find(a => a.id === deleteSelectedAuditId);
+                    if (window.confirm(`Hapus KKA "${audit?.auditType}" untuk ${deleteTargetGroup.opdName}?`)) {
+                      onDeleteAudit(deleteSelectedAuditId);
+                    }
+                    setDeleteTargetGroup(null);
+                    setDeleteSelectedAuditId('');
+                  }}
+                  className={`flex-1 text-xs font-extrabold py-2 rounded-lg transition cursor-pointer ${
+                    deleteSelectedAuditId
+                      ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-md'
+                      : 'bg-rose-200 text-rose-400 cursor-not-allowed'
+                  }`}
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
