@@ -751,10 +751,7 @@ export default function App() {
     };
 
     const defaultSchedule = customSchedule || [
-      { id: 'milestone_1', name: 'Perencanaan', startDate: new Date().toISOString().split('T')[0], targetDate: getFutureDate(7), status: 'Sedang Berjalan' as const, notes: 'Menyusun Surat Tugas dan KKA awal' },
       { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(7), targetDate: getFutureDate(21), status: 'Belum Mulai' as const, notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
-      { id: 'milestone_3', name: 'Penyusunan LHO / LHP', startDate: getFutureDate(21), targetDate: getFutureDate(30), status: 'Belum Mulai' as const, notes: 'Penyusunan laporan hasil pemeriksaan' },
-      { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut', startDate: getFutureDate(30), targetDate: getFutureDate(45), status: 'Belum Mulai' as const, notes: 'Verifikasi tindak lanjut atas temuan LHP' }
     ];
 
     logActivity('create_audit', 'audit', opdName, { auditType, fiscalYear, templateId });

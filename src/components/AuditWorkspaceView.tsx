@@ -107,10 +107,7 @@ export default function AuditWorkspaceView({
       return d.toISOString().split('T')[0];
     };
     return [
-      { id: 'milestone_1', name: 'Perencanaan (Planning)', targetDate: getFutureDate(7), status: 'Sedang Berjalan', notes: 'Menyusun Surat Tugas dan KKA awal' },
-      { id: 'milestone_2', name: 'Pelaksanaan / KKA (Fieldwork)', targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
-      { id: 'milestone_3', name: 'Penyusunan LHO / LHP (Reporting)', targetDate: getFutureDate(30), status: 'Belum Mulai', notes: 'Penyusunan laporan hasil pemeriksaan' },
-      { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut (Follow up)', targetDate: getFutureDate(45), status: 'Belum Mulai', notes: 'Verifikasi tindak lanjut atas temuan LHP' }
+      { id: 'milestone_2', name: 'Pelaksanaan / KKA', targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
     ];
   }, [audit.schedule, audit.auditDate]);
 
@@ -940,12 +937,6 @@ export default function AuditWorkspaceView({
                     <div key={m.id} className="pt-5 first:pt-0 grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                       <div className="md:col-span-3">
                         <div className="font-bold text-xs text-slate-700">{m.name}</div>
-                        <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
-                          {m.id === 'milestone_1' && 'Tahapan perencanaan, penyiapan tim, surat tugas, dan dokumen administrasi awal.'}
-                          {m.id === 'milestone_2' && 'Tahapan pengerjaan Kertas Kerja Audit (KKA) lapangan, wawancara, dan pengunggahan berkas bukti.'}
-                          {m.id === 'milestone_3' && 'Tahapan kompilasi temuan, penyusunan LHO (Laporan Hasil Opini) atau LHP (Laporan Hasil Pemeriksaan).'}
-                          {m.id === 'milestone_4' && 'Tahapan pemantauan dan tindak lanjut rekomendasi dari hasil pemeriksaan pimpinan.'}
-                        </p>
                       </div>
                       
                       <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-4 gap-3">
