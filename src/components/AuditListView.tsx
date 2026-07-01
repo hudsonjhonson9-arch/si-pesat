@@ -309,7 +309,7 @@ export default function AuditListView({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {(isAdmin || (STRUKTURAL_ROLES.includes(userRole) && group.audits.length > 1)) && (
+                  {(isAdmin || STRUKTURAL_ROLES.includes(userRole)) && (
                     <button
                       type="button"
                       onClick={(e) => {
@@ -339,14 +339,12 @@ export default function AuditListView({
                     >
                       {/* Left side: Categories list with progress */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 py-1">
-                        {group.audits.length > 1 && (
-                          <div className="flex items-center gap-2 mb-1 pb-1 border-b border-dark-gray/10">
-                            <span className="text-[10px] font-extrabold bg-dark-gray/10 text-dark-gray px-2 py-0.5 rounded tracking-wide">
-                              {audit.auditType}
-                            </span>
-                            <span className="text-[9px] text-dark-gray/50 font-medium">{audit.auditorName}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 mb-1 pb-1 border-b border-dark-gray/10">
+                          <span className="text-[10px] font-extrabold bg-dark-gray/10 text-dark-gray px-2 py-0.5 rounded tracking-wide">
+                            {audit.auditType}
+                          </span>
+                          <span className="text-[9px] text-dark-gray/50 font-medium">{audit.auditorName}</span>
+                        </div>
                         {audit.categories && audit.categories.length > 0 ? (
                           audit.categories.map((cat, idx) => {
                             let evaluatedItems = 0;
@@ -581,16 +579,16 @@ export default function AuditListView({
 
       {/* Modal hapus KKA — pilih KKA mana yang akan dihapus */}
       {deleteTargetGroup && (
-        <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in" id="modal-backdrop">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray overflow-hidden">
+        <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in" onClick={() => setDeleteTargetGroup(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-extrabold text-xs tracking-wide">Hapus KKA — {deleteTargetGroup.opdName}</span>
+              <span className="font-extrabold text-xs tracking-wide">Pilih KKA — {deleteTargetGroup.opdName}</span>
               <button onClick={() => setDeleteTargetGroup(null)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
             </div>
             <div className="p-4 space-y-3">
-              <p className="text-[11px] font-bold text-dark-gray/70">Pilih KKA yang akan dihapus:</p>
+              <p className="text-[11px] font-bold text-dark-gray/70">KKA yang tersedia:</p>
               {deleteTargetGroup.audits.length === 0 ? (
-                <p className="text-xs text-dark-gray/50 italic">Tidak ada KKA tersedia.</p>
+                <p className="text-xs text-dark-gray/50 italic">Tidak ada KKA.</p>
               ) : (
                 <div className="space-y-1.5 max-h-60 overflow-y-auto">
                   {deleteTargetGroup.audits.map((a) => {
@@ -614,8 +612,11 @@ export default function AuditListView({
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold truncate">{a.auditType}</p>
-                          <p className="text-[10px] text-dark-gray/60 font-medium truncate">{a.auditorName} • {a.categories?.length || 0} kategori</p>
+                          <p className="text-[10px] text-dark-gray/50 font-medium truncate">{a.auditorName} • {a.categories?.length || 0} kategori</p>
                         </div>
+                        {deleteTargetGroup.audits.length === 1 && (
+                          <span className="text-[9px] font-black bg-rose-100 text-rose-700 px-2 py-0.5 rounded">satu-satunya</span>
+                        )}
                       </label>
                     );
                   })}
@@ -632,14 +633,11 @@ export default function AuditListView({
                 <button
                   type="button"
                   disabled={!deleteSelectedAuditId}
-                  onClick={async () => {
+                  onClick={() => {
                     if (!deleteSelectedAuditId) return;
                     const ids = deleteSelectedAuditId.split(',');
-                    const names = ids.map(id => deleteTargetGroup.audits.find(a => a.id === id)?.auditType).filter(Boolean);
-                    if (window.confirm(`Hapus ${ids.length} KKA (${names.join(', ')}) untuk ${deleteTargetGroup.opdName}?`)) {
-                      for (const id of ids) {
-                        onDeleteAudit(id);
-                      }
+                    if (window.confirm(`Hapus ${ids.length} KKA yang dipilih untuk ${deleteTargetGroup.opdName}?`)) {
+                      ids.forEach(id => onDeleteAudit(id));
                     }
                     setDeleteTargetGroup(null);
                     setDeleteSelectedAuditId('');
