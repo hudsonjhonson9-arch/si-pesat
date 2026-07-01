@@ -593,28 +593,32 @@ export default function AuditListView({
                 <p className="text-xs text-dark-gray/50 italic">Tidak ada KKA tersedia.</p>
               ) : (
                 <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                  {deleteTargetGroup.audits.map((a) => (
-                    <label
-                      key={a.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
-                        deleteSelectedAuditId === a.id
-                          ? 'bg-rose-50 border-rose-300'
-                          : 'bg-white border-dark-gray/15 hover:bg-dark-gray/5'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="delete-audit"
-                        checked={deleteSelectedAuditId === a.id}
-                        onChange={() => setDeleteSelectedAuditId(a.id)}
-                        className="accent-rose-600"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate">{a.auditType}</p>
-                        <p className="text-[10px] text-dark-gray/60 font-medium truncate">{a.auditorName} • {a.categories?.length || 0} kategori</p>
-                      </div>
-                    </label>
-                  ))}
+                  {deleteTargetGroup.audits.map((a) => {
+                    const isChecked = deleteSelectedAuditId.split(',').includes(a.id);
+                    return (
+                      <label
+                        key={a.id}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                          isChecked ? 'bg-rose-50 border-rose-300' : 'bg-white border-dark-gray/15 hover:bg-dark-gray/5'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            const ids = deleteSelectedAuditId ? deleteSelectedAuditId.split(',') : [];
+                            const next = isChecked ? ids.filter(id => id !== a.id) : [...ids, a.id];
+                            setDeleteSelectedAuditId(next.join(','));
+                          }}
+                          className="accent-rose-600"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold truncate">{a.auditType}</p>
+                          <p className="text-[10px] text-dark-gray/60 font-medium truncate">{a.auditorName} • {a.categories?.length || 0} kategori</p>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               )}
               <div className="flex items-center gap-3 pt-2 border-t border-dark-gray/10">
@@ -628,11 +632,14 @@ export default function AuditListView({
                 <button
                   type="button"
                   disabled={!deleteSelectedAuditId}
-                  onClick={() => {
+                  onClick={async () => {
                     if (!deleteSelectedAuditId) return;
-                    const audit = deleteTargetGroup.audits.find(a => a.id === deleteSelectedAuditId);
-                    if (window.confirm(`Hapus KKA "${audit?.auditType}" untuk ${deleteTargetGroup.opdName}?`)) {
-                      onDeleteAudit(deleteSelectedAuditId);
+                    const ids = deleteSelectedAuditId.split(',');
+                    const names = ids.map(id => deleteTargetGroup.audits.find(a => a.id === id)?.auditType).filter(Boolean);
+                    if (window.confirm(`Hapus ${ids.length} KKA (${names.join(', ')}) untuk ${deleteTargetGroup.opdName}?`)) {
+                      for (const id of ids) {
+                        onDeleteAudit(id);
+                      }
                     }
                     setDeleteTargetGroup(null);
                     setDeleteSelectedAuditId('');
@@ -643,7 +650,7 @@ export default function AuditListView({
                       : 'bg-rose-200 text-rose-400 cursor-not-allowed'
                   }`}
                 >
-                  Hapus
+                  {deleteSelectedAuditId ? `Hapus (${deleteSelectedAuditId.split(',').length})` : 'Hapus'}
                 </button>
               </div>
             </div>
