@@ -35,7 +35,8 @@ import {
   ChevronDown,
   ShieldOff,
   Lock,
-  FileText
+  FileText,
+  GripVertical
 } from 'lucide-react';
 
 const KETUA_TIM_ROLES = [
@@ -90,6 +91,10 @@ export default function AuditWorkspaceView({
   );
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddingItem, setIsAddingItem] = useState(false);
+  const [newItemTitle, setNewItemTitle] = useState('');
+  const [newItemDescription, setNewItemDescription] = useState('');
+  const [dragItemIdx, setDragItemIdx] = useState<number | null>(null);
   const [leftTab, setLeftTab] = useState<'categories' | 'schedule'>('categories');
 
   const milestones = useMemo<AuditMilestone[]>(() => {
@@ -397,7 +402,60 @@ export default function AuditWorkspaceView({
     });
   };
 
-  // Adding a new custom checklist criterion to the active category
+  // Adding a new custom checklist item to the active category
+  const handleAddItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newItemTitle.trim() || !activeCategory) return;
+
+    const newItem: AuditItem = {
+      id: `item_temp_${Date.now()}`,
+      title: newItemTitle.trim(),
+      description: newItemDescription.trim(),
+      status: 'N/A',
+      nilaiTemuan: 0,
+      uraianTemuan: '',
+      rekomendasi: ''
+    };
+
+    const updatedCategories = audit.categories.map(cat => {
+      if (cat.id === activeCategory.id) {
+        return { ...cat, items: [...cat.items, newItem] };
+      }
+      return cat;
+    });
+
+    onUpdates({ ...audit, categories: updatedCategories });
+    setNewItemTitle('');
+    setNewItemDescription('');
+    setIsAddingItem(false);
+  };
+
+  // Drag-reorder item
+  const handleDragStart = (index: number) => {
+    setDragItemIdx(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (targetIdx: number) => {
+    if (dragItemIdx === null || !activeCategory || searchQuery.trim()) return;
+
+    const items = [...activeCategory.items];
+    const [moved] = items.splice(dragItemIdx, 1);
+    items.splice(targetIdx, 0, moved);
+
+    const updatedCategories = audit.categories.map(cat => {
+      if (cat.id === activeCategory.id) {
+        return { ...cat, items };
+      }
+      return cat;
+    });
+
+    onUpdates({ ...audit, categories: updatedCategories });
+    setDragItemIdx(null);
+  };
 
   // Delete checklist item
   const handleDeleteItem = (itemId: string) => {
@@ -1131,8 +1189,18 @@ export default function AuditWorkspaceView({
           <div className="space-y-4">
 
             {/* Header Checklist & Action to trigger ADD item */}
-<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider block">Spesifikasi Bukti & Pertanggungjawaban</span>
+            <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-dark-gray/75 uppercase tracking-wider">Spesifikasi Bukti & Pertanggungjawaban</span>
+                {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (
+                  <button
+                    onClick={() => { setIsAddingItem(true); setSearchQuery(''); }}
+                    className="text-[10px] font-extrabold text-white bg-dark-gray hover:bg-dark-gray/80 px-2 py-1 rounded-lg transition cursor-pointer inline-flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" /> Tambah Item
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-4 w-4 text-dark-gray/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1149,20 +1217,72 @@ export default function AuditWorkspaceView({
               </div>
             </div>
 
+            {/* Inline form for adding new item */}
+            {isAddingItem && (
+              <form onSubmit={handleAddItem} className="bg-white border-2 border-dashed border-dark-gray/30 rounded-xl p-4 space-y-3 shadow-xs">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide">Nama Dokumen</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Misal: Bukti SSP PPh Pasal 21"
+                    value={newItemTitle}
+                    onChange={e => setNewItemTitle(e.target.value)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray outline-none focus:ring-2 focus:ring-dark-gray/20"
+                    autoFocus
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-dark-gray/65 uppercase tracking-wide">Deskripsi (opsional)</label>
+                  <input
+                    type="text"
+                    placeholder="Keterangan tambahan..."
+                    value={newItemDescription}
+                    onChange={e => setNewItemDescription(e.target.value)}
+                    className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray outline-none focus:ring-2 focus:ring-dark-gray/20"
+                  />
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="submit"
+                    className="text-[10px] font-extrabold bg-dark-gray text-white px-3 py-1.5 rounded-lg hover:bg-dark-gray/80 transition cursor-pointer"
+                  >
+                    Simpan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsAddingItem(false); setNewItemTitle(''); setNewItemDescription(''); }}
+                    className="text-[10px] font-bold text-dark-gray/70 hover:text-dark-gray px-3 py-1.5 rounded-lg border border-dark-gray/20 hover:bg-dark-gray/5 transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                </div>
+              </form>
+            )}
+
             {/* Checklists items */}
             {filteredItems.map((item, idx) => {
               const hasFinding = item.status === 'Temuan';
               return (
                 <div
                   key={item.id}
+                  draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(idx)}
                   className={`bg-baby-blue rounded-xl border border-dark-gray/10 p-4 transition-all shadow-xs text-dark-gray ${hasFinding ? 'border-l-4 border-l-rose-500 bg-rose-400/10' : ''
-                    }`}
+                    } ${FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim() ? 'cursor-grab active:cursor-grabbing' : ''}`}
                 >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
 
                     {/* Title and Descriptions */}
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
+                        {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim() && (
+                          <span className="text-dark-gray/30 hover:text-dark-gray/60 cursor-grab active:cursor-grabbing">
+                            <GripVertical className="w-4 h-4" />
+                          </span>
+                        )}
                         <span className="text-[10px] font-mono select-none px-2 py-0.5 rounded bg-white/40 text-dark-gray/70 font-bold">
                           Dokumen {idx + 1}
                         </span>
