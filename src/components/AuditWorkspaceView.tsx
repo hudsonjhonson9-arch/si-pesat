@@ -120,7 +120,7 @@ export default function AuditWorkspaceView({
         return d.toISOString().split('T')[0];
       };
       return [
-        { id: 'milestone_2', name: 'Pelaksanaan Audit', startDate: getFutureDate(0), targetDate: getFutureDate(14), notes: '' },
+        { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(0), targetDate: getFutureDate(14), notes: '' },
       ];
     }
     return data.filter(m => m.id === 'milestone_2');
@@ -533,7 +533,7 @@ export default function AuditWorkspaceView({
         </div>
 
         {/* Dokumen KKA */}
-        <div className="p-4 space-y-4 bg-sky-50/30 rounded-b-xl">
+        <div className="p-4 space-y-4 bg-baby-blue rounded-b-xl">
 
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-black uppercase tracking-wide text-dark-gray">Dokumen KKA</h2>
