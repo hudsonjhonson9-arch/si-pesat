@@ -48,9 +48,9 @@ const byNipAge = (a: UserProfile, b: UserProfile) => {
 
 const KETUA_TIM_ROLES = [
   'Inspektur', 'Inspektur Pembantu',
-  'Auditor', 'Auditor Ahli Pertama',
+  'Auditor',
   'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
-  'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
+  'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
 ];
 const STRUKTURAL_ROLES = ['Inspektur', 'Inspektur Pembantu'];
 const FUNGSIONAL_ROLES = [
