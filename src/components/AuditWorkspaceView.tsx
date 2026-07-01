@@ -646,7 +646,7 @@ export default function AuditWorkspaceView({
                     <div className="flex justify-end pt-1">
                       <button onClick={() => handleDeleteItem(item.id)}
                         className="text-[10px] text-rose-700 hover:text-rose-950 font-bold inline-flex items-center gap-0.5 cursor-pointer bg-white border border-dark-gray/10 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors">
-                        <Trash2 className="w-3 h-3" /> Hapus Dokumen
+                        <Trash2 className="w-3 h-3" /> Hapus item
                       </button>
                     </div>
                   )}
