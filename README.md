@@ -46,6 +46,8 @@ Sistem ini menggantikan proses manual berbasis kertas/Excel dengan platform digi
 - Inisiasi audit baru dengan pemilihan template jenis audit
 - Multi-kategori audit dalam satu berkas KKA
 - Checklist dokumen bukti pertanggungjawaban per item
+- **Tambah/hapus item langsung di workspace** (tanpa mengubah template)
+- **Drag-reorder item** dengan grip handle
 - Klasifikasi temuan keuangan (overpayment, belanja fiktif, dll.)
 - Riwayat perubahan dokumen bukti (audit trail)
 
@@ -117,34 +119,47 @@ Sistem ini menggantikan proses manual berbasis kertas/Excel dengan platform digi
 ```
 si-pesat/
 ├── src/
-│   ├── App.tsx                    # Root app, routing hash-based, mobile nav
+│   ├── App.tsx                    # Root app, routing hash-based, state, auth, layout
 │   ├── main.tsx                   # Entry point
 │   ├── types.ts                   # TypeScript interfaces & types
 │   ├── data.ts                    # Default template KKA
 │   ├── index.css                  # Global styles & Tailwind directives
 │   ├── components/
-│   │   ├── HomeView.tsx           # Dashboard beranda, statistik, peta
-│   │   ├── AuditListView.tsx      # Daftar KKA, filter, sorting
-│   │   ├── AuditWorkspaceView.tsx # Workspace KKA utama (edit, review, upload)
-│   │   ├── NewAuditView.tsx       # Form inisiasi audit baru + jadwal
-│   │   ├── StatistikView.tsx      # Halaman statistik & analitik
-│   │   ├── UserManagementView.tsx # Manajemen pengguna (admin)
-│   │   ├── UserProfileView.tsx    # Profil pengguna
-│   │   ├── TemplateConfiguratorView.tsx  # Konfigurasi template jenis audit
+│   │   ├── HomeView.tsx           # Dashboard beranda
+│   │   ├── AuditListView.tsx      # Daftar KKA, filter, sorting, hapus
+│   │   ├── AuditWorkspaceView.tsx # Workspace KKA (checklist, evidence, docs, schedule)
+│   │   ├── NewAuditView.tsx       # Wizard inisiasi audit baru + jadwal
+│   │   ├── StatistikView.tsx      # Charts & statistik
+│   │   ├── UserManagementView.tsx # CRUD pengguna (admin)
+│   │   ├── UserProfileView.tsx    # Profil + tugas pengguna
+│   │   ├── TemplateConfiguratorView.tsx # CRUD template jenis audit
 │   │   ├── LoginView.tsx          # Halaman login
-│   │   ├── EvidencePanel.tsx      # Panel upload/tautan dokumen bukti
+│   │   ├── EvidencePanel.tsx      # Upload/tautan dokumen bukti
 │   │   ├── CoverDocumentGenerator.tsx   # Generator sampul KKP
 │   │   ├── SuratTugasGenerator.tsx      # Generator surat tugas
 │   │   ├── NotaDinasGenerator.tsx       # Generator nota dinas
 │   │   ├── SPPDGenerator.tsx            # Generator SPPD
-│   │   └── SearchableSelect.tsx         # Komponen dropdown dengan search
+│   │   ├── ReviuView.tsx          # Antrian review (status Direview)
+│   │   ├── EvaluasiView.tsx       # Evaluasi pasca-audit
+│   │   ├── AsistensiView.tsx      # Asistensi teknis (Draft)
+│   │   ├── GuideView.tsx          # Panduan pengguna
+│   │   ├── ActivityLogView.tsx    # Log aktivitas sistem
+│   │   ├── NotificationBell.tsx   # Notifikasi real-time
+│   │   ├── WilayahPenugasanView.tsx # Peta objek audit
+│   │   ├── RolePermissionView.tsx   # Matriks role-permission
+│   │   └── SearchableSelect.tsx     # Dropdown dengan search
 │   └── lib/
 │       ├── supabase.ts            # Supabase client
-│       └── googleDrive.ts         # Google Drive upload helper
+│       ├── googleDrive.ts         # Google Drive upload helper
+│       ├── permissions.ts         # RBAC PermissionChecker
+│       ├── notifications.ts       # Notifikasi CRUD
+│       ├── log.ts                 # Activity logging
+│       └── escape.ts              # HTML escape utility
+├── docs/
+│   ├── user-guide.md             # Panduan pengguna lengkap
+│   └── superpowers/specs/         # Spesifikasi fitur
 ├── public/
 │   └── header-bg.jpg             # Background banner beranda
-├── supabase_schema.sql           # Skema database & seed data
-├── google-apps-script.gs         # Script Apps Script (legacy)
 ├── vite.config.ts
 ├── tsconfig.json
 └── package.json
@@ -410,9 +425,9 @@ address   TEXT
 
 ```bash
 npm run dev      # Development server (localhost:3000)
-npm run build    # Production build
+npm run build    # Production build (output: /dist)
 npm run preview  # Preview hasil build
-npm run lint     # TypeScript type checking
+npm run lint     # TypeScript type checking (tsc --noEmit)
 npm run clean    # Hapus folder dist
 ```
 
