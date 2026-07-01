@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { KKATemplate, OpdAudit, UserProfile, TargetEntity, AuditMilestone } from '../types';
+import { toDisplay, fromDisplay } from '../lib/formatDate';
 
 const byNipAge = (a: UserProfile, b: UserProfile) => {
   if (a.nip && b.nip) return a.nip.localeCompare(b.nip);
@@ -215,18 +216,18 @@ export default function NewAuditView({
                 placeholder="Contoh: Dinas Pendidikan Kabupaten Sumba Barat"
                 className="w-full text-sm font-bold border border-dark-gray/15 px-3 py-2.5 rounded-xl bg-white text-dark-gray outline-none focus:border-peach-accent focus:ring-2 focus:ring-peach-accent/20"
               />
-              {isOpdDropdownOpen && targetEntities && targetEntities.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-dark-gray/15 rounded-xl shadow-xl overflow-hidden max-h-48 flex flex-col">
-                  <div className="overflow-y-auto p-1 space-y-0.5">
-                    {targetEntities.filter(t => t.name.toLowerCase().includes(opdName.toLowerCase())).length > 0 ? (
-                      targetEntities.filter(t => t.name.toLowerCase().includes(opdName.toLowerCase())).map(t => (
+              {isOpdDropdownOpen && targetEntities && targetEntities.length > 0 && (() => {
+                const filtered = targetEntities.filter(t => t.name.toLowerCase().includes(opdName.toLowerCase()));
+                return filtered.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-dark-gray/15 rounded-xl shadow-xl overflow-hidden max-h-48 flex flex-col">
+                    <div className="overflow-y-auto p-1 space-y-0.5">
+                      {filtered.map(t => (
                         <button
                           key={t.id}
                           onMouseDown={(e) => {
                             e.preventDefault();
                             setOpdName(t.name);
                             setIsOpdDropdownOpen(false);
-                            // Auto map type if matched exactly
                             const mappedType = OPD_TYPES.find(ot => ot.toLowerCase() === t.type.toLowerCase());
                             if (mappedType) setOpdType(mappedType);
                             else if (t.type === 'Sekolah' && t.name.toUpperCase().includes('SD')) setOpdType('SD');
@@ -236,13 +237,11 @@ export default function NewAuditView({
                         >
                           {t.name}
                         </button>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-xs text-dark-gray/50 italic">Tidak ada objek audit yang cocok</div>
-                    )}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
 
@@ -529,19 +528,20 @@ export default function NewAuditView({
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
                     <input
-                      type="date"
-                      value={m.startDate || ''}
-                      onChange={e => updateMilestone(m.id, 'startDate', e.target.value)}
+                      type="text"
+                      placeholder="dd/mm/yyyy"
+                      value={toDisplay(m.startDate)}
+                      onChange={e => updateMilestone(m.id, 'startDate', fromDisplay(e.target.value))}
                       className="w-full text-xs font-bold border border-slate-200 px-2.5 py-1.5 rounded-lg bg-white text-slate-800 outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20"
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
                     <input
-                      type="date"
-                      value={m.targetDate}
-                      min={m.startDate}
-                      onChange={e => updateMilestone(m.id, 'targetDate', e.target.value)}
+                      type="text"
+                      placeholder="dd/mm/yyyy"
+                      value={toDisplay(m.targetDate)}
+                      onChange={e => updateMilestone(m.id, 'targetDate', fromDisplay(e.target.value))}
                       className="w-full text-xs font-bold border border-slate-200 px-2.5 py-1.5 rounded-lg bg-white text-slate-800 outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20"
                     />
                   </div>

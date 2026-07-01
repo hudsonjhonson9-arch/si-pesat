@@ -1,4 +1,3 @@
-import { OpdAudit } from '../types';
 import { supabase } from './supabase';
 
 /**
@@ -12,34 +11,19 @@ async function getAuthToken(): Promise<string> {
   return session.access_token;
 }
 
-/**
- * Build authorization payload with JWT token
- */
-async function buildAuthorizedPayload(body: Record<string, any>): Promise<{ body: string; headers: Record<string, string> }> {
-  const token = await getAuthToken();
-  return {
-    body: JSON.stringify({ ...body, authorization: 'Bearer ' + token }),
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8',
-    }
-  };
-}
-
-/**
- * Upload an evidence document (pdf, excel, docx, etc.) to the Centralized Google Drive
- * via Google Apps Script Web App.
- */
 export async function uploadEvidenceFile(
   file: File,
   year?: string,
   opdName?: string,
   auditType?: string
 ): Promise<{ id: string; name: string; webViewLink: string }> {
-  const SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
-
-  if (!SCRIPT_URL) {
+  const baseUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+  if (!baseUrl) {
     throw new Error("VITE_GOOGLE_SCRIPT_URL belum diatur di environment variable.");
   }
+
+  const token = await getAuthToken();
+  const url = baseUrl + '?token=' + encodeURIComponent(token);
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -57,12 +41,10 @@ export async function uploadEvidenceFile(
           auditType: auditType
         };
 
-        const { body, headers } = await buildAuthorizedPayload(payload);
-
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(url, {
           method: 'POST',
-          body: body,
-          headers: headers
+          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
         });
 
         if (response.status === 401) {
@@ -93,9 +75,6 @@ export async function uploadEvidenceFile(
   });
 }
 
-/**
- * Copy a file from a Google Drive URL to the Centralized Google Drive
- */
 export async function copyEvidenceFileFromUrl(
   sourceUrl: string,
   fileName: string,
@@ -103,11 +82,13 @@ export async function copyEvidenceFileFromUrl(
   opdName?: string,
   auditType?: string
 ): Promise<{ id: string; name: string; webViewLink: string }> {
-  const SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
-
-  if (!SCRIPT_URL) {
+  const baseUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+  if (!baseUrl) {
     throw new Error("VITE_GOOGLE_SCRIPT_URL belum diatur di environment variable.");
   }
+
+  const token = await getAuthToken();
+  const url = baseUrl + '?token=' + encodeURIComponent(token);
 
   let sourceId = '';
   const matchD = sourceUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -129,12 +110,10 @@ export async function copyEvidenceFileFromUrl(
     auditType: auditType
   };
 
-  const { body, headers } = await buildAuthorizedPayload(payload);
-
-  const response = await fetch(SCRIPT_URL, {
+  const response = await fetch(url, {
     method: 'POST',
-    body: body,
-    headers: headers
+    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
   });
 
   if (response.status === 401) {

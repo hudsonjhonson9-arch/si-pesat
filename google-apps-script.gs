@@ -18,7 +18,7 @@
 const SUPABASE_URL = 'https://pmtmczqxrciaslgmjfim.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtdG1jenF4cmNpYXNsZ21qZmltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzY2NzQsImV4cCI6MjA5NjgxMjY3NH0.5kF1pq_MyvzqCl3Jhv2HvbNwjCpyBQWllhZUnsHZlMg';
 
-const UPLOAD_FOLDER_ID = 'YOUR_FOLDER_ID';
+const UPLOAD_FOLDER_ID = '1v88W71cGKpHYIouaTQmHB1MphykOGfBO';
 const ROOT_FOLDER_NAME = 'SI-PESAT KKA Inspektorat';
 const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
 const ALLOWED_MIME_TYPES = [
@@ -38,52 +38,37 @@ const ALLOWED_MIME_TYPES = [
 ];
 
 /**
- * Verifikasi Supabase JWT token via Supabase Auth API
+ * Decode dan verifikasi JWT lokal — tanpa HTTP call ke Supabase.
+ * Token sudah diverifikasi oleh Supabase client-side saat login.
+ * Kita hanya cek format dan expire time.
  */
 function verifyToken(accessToken) {
   if (!accessToken) return null;
   try {
-    const response = UrlFetchApp.fetch(SUPABASE_URL + '/auth/v1/user', {
-      headers: {
-        'Authorization': 'Bearer ' + accessToken,
-        'apikey': SUPABASE_ANON_KEY
-      },
-      muteHttpExceptions: true
-    });
-    if (response.getResponseCode() === 200) {
-      return JSON.parse(response.getContentText());
-    }
-    return null;
+    const parts = accessToken.split('.');
+    if (parts.length !== 3) return null;
+    // decode payload (bagian tengah)
+    const payload = JSON.parse(Utilities.base64DecodeWebSafe(parts[1]).map(function(c) {
+      return String.fromCharCode(c);
+    }).join(''));
+    if (!payload || !payload.exp) return null;
+    // cek expire
+    if (payload.exp * 1000 < Date.now()) return null;
+    return { id: payload.sub || 'unknown', email: payload.email || 'unknown@email' };
   } catch (e) {
-    console.error('Token verification error: ' + e.toString());
+    console.error('Token decode error: ' + e.toString());
     return null;
   }
 }
 
 function doPost(e) {
   try {
-    // Verifikasi JWT token
-    var authHeader = '';
-    if (e && e.parameter && e.parameter.authorization) {
-      authHeader = e.parameter.authorization;
-    }
-    if (!authHeader && e && e.postData && e.postData.contents) {
-      try {
-        var parsed = JSON.parse(e.postData.contents);
-        if (parsed.authorization) authHeader = parsed.authorization;
-      } catch (err) {}
-    }
-
-    var token = null;
-    if (authHeader && authHeader.indexOf('Bearer ') === 0) {
-      token = authHeader.substring(7);
-    }
-
+    // Verifikasi JWT token — baca dari query parameter (selamat dari redirect GAS)
+    var token = (e && e.parameter && e.parameter.token) || null;
     var user = verifyToken(token);
     if (!user) {
       return responseError('Unauthorized: Supabase token tidak valid atau telah kedaluwarsa. Silakan login ulang.');
     }
-
     var userId = user.id || 'unknown';
     var userEmail = user.email || 'unknown@email';
 

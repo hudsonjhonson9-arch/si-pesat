@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, AuditType, UserProfile, KKATemplate, AuditMilestone } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
+import { toDisplay, fromDisplay } from '../lib/formatDate';
 import { supabase } from '../lib/supabase';
 import EvidencePanel from './EvidencePanel';
 import CoverDocumentGenerator from './CoverDocumentGenerator';
@@ -895,9 +896,9 @@ export default function AuditWorkspaceView({
                         <div className="font-bold text-xs text-slate-800 leading-tight">{m.name}</div>
                         <div className="text-[10px] text-slate-500 mt-0.5">
                           {m.startDate && (
-                            <span>{new Date(m.startDate).toLocaleDateString('id-ID', { dateStyle: 'medium' })} → </span>
+                            <span>{toDisplay(m.startDate)} → </span>
                           )}
-                          <span className="font-mono">{m.targetDate ? new Date(m.targetDate).toLocaleDateString('id-ID', { dateStyle: 'medium' }) : '-'}</span>
+                          <span className="font-mono">{m.targetDate ? toDisplay(m.targetDate) : '-'}</span>
                           {m.startDate && m.targetDate && (() => {
                             const days = Math.floor((new Date(m.targetDate).getTime() - new Date(m.startDate).getTime()) / (1000*60*60*24));
                             return days > 0 ? <span className="ml-1 text-slate-400">({days} hari)</span> : null;
@@ -905,7 +906,7 @@ export default function AuditWorkspaceView({
                         </div>
                         {m.actualDate && (
                           <div className="text-[10px] text-emerald-700 font-bold mt-0.5">
-                            Selesai: <span className="font-mono">{new Date(m.actualDate).toLocaleDateString('id-ID', { dateStyle: 'medium' })}</span>
+                            Selesai: <span className="font-mono">{toDisplay(m.actualDate)}</span>
                           </div>
                         )}
                         <div className="mt-1">
@@ -951,12 +952,13 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
                           <input
-                            type="date"
-                             disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
-                             value={m.startDate || ''}
+                            type="text"
+                            placeholder="dd/mm/yyyy"
+                            disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
+                            value={toDisplay(m.startDate)}
                             onChange={(e) => {
                               const updated = [...milestones];
-                              updated[index] = { ...m, startDate: e.target.value || undefined };
+                              updated[index] = { ...m, startDate: fromDisplay(e.target.value) || undefined };
                               handleUpdateSchedule(updated);
                             }}
                             className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-400 outline-none text-slate-700"
@@ -965,12 +967,13 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
                           <input
-                            type="date"
+                            type="text"
+                            placeholder="dd/mm/yyyy"
                             disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
-                            value={m.targetDate}
+                            value={toDisplay(m.targetDate)}
                             onChange={(e) => {
                               const updated = [...milestones];
-                              updated[index] = { ...m, targetDate: e.target.value };
+                              updated[index] = { ...m, targetDate: fromDisplay(e.target.value) };
                               handleUpdateSchedule(updated);
                             }}
                             className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-400 outline-none text-slate-700"
@@ -980,12 +983,13 @@ export default function AuditWorkspaceView({
                         <div className="space-y-1">
                           <label className="text-[9px] font-black text-slate-500 uppercase tracking-wide">Tanggal Realisasi</label>
                           <input
-                            type="date"
+                            type="text"
+                            placeholder="dd/mm/yyyy"
                             disabled={isReadOnly || !FUNGSIONAL_ROLES.includes(userRole)}
-                            value={m.actualDate || ''}
+                            value={toDisplay(m.actualDate)}
                             onChange={(e) => {
                               const updated = [...milestones];
-                              updated[index] = { ...m, actualDate: e.target.value || undefined };
+                              updated[index] = { ...m, actualDate: fromDisplay(e.target.value) || undefined };
                               handleUpdateSchedule(updated);
                             }}
                             className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-400 outline-none text-slate-700"

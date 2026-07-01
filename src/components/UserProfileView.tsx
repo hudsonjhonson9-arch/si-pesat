@@ -6,6 +6,7 @@
 import React, { useMemo } from 'react';
 import { UserProfile, OpdAudit } from '../types';
 import { CheckCircle, AlertTriangle, Clock, FileText, User, ChevronRight, Upload, TrendingUp } from 'lucide-react';
+import { toDisplay } from '../lib/formatDate';
 
 interface UserProfileViewProps {
   currentUser: UserProfile | null;
@@ -227,7 +228,7 @@ export default function UserProfileView({ currentUser, userRole, isAdmin = false
                       <div className="min-w-0">
                         <p className="font-bold text-xs text-slate-800 truncate">{audit.opdName}</p>
                         <p className="text-[10px] text-slate-500 mt-0.5">
-                          {milestoneName.split(' (')[0]} • Target: {new Date(targetDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {milestoneName.split(' (')[0]} • Target: {toDisplay(targetDate)}
                         </p>
                       </div>
                     </div>
