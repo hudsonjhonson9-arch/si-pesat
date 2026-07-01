@@ -50,7 +50,6 @@ const OPD_TYPES: OpdAudit['opdType'][] = ['SD', 'SMP', 'Dinas', 'Badan', 'Kecama
 const FISCAL_YEARS = ['2026', '2025', '2024', '2023'];
 
 const KETUA_TIM_ROLES = [
-  'Inspektur', 'Inspektur Pembantu',
   'Auditor',
   'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
   'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
