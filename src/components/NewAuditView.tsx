@@ -66,7 +66,6 @@ export default function NewAuditView({
   const [isOpdDropdownOpen, setIsOpdDropdownOpen] = useState(false);
 
   // Jadwal milestone — user bisa atur tanggal mulai & selesai tiap tahap
-  const today = new Date().toISOString().split('T')[0];
   const getFutureDate = (days: number) => {
     const d = new Date();
     d.setDate(d.getDate() + days);
@@ -74,10 +73,7 @@ export default function NewAuditView({
   };
 
   const [schedule, setSchedule] = useState<AuditMilestone[]>([
-    { id: 'milestone_1', name: 'Perencanaan', startDate: today, targetDate: getFutureDate(7), status: 'Sedang Berjalan', notes: 'Menyusun Surat Tugas dan KKA awal' },
     { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(7), targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
-    { id: 'milestone_3', name: 'Penyusunan LHO / LHP', startDate: getFutureDate(21), targetDate: getFutureDate(30), status: 'Belum Mulai', notes: 'Penyusunan laporan hasil pemeriksaan' },
-    { id: 'milestone_4', name: 'Pemantauan Tindak Lanjut', startDate: getFutureDate(30), targetDate: getFutureDate(45), status: 'Belum Mulai', notes: 'Verifikasi tindak lanjut atas temuan LHP' },
   ]);
 
   const updateMilestone = (id: string, field: keyof AuditMilestone, value: string) => {
@@ -463,7 +459,7 @@ export default function NewAuditView({
                         className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-none focus:border-peach-accent" />
                     </div>
                     <div className="overflow-y-auto p-1 space-y-0.5">
-                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).map(p => {
+                      {userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catTeamMembers.includes(name);
                         return (

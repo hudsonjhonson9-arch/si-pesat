@@ -1642,6 +1642,7 @@ export default function AuditWorkspaceView({
                     </div>
                     <div className="overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
                       {userProfiles
+                        .filter(p => p.role === 'Auditor Ahli Pertama')
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase()))
                         .map(p => {
                           const name = p.full_name || p.email;
@@ -1667,7 +1668,7 @@ export default function AuditWorkspaceView({
                           );
                         })
                       }
-                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase())).length === 0 && (
+                      {userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase())).length === 0 && (
                         <div className="px-3 py-2 text-[10px] text-dark-gray/50 italic text-center">Tidak ditemukan</div>
                       )}
                     </div>
@@ -1775,6 +1776,7 @@ export default function AuditWorkspaceView({
                     </div>
                     <div className="overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
                       {userProfiles
+                        .filter(p => p.role === 'Auditor Ahli Pertama')
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase()))
                         .map(p => {
                           const name = p.full_name || p.email;
