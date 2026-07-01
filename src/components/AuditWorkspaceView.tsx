@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { OpdAudit, AuditCategory, AuditItem, AuditStatus, FindingStatus, UserProfile, KKATemplate, AuditMilestone } from '../types';
+import { OpdAudit, AuditCategory, AuditItem, AuditStatus, UserProfile, KKATemplate, AuditMilestone } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
 import { toDisplay, fromDisplay } from '../lib/formatDate';
 import { supabase } from '../lib/supabase';
@@ -9,7 +9,7 @@ import SuratTugasGenerator from './SuratTugasGenerator';
 import NotaDinasGenerator from './NotaDinasGenerator';
 import SPPDGenerator from './SPPDGenerator';
 import {
-  Plus, Trash2, AlertTriangle, Check, ChevronDown, ShieldOff, Lock, FileText, Edit2
+  Plus, Trash2, Check, ChevronDown, ShieldOff, Lock, FileText, Edit2, Calendar
 } from 'lucide-react';
 
 const byNipAge = (a: UserProfile, b: UserProfile) => {
@@ -118,10 +118,12 @@ export default function AuditWorkspaceView({
         return d.toISOString().split('T')[0];
       };
       return [
+        { id: 'milestone_1', name: 'Persiapan', targetDate: getFutureDate(-7), status: 'Belum Mulai', notes: '' },
         { id: 'milestone_2', name: 'Pelaksanaan / KKA', targetDate: getFutureDate(0), status: 'Belum Mulai', notes: '' },
+        { id: 'milestone_3', name: 'Penyusunan Laporan', targetDate: getFutureDate(14), status: 'Belum Mulai', notes: '' },
       ];
     }
-    return data.filter(m => m.id === 'milestone_2');
+    return data;
   }, [audit.schedule, audit.auditDate]);
 
   const handleUpdateSchedule = (updatedMilestones: AuditMilestone[]) => {
@@ -242,23 +244,6 @@ export default function AuditWorkspaceView({
       }
     } catch (err) { console.error('Failed to check conflict', err); }
     return false;
-  };
-
-  const handleItemStatusChange = async (itemId: string, status: FindingStatus) => {
-    if (isReadOnly) return;
-    const hasConflict = await checkConflict(itemId, 'Ubah status');
-    if (hasConflict) return;
-    const updatedCategories = audit.categories.map(cat => ({
-      ...cat,
-      items: cat.items.map(item => {
-        if (item.id === itemId) {
-          const isNowTemuan = status === 'Temuan';
-          return { ...item, status, nilaiTemuan: isNowTemuan ? (item.nilaiTemuan || 0) : 0, jenisTemuan: isNowTemuan ? (item.jenisTemuan || 'Tidak Sesuai Juknis') : undefined, uraianTemuan: isNowTemuan ? (item.uraianTemuan || '') : '', rekomendasi: isNowTemuan ? (item.rekomendasi || '') : '' };
-        }
-        return item;
-      })
-    }));
-    onUpdates({ ...audit, categories: updatedCategories });
   };
 
   const handleFindingDetailChange = (itemId: string, field: keyof AuditItem, value: any) => {
@@ -411,8 +396,8 @@ export default function AuditWorkspaceView({
           ) : (
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-lg font-black text-dark-gray">{audit.opdName}</h1>
-                <p className="text-xs text-dark-gray/60">Jenjang {audit.opdType} • TA {audit.fiscalYear}</p>
+                <h1 className="text-2xl font-black text-dark-gray">{audit.opdName}</h1>
+                <p className="text-sm text-dark-gray/60">Jenjang {audit.opdType} • TA {audit.fiscalYear}</p>
               </div>
               {STRUKTURAL_ROLES.includes(userRole) && (
                 <button onClick={() => setIsEditingMetadata(true)} className="p-1 text-dark-gray/40 hover:text-dark-gray/70 cursor-pointer"><Edit2 className="w-4 h-4" /></button>
@@ -451,18 +436,19 @@ export default function AuditWorkspaceView({
                     + Tambah Jenis Audit
                   </div>
                 )}
-                <div onClick={() => { setIsCatDropdownOpen(false); openEditCategoryTeam(); }}
-                  className="px-3 py-2.5 text-xs text-dark-gray/70 hover:bg-baby-blue cursor-pointer">
-                  Edit Tim & Status
-                </div>
               </div>
             )}
           </div>
 
           {/* Team Info */}
-          <div className="text-xs text-dark-gray/60 font-medium space-y-0.5">
-            <p>Ketua Tim: <span className="font-bold text-dark-gray">{activeCategory?.auditorName || 'Belum diatur'}</span></p>
-            <p>Anggota: <span className="font-bold text-dark-gray">{activeCategory?.teamMembers?.length ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></p>
+          <div className="flex items-start justify-between">
+            <div className="text-xs text-dark-gray/60 font-medium space-y-0.5">
+              <p>Ketua Tim: <span className="font-bold text-dark-gray">{activeCategory?.auditorName || 'Belum diatur'}</span></p>
+              <p>Anggota: <span className="font-bold text-dark-gray">{activeCategory?.teamMembers?.length ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></p>
+            </div>
+            {(STRUKTURAL_ROLES.includes(userRole) || currentUserName === activeCategory?.auditorName) && (
+              <button onClick={openEditCategoryTeam} className="p-1 text-dark-gray/40 hover:text-dark-gray/70 cursor-pointer"><Edit2 className="w-4 h-4" /></button>
+            )}
           </div>
 
           {/* Review Workflow */}
@@ -515,29 +501,51 @@ export default function AuditWorkspaceView({
 
         </div>
 
-        {/* Schedule: Pelaksanaan / KKA */}
+        {/* Schedule */}
         <div className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-dark-gray/60" />
+            <h3 className="text-xs font-bold text-dark-gray/80 uppercase tracking-wide">Jadwal Pelaksanaan</h3>
+          </div>
           {milestones.map((m, index) => (
-            <div key={m.id} className="flex items-center gap-3 flex-wrap">
-              <span className="text-xs font-bold text-dark-gray">{m.name}:</span>
-              <input type="text" placeholder="dd/mm/yyyy"
-                value={toDisplay(m.targetDate)}
-                onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, targetDate: fromDisplay(e.target.value) || '' }; handleUpdateSchedule(updated); }}
-                className="text-xs font-bold border border-dark-gray/15 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-slate-400 outline-none text-dark-gray w-28"
-              />
-              <select value={m.status}
-                onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, status: e.target.value as any, actualDate: e.target.value === 'Selesai' && !m.actualDate ? new Date().toISOString().split('T')[0] : m.actualDate }; handleUpdateSchedule(updated); }}
-                className="text-xs font-bold border border-dark-gray/15 p-1.5 rounded-lg bg-white outline-none text-dark-gray"
-              >
-                <option value="Belum Mulai">Belum Mulai</option>
-                <option value="Sedang Berjalan">Sedang Berjalan</option>
-                <option value="Selesai">Selesai</option>
-              </select>
-              <input type="text" placeholder="Catatan..."
-                value={m.notes || ''}
-                onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, notes: e.target.value }; handleUpdateSchedule(updated); }}
-                className="text-xs border border-dark-gray/15 p-1.5 rounded-lg bg-white outline-none text-dark-gray flex-1 min-w-[120px]"
-              />
+            <div key={m.id} className="bg-white/60 border border-dark-gray/10 rounded-xl p-3 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-dark-gray">{m.name}</span>
+                <select value={m.status}
+                  onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, status: e.target.value as any, actualDate: e.target.value === 'Selesai' && !m.actualDate ? new Date().toISOString().split('T')[0] : m.actualDate }; handleUpdateSchedule(updated); }}
+                  className="text-[10px] font-bold border border-dark-gray/15 p-1 rounded-lg bg-white outline-none text-dark-gray"
+                >
+                  <option value="Belum Mulai">Belum Mulai</option>
+                  <option value="Sedang Berjalan">Sedang Berjalan</option>
+                  <option value="Selesai">Selesai</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-bold text-dark-gray/50 uppercase">Target</label>
+                  <input type="text" placeholder="dd/mm/yyyy"
+                    value={toDisplay(m.targetDate)}
+                    onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, targetDate: fromDisplay(e.target.value) || '' }; handleUpdateSchedule(updated); }}
+                    className="w-full text-[10px] font-bold border border-dark-gray/15 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-slate-400 outline-none text-dark-gray"
+                  />
+                </div>
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-bold text-dark-gray/50 uppercase">Realisasi</label>
+                  <input type="text" placeholder="dd/mm/yyyy"
+                    value={m.actualDate ? toDisplay(m.actualDate) : ''}
+                    onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, actualDate: fromDisplay(e.target.value) || '' }; handleUpdateSchedule(updated); }}
+                    className="w-full text-[10px] font-bold border border-dark-gray/15 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-slate-400 outline-none text-dark-gray"
+                  />
+                </div>
+              </div>
+              <div className="space-y-0.5">
+                <label className="text-[9px] font-bold text-dark-gray/50 uppercase">Catatan</label>
+                <input type="text" placeholder="Catatan pelaksanaan..."
+                  value={m.notes || ''}
+                  onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, notes: e.target.value }; handleUpdateSchedule(updated); }}
+                  className="w-full text-[10px] border border-dark-gray/15 p-1.5 rounded-lg bg-white outline-none text-dark-gray"
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -603,24 +611,7 @@ export default function AuditWorkspaceView({
                     </div>
                     {item.description && <p className="text-xs text-dark-gray/70 mt-1">{item.description}</p>}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    {(['Sesuai', 'Temuan', 'N/A'] as const).map(status => (
-                      <button key={status} disabled={isReadOnly} onClick={() => handleItemStatusChange(item.id, status)}
-                        className={`text-[10px] font-black px-2.5 py-1.5 rounded-md transition-all ${!isReadOnly && 'cursor-pointer'} ${
-                          status === 'Sesuai' ? (item.status === 'Sesuai' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-700/70 border border-emerald-200/50')
-                            : status === 'Temuan' ? (item.status === 'Temuan' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-700/70 border border-rose-200/50')
-                            : (item.status === 'N/A' ? 'bg-slate-700 text-white shadow-sm' : 'bg-slate-100 text-slate-600/70 border border-slate-200/50')
-                        }`}>{status}</button>
-                    ))}
                   </div>
-                </div>
-
-                {isTemuan && (
-                  <div className="flex items-center gap-1.5 text-[10px] text-rose-700 bg-rose-50 border border-rose-100 rounded-lg px-2.5 py-1.5">
-                    <AlertTriangle className="w-3 h-3" />
-                    <span className="font-bold">Temuan terdeteksi</span>
-                  </div>
-                )}
 
                 <EvidencePanel
                   evidenceLink={item.evidenceLink} evidenceName={item.evidenceName}
@@ -643,7 +634,7 @@ export default function AuditWorkspaceView({
                   <div className="flex justify-end pt-1">
                     <button onClick={() => handleDeleteItem(item.id)}
                       className="text-[10px] text-rose-700 hover:text-rose-950 font-bold inline-flex items-center gap-0.5 cursor-pointer bg-white border border-dark-gray/10 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors">
-                      <Trash2 className="w-3 h-3" /> Hapus Dokumen
+                      <Trash2 className="w-3 h-3" /> Hapus item
                     </button>
                   </div>
                 )}
