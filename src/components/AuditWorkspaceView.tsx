@@ -120,7 +120,7 @@ export default function AuditWorkspaceView({
         return d.toISOString().split('T')[0];
       };
       return [
-        { id: 'milestone_2', name: 'Pelaksanaan / KKA', targetDate: getFutureDate(0), status: 'Belum Mulai', notes: '' },
+        { id: 'milestone_2', name: 'Pelaksanaan Audit', startDate: getFutureDate(0), targetDate: getFutureDate(14), notes: '' },
       ];
     }
     return data.filter(m => m.id === 'milestone_2');
@@ -508,43 +508,25 @@ export default function AuditWorkspaceView({
             <h3 className="text-xs font-bold text-dark-gray/80 uppercase tracking-wide">Jadwal Pelaksanaan</h3>
           </div>
           {milestones.map((m, index) => (
-            <div key={m.id} className="bg-white/60 border border-dark-gray/10 rounded-xl p-3 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-dark-gray">{m.name}</span>
-                <select value={m.status}
-                  onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, status: e.target.value as any, actualDate: e.target.value === 'Selesai' && !m.actualDate ? new Date().toISOString().split('T')[0] : m.actualDate }; handleUpdateSchedule(updated); }}
-                  className="text-[10px] font-bold border border-dark-gray/15 p-1 rounded-lg bg-white outline-none text-dark-gray"
-                >
-                  <option value="Belum Mulai">Belum Mulai</option>
-                  <option value="Sedang Berjalan">Sedang Berjalan</option>
-                  <option value="Selesai">Selesai</option>
-                </select>
-              </div>
+            <div key={m.id} className="bg-amber-50/50 border border-amber-200/60 rounded-xl p-3 space-y-2.5">
+              <span className="text-sm font-bold text-amber-800">{m.name}</span>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-0.5">
-                  <label className="text-[9px] font-bold text-dark-gray/50 uppercase">Target</label>
+                  <label className="text-[9px] font-bold text-amber-700/60 uppercase">Tanggal Mulai</label>
+                  <input type="text" placeholder="dd/mm/yyyy"
+                    value={m.startDate ? toDisplay(m.startDate) : ''}
+                    onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, startDate: fromDisplay(e.target.value) || '' }; handleUpdateSchedule(updated); }}
+                    className="w-full text-[10px] font-bold border border-amber-200/60 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-amber-400 outline-none text-dark-gray"
+                  />
+                </div>
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-bold text-amber-700/60 uppercase">Tanggal Selesai</label>
                   <input type="text" placeholder="dd/mm/yyyy"
                     value={toDisplay(m.targetDate)}
                     onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, targetDate: fromDisplay(e.target.value) || '' }; handleUpdateSchedule(updated); }}
-                    className="w-full text-[10px] font-bold border border-dark-gray/15 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-slate-400 outline-none text-dark-gray"
+                    className="w-full text-[10px] font-bold border border-amber-200/60 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-amber-400 outline-none text-dark-gray"
                   />
                 </div>
-                <div className="space-y-0.5">
-                  <label className="text-[9px] font-bold text-dark-gray/50 uppercase">Realisasi</label>
-                  <input type="text" placeholder="dd/mm/yyyy"
-                    value={m.actualDate ? toDisplay(m.actualDate) : ''}
-                    onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, actualDate: fromDisplay(e.target.value) || '' }; handleUpdateSchedule(updated); }}
-                    className="w-full text-[10px] font-bold border border-dark-gray/15 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-slate-400 outline-none text-dark-gray"
-                  />
-                </div>
-              </div>
-              <div className="space-y-0.5">
-                <label className="text-[9px] font-bold text-dark-gray/50 uppercase">Catatan</label>
-                <input type="text" placeholder="Catatan pelaksanaan..."
-                  value={m.notes || ''}
-                  onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, notes: e.target.value }; handleUpdateSchedule(updated); }}
-                  className="w-full text-[10px] border border-dark-gray/15 p-1.5 rounded-lg bg-white outline-none text-dark-gray"
-                />
               </div>
             </div>
           ))}
@@ -597,17 +579,20 @@ export default function AuditWorkspaceView({
           )}
 
           {filteredItems.map((item, idx) => {
-            const isTemuan = item.status === 'Temuan';
+            const pastelBorders = ['border-pink-200/60', 'border-sky-200/60', 'border-emerald-200/60', 'border-violet-200/60', 'border-orange-200/60', 'border-teal-200/60'];
+            const pastelBgs = ['bg-pink-50/30', 'bg-sky-50/30', 'bg-emerald-50/30', 'bg-violet-50/30', 'bg-orange-50/30', 'bg-teal-50/30'];
+            const pastelBadges = ['bg-pink-100 text-pink-700', 'bg-sky-100 text-sky-700', 'bg-emerald-100 text-emerald-700', 'bg-violet-100 text-violet-700', 'bg-orange-100 text-orange-700', 'bg-teal-100 text-teal-700'];
+            const ci = idx % pastelBorders.length;
             return (
               <div key={item.id}
                 draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
                 onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
-                className={`bg-white rounded-xl border transition-all shadow-xs ${isTemuan ? 'border-l-4 border-l-rose-500 border-dark-gray/10' : 'border-dark-gray/10'}`}>
+                className={`${pastelBgs[ci]} ${pastelBorders[ci]} rounded-xl border transition-all shadow-xs`}>
                 <div className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-baby-blue text-dark-gray/70 font-bold shrink-0">Dokumen {idx + 1}</span>
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 ${pastelBadges[ci]}`}>Dokumen {idx + 1}</span>
                         {editingTitleId === item.id ? (
                           <input type="text" value={editItemTitle}
                             onChange={e => setEditItemTitle(e.target.value)}

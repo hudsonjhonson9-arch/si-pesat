@@ -155,13 +155,13 @@ export default function EvidencePanel({
 
       {hasEvidence ? (
         <>
-          <div className="flex items-center gap-2 bg-white/60 border border-dark-gray/10 rounded-lg px-3 py-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-dark-gray/5">
+          <div className="flex items-center gap-2 bg-violet-50/60 border border-violet-200/60 rounded-lg px-3 py-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-violet-100">
               <FileIcon className={`w-3.5 h-3.5 ${fileInfo.color}`} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-dark-gray truncate">{evidenceName || 'Dokumen Bukti'}</p>
-              <p className="text-[9px] text-dark-gray/50 truncate">{evidenceLink}</p>
+              <p className="text-[9px] text-violet-600/50 truncate">{evidenceLink}</p>
             </div>
           </div>
 
