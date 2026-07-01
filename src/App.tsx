@@ -950,6 +950,7 @@ export default function App() {
                 onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)}
                 onCreateAudit={handleCreateAudit}
                 onDeleteAudit={handleDeleteAudit}
+                onUpdateAudit={handleUpdateAudit}
                 onSyncToDrive={(aud) => addSyncLog('UPLOAD', 'Pembaruan disimpan lokal.')}
                 isDriveConnected={true}
                 userRole={userRole}
