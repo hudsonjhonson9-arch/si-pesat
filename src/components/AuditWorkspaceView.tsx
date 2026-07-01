@@ -579,20 +579,16 @@ export default function AuditWorkspaceView({
           )}
 
           {filteredItems.map((item, idx) => {
-            const pastelBorders = ['border-pink-200/60', 'border-sky-200/60', 'border-emerald-200/60', 'border-violet-200/60', 'border-orange-200/60', 'border-teal-200/60'];
-            const pastelBgs = ['bg-pink-50/30', 'bg-sky-50/30', 'bg-emerald-50/30', 'bg-violet-50/30', 'bg-orange-50/30', 'bg-teal-50/30'];
-            const pastelBadges = ['bg-pink-100 text-pink-700', 'bg-sky-100 text-sky-700', 'bg-emerald-100 text-emerald-700', 'bg-violet-100 text-violet-700', 'bg-orange-100 text-orange-700', 'bg-teal-100 text-teal-700'];
-            const ci = idx % pastelBorders.length;
             return (
               <div key={item.id}
                 draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
                 onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
-                className={`${pastelBgs[ci]} ${pastelBorders[ci]} rounded-xl border transition-all shadow-xs`}>
+                className="bg-sky-50/30 border-sky-200/60 rounded-xl border transition-all shadow-xs">
                 <div className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 ${pastelBadges[ci]}`}>Dokumen {idx + 1}</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 bg-sky-100 text-sky-700">Dokumen {idx + 1}</span>
                         {editingTitleId === item.id ? (
                           <input type="text" value={editItemTitle}
                             onChange={e => setEditItemTitle(e.target.value)}
