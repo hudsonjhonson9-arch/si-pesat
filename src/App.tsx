@@ -52,10 +52,11 @@ import ActivityLogView from './components/ActivityLogView';
 import ReviuView from './components/ReviuView';
 import EvaluasiView from './components/EvaluasiView';
 import AsistensiView from './components/AsistensiView';
+import ObjekAuditView from './components/ObjekAuditView';
 
 export default function App() {
   // Navigation & General Tabs based on URL Hash
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'pengawasan' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna' | 'role-permission' | 'wilayah-penugasan' | 'activity-log'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'pengawasan' | 'jenis-audit' | 'new-audit' | 'statistik' | 'profil' | 'pengguna' | 'role-permission' | 'wilayah-penugasan' | 'activity-log' | 'objek-audit'>('dashboard');
   const [pengawasanSubTab, setPengawasanSubTab] = useState<'audit' | 'reviu' | 'evaluasi' | 'asistensi'>('audit');
   const [selectedAuditId, setSelectedAuditId] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -95,7 +96,7 @@ export default function App() {
         setPengawasanSubTab(sub || 'audit');
         setSelectedAuditId(null);
         setSelectedCategoryId(null);
-      } else if (['jenis-audit', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log'].includes(hash)) {
+      } else if (['jenis-audit', 'dashboard', 'new-audit', 'statistik', 'profil', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log', 'objek-audit'].includes(hash)) {
         setActiveTab(hash as any);
         setSelectedAuditId(null);
         setSelectedCategoryId(null);
@@ -1044,6 +1045,18 @@ export default function App() {
         );
       case 'activity-log':
         return <ActivityLogView />;
+      case 'objek-audit':
+        return (
+          <ObjekAuditView
+            targetEntities={targetEntities}
+            bidangList={bidangList}
+            onRefresh={() => {
+              supabase.from('target_entities').select('*').order('type').then(({ data, error }) => {
+                if (!error && data) setTargetEntities(data as TargetEntity[]);
+              });
+            }}
+          />
+        );
       case 'jenis-audit':
         return (
           <TemplateConfiguratorView
@@ -1256,6 +1269,14 @@ export default function App() {
                             <Clock className="w-4 h-4" /> Log Aktivitas
                           </button>
                         )}
+                        {(isAdmin || isIrbanOrInspektur) && (
+                          <button
+                            onClick={() => navigateTo('objek-audit')}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
+                          >
+                            <Building className="w-4 h-4" /> Objek Audit
+                          </button>
+                        )}
                       </div>
                     </>
                   )}
@@ -1272,7 +1293,7 @@ export default function App() {
                   : 'bg-dark-gray text-white border-dark-gray/80 hover:bg-dark-gray/85'
               }`}
             >
-              <PlusCircle className="w-4 h-4" /> Mulai Pengawasan Baru
+              <PlusCircle className="w-4 h-4" /> Mulai Audit Baru
             </button>
 
             {/* Notification Bell */}
@@ -1401,6 +1422,16 @@ export default function App() {
                     <Clock className="w-4 h-4" /> Log Aktivitas
                   </button>
                 )}
+                {(isAdmin || isIrbanOrInspektur) && (
+                  <button
+                    onClick={() => { navigateTo('objek-audit'); setIsMobileMoreOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
+                      activeTab === 'objek-audit' ? 'text-dark-gray bg-peach-accent/10' : 'text-slate-600'
+                    }`}
+                  >
+                    <Building className="w-4 h-4" /> Objek Audit
+                  </button>
+                )}
 
                 <div className="h-3" />
               </div>
@@ -1462,7 +1493,7 @@ export default function App() {
               <button
                 onClick={() => setIsMobileMoreOpen(v => !v)}
                 className={`flex flex-col items-center justify-center gap-1 transition relative ${
-                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log'].includes(activeTab)
+                  isMobileMoreOpen || ['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log', 'objek-audit'].includes(activeTab)
                     ? 'text-dark-gray font-bold'
                     : 'text-slate-400'
                 }`}
@@ -1470,7 +1501,7 @@ export default function App() {
                 <Menu className="w-5 h-5" />
                 <span className="text-[9px] tracking-wide">Lainnya</span>
                 {/* Dot indikator kalau sedang di salah satu halaman "Lainnya" */}
-                {['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log'].includes(activeTab) && (
+                {['statistik', 'jenis-audit', 'pengguna', 'role-permission', 'wilayah-penugasan', 'activity-log', 'objek-audit'].includes(activeTab) && (
                   <span className="absolute top-2 right-4 w-1.5 h-1.5 bg-peach-accent rounded-full" />
                 )}
               </button>

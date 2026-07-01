@@ -395,7 +395,7 @@ export default function AuditListView({
 
                       {/* Right side: Actions */}
                       <div className="flex items-center md:flex-col justify-end md:justify-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-dark-gray/10 pt-3 md:pt-0 md:pl-6">
-                        {(isAdmin || STRUKTURAL_ROLES.includes(userRole)) && group.audits.length > 1 && (
+                        {(isAdmin || (STRUKTURAL_ROLES.includes(userRole) && group.audits.length > 1)) && (
                           <button
                             type="button"
                             onClick={(e) => {
