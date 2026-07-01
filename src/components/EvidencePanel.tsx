@@ -352,7 +352,7 @@ export default function EvidencePanel({
                 <button
                   onClick={onClear}
                   className="text-dark-gray/35 hover:text-rose-500 transition-colors p-1 rounded-lg hover:bg-rose-50 cursor-pointer"
-                  title="Hapus dokumen"
+                  title="Hapus item"
                 >
                   <X className="w-4 h-4" />
                 </button>

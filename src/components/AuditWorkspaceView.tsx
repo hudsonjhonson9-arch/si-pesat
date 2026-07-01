@@ -1434,7 +1434,7 @@ export default function AuditWorkspaceView({
                     onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
                     onClear={async () => {
                       // Conflict Check
-                      const hasConflict = await checkConflict(item.id, 'Hapus dokumen');
+                      const hasConflict = await checkConflict(item.id, 'Hapus item');
                       if (hasConflict) return;
 
                       const prevHistory = item.evidenceHistory || [];
