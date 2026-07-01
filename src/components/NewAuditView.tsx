@@ -81,7 +81,7 @@ export default function NewAuditView({
   };
 
   const [schedule, setSchedule] = useState<AuditMilestone[]>([
-    { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(7), targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
+    { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(0), targetDate: getFutureDate(0), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
   ]);
 
   const updateMilestone = (id: string, field: keyof AuditMilestone, value: string) => {

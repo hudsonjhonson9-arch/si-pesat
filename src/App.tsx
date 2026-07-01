@@ -751,7 +751,7 @@ export default function App() {
     };
 
     const defaultSchedule = customSchedule || [
-      { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(7), targetDate: getFutureDate(21), status: 'Belum Mulai' as const, notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
+      { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(0), targetDate: getFutureDate(0), status: 'Belum Mulai' as const, notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
     ];
 
     logActivity('create_audit', 'audit', opdName, { auditType, fiscalYear, templateId });

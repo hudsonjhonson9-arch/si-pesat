@@ -114,7 +114,7 @@ export default function AuditWorkspaceView({
         return d.toISOString().split('T')[0];
       };
       return [
-        { id: 'milestone_2', name: 'Pelaksanaan / KKA', targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
+        { id: 'milestone_2', name: 'Pelaksanaan / KKA', targetDate: getFutureDate(0), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
       ];
     }
     return data.filter(m => m.id === 'milestone_2');
