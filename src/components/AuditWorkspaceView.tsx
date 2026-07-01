@@ -105,17 +105,18 @@ export default function AuditWorkspaceView({
   const [leftTab, setLeftTab] = useState<'categories' | 'schedule'>('categories');
 
   const milestones = useMemo<AuditMilestone[]>(() => {
-    if (audit.schedule && audit.schedule.length > 0) {
-      return audit.schedule;
+    const data = (audit.schedule && audit.schedule.length > 0) ? audit.schedule : [];
+    if (data.length === 0) {
+      const getFutureDate = (days: number) => {
+        const d = new Date(audit.auditDate || new Date());
+        d.setDate(d.getDate() + days);
+        return d.toISOString().split('T')[0];
+      };
+      return [
+        { id: 'milestone_2', name: 'Pelaksanaan / KKA', targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
+      ];
     }
-    const getFutureDate = (days: number) => {
-      const d = new Date(audit.auditDate || new Date());
-      d.setDate(d.getDate() + days);
-      return d.toISOString().split('T')[0];
-    };
-    return [
-      { id: 'milestone_2', name: 'Pelaksanaan / KKA', targetDate: getFutureDate(21), status: 'Belum Mulai', notes: 'Evaluasi dokumen pertanggungjawaban fisik' },
-    ];
+    return data.filter(m => m.id === 'milestone_2');
   }, [audit.schedule, audit.auditDate]);
 
   const handleUpdateSchedule = (updatedMilestones: AuditMilestone[]) => {
