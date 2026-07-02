@@ -1,14 +1,16 @@
 import { supabase } from './supabase';
 import { EvidenceFile } from '../types';
 
-/**
- * Dapatkan session token untuk autentikasi ke Google Apps Script
- */
+let cachedToken: { value: string; expiresAt: number } | null = null;
+
 async function getAuthToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value;
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) {
     throw new Error('Sesi tidak ditemukan. Silakan login ulang.');
   }
+  const expiresAt = session.expires_at ? session.expires_at * 1000 : Date.now() + 55 * 60 * 1000;
+  cachedToken = { value: session.access_token, expiresAt };
   return session.access_token;
 }
 

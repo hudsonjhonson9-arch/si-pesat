@@ -66,6 +66,9 @@ export default function AuditWorkspaceView({
   onShowToast
 }: AuditWorkspaceViewProps) {
 
+  const auditRef = useRef(audit);
+  auditRef.current = audit;
+
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
     initialCategoryId || (audit.categories.length > 0 ? audit.categories[0].id : '')
   );
@@ -266,7 +269,7 @@ export default function AuditWorkspaceView({
       onShowToast?.(err.message, 'error');
     }
     if (results.length > 0) {
-      const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+      const item = auditRef.current.categories.flatMap(c => c.items).find(i => i.id === itemId);
       if (item) {
         handleFindingDetailsUpdate(itemId, {
           evidenceFiles: [...(item.evidenceFiles || []), ...results],
@@ -330,8 +333,9 @@ export default function AuditWorkspaceView({
 
   const handleFindingDetailsUpdate = (itemId: string, updates: Partial<AuditItem>) => {
     if (isReadOnly && !('catatanReview' in updates)) return;
-    const updatedCategories = audit.categories.map(cat => ({ ...cat, items: cat.items.map(item => item.id === itemId ? { ...item, ...updates } : item) }));
-    onUpdates({ ...audit, categories: updatedCategories });
+    const a = auditRef.current;
+    const updatedCategories = a.categories.map(cat => ({ ...cat, items: cat.items.map(item => item.id === itemId ? { ...item, ...updates } : item) }));
+    onUpdates({ ...a, categories: updatedCategories });
   };
 
   const handleAddItem = (e: React.FormEvent) => {
