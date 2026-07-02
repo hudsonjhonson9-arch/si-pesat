@@ -202,18 +202,24 @@ export async function uploadFolderFiles(
     });
   };
 
-  // Upload with concurrency limit
+  // Upload with concurrency limit — skip failed files instead of throwing
   const queue = [...files];
+  const errors: string[] = [];
   async function worker() {
     while (queue.length > 0) {
       const file = queue.shift()!;
-      const result = await uploadOne(file);
-      results.push(result);
+      try {
+        const result = await uploadOne(file);
+        results.push(result);
+      } catch (e) {
+        errors.push(`${file.name}: ${(e as Error).message || e}`);
+      }
       completed++;
-      onProgress?.(completed, files.length, result);
+      onProgress?.(completed, files.length);
     }
   }
   const workers = Array.from({ length: Math.min(CONCURRENCY, files.length) }, () => worker());
   await Promise.all(workers);
+  if (errors.length > 0) throw new Error(`${errors.length} file gagal: ${errors.join('; ')}`);
   return results;
 }

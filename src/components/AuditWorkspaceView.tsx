@@ -254,30 +254,30 @@ export default function AuditWorkspaceView({
   const handleFolderUpload = async (itemId: string, files: File[], onProgress?: (done: number, total: number) => void) => {
     if (!isTeamMember) { onShowToast?.('Hanya anggota tim yang dapat mengunggah dokumen.', 'error'); return; }
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
+    let results: any[] = [];
     try {
-      const results = await uploadFolderFiles(files, {
+      results = await uploadFolderFiles(files, {
         fiscalYear: audit.fiscalYear,
         opdName: audit.opdName,
         auditType: audit.auditType,
         uploadedBy: currentUserName || audit.auditorName || 'Auditor'
       }, (done, total) => onProgress?.(done, total));
-      if (results.length > 0) {
-        const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
-        if (item) {
-          handleFindingDetailsUpdate(itemId, {
-            evidenceFiles: [...(item.evidenceFiles || []), ...results],
-            evidenceHistory: [
-              ...(item.evidenceHistory || []),
-              ...results.map(r => ({ name: r.name, link: r.link, uploadedAt: r.uploadedAt, uploadedBy: r.uploadedBy, action: 'diunggah' as const }))
-            ]
-          });
-        }
-      }
     } catch (err: any) {
-      onShowToast?.(`Upload folder gagal: ${err.message}`, 'error');
-    } finally {
-      setUploadingIds(prev => ({ ...prev, [itemId]: false }));
+      onShowToast?.(err.message, 'error');
     }
+    if (results.length > 0) {
+      const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+      if (item) {
+        handleFindingDetailsUpdate(itemId, {
+          evidenceFiles: [...(item.evidenceFiles || []), ...results],
+          evidenceHistory: [
+            ...(item.evidenceHistory || []),
+            ...results.map(r => ({ name: r.name, link: r.link, uploadedAt: r.uploadedAt, uploadedBy: r.uploadedBy, action: 'diunggah' as const }))
+          ]
+        });
+      }
+    }
+    setUploadingIds(prev => ({ ...prev, [itemId]: false }));
   };
 
   const checkConflict = async (itemId: string, actionName: string = 'Perubahan'): Promise<boolean> => {
