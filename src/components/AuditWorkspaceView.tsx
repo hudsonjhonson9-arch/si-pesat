@@ -355,16 +355,13 @@ export default function AuditWorkspaceView({
     setDragOverIdx(index);
   };
 
-  // Auto-scroll logic: called continuously via rAF while dragging near edges
+  // Auto-scroll logic: called continuously via rAF while dragging near screen viewport edges
   const handleDragOverList = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const container = itemsListRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    const ZONE = 56; // px zone from edge that triggers scroll
-    const MAX_SPEED = 14;
-    const relY = e.clientY - rect.top;
-    const relFromBottom = rect.bottom - e.clientY;
+    const ZONE = 80; // px zone from screen top/bottom edges
+    const MAX_SPEED = 20;
+    const clientY = e.clientY;
+    const viewportHeight = window.innerHeight;
 
     // Cancel previous frame
     if (scrollRafRef.current !== null) {
@@ -373,17 +370,17 @@ export default function AuditWorkspaceView({
     }
 
     let speed = 0;
-    if (relY < ZONE) {
-      // Near top — scroll up, stronger the closer to edge
-      speed = -MAX_SPEED * (1 - relY / ZONE);
-    } else if (relFromBottom < ZONE) {
-      // Near bottom — scroll down
-      speed = MAX_SPEED * (1 - relFromBottom / ZONE);
+    if (clientY < ZONE) {
+      // Near top of screen viewport — scroll up
+      speed = -MAX_SPEED * (1 - clientY / ZONE);
+    } else if (viewportHeight - clientY < ZONE) {
+      // Near bottom of screen viewport — scroll down
+      speed = MAX_SPEED * (1 - (viewportHeight - clientY) / ZONE);
     }
 
     if (speed !== 0) {
       const scroll = () => {
-        window.scrollBy({ top: speed, behavior: 'instant' });
+        window.scrollBy(0, speed);
         scrollRafRef.current = requestAnimationFrame(scroll);
       };
       scrollRafRef.current = requestAnimationFrame(scroll);
@@ -725,16 +722,15 @@ export default function AuditWorkspaceView({
           {/* Auto-scroll sentinel — top */}
           {dragItemIdx !== null && (
             <div
-              className="sticky top-0 z-10 pointer-events-none h-14 -mt-2 mb-2 rounded-xl flex items-center justify-center"
+              className="sticky top-0 z-50 pointer-events-none h-14 -mt-2 mb-2 rounded-xl flex items-center justify-center border border-dashed border-slate-300 bg-slate-50/90 backdrop-blur-xs"
               style={{
-                background: 'linear-gradient(to bottom, rgba(100,116,139,0.13) 0%, transparent 100%)',
-                opacity: dragOverIdx !== null && dragOverIdx < 2 ? 1 : 0,
+                opacity: dragOverIdx !== null && dragOverIdx < 2 ? 1 : 0.3,
                 transition: 'opacity 0.2s'
               }}
             >
               <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
                 <svg className="w-3 h-3 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
-                Gulir ke atas
+                Gulir ke atas (Dekatkan ke atas layar)
               </span>
             </div>
           )}
@@ -750,17 +746,16 @@ export default function AuditWorkspaceView({
                 onDrop={() => handleDrop(idx)}
                 onDragEnd={handleDragEnd}
                 style={{
-                  opacity: isDragging ? 0.38 : 1,
-                  transform: isDropTarget ? 'scale(1.012)' : 'scale(1)',
-                  transition: 'opacity 0.18s, transform 0.15s, box-shadow 0.15s',
-                  boxShadow: isDropTarget ? '0 0 0 2px #3b82f6, 0 4px 16px rgba(59,130,246,0.13)' : undefined,
+                  opacity: isDragging ? 0.4 : 1,
+                  transform: isDropTarget ? 'scale(0.98)' : 'scale(1)',
+                  transition: 'opacity 0.15s, transform 0.15s, border-color 0.15s',
                 }}
-                className={`rounded-xl border transition-colors shadow-xs overflow-hidden ${
+                className={`rounded-xl border transition-all shadow-xs overflow-hidden ${
                   isDropTarget
-                    ? 'bg-blue-50/80 border-blue-300'
+                    ? 'border-blue-500 bg-blue-50/50'
                     : isDragging
-                      ? 'bg-gray-100/60 border-gray-200/40'
-                      : 'bg-gray-50/80 border-gray-200/60'
+                      ? 'border-dashed border-slate-300 bg-slate-100/40'
+                      : 'border-gray-200/60 bg-gray-50/80'
                 }`}>
                 <div className="bg-emerald-50/60 px-4 py-3 border-b border-emerald-100/60">
                   <div className="flex items-start justify-between gap-3">
@@ -838,16 +833,15 @@ export default function AuditWorkspaceView({
           {/* Auto-scroll sentinel — bottom */}
           {dragItemIdx !== null && (
             <div
-              className="sticky bottom-0 z-10 pointer-events-none h-14 mt-2 -mb-2 rounded-xl flex items-center justify-center"
+              className="sticky bottom-0 z-50 pointer-events-none h-14 mt-2 -mb-2 rounded-xl flex items-center justify-center border border-dashed border-slate-300 bg-slate-50/90 backdrop-blur-xs"
               style={{
-                background: 'linear-gradient(to top, rgba(100,116,139,0.13) 0%, transparent 100%)',
-                opacity: dragOverIdx !== null && dragOverIdx >= filteredItems.length - 2 ? 1 : 0,
+                opacity: dragOverIdx !== null && dragOverIdx >= filteredItems.length - 2 ? 1 : 0.3,
                 transition: 'opacity 0.2s'
               }}
             >
               <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
                 <svg className="w-3 h-3 animate-bounce" style={{ animationDirection: 'alternate-reverse' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-                Gulir ke bawah
+                Gulir ke bawah (Dekatkan ke bawah layar)
               </span>
             </div>
           )}
@@ -890,9 +884,12 @@ export default function AuditWorkspaceView({
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={newCatAuditorSearchQuery} onChange={e => setNewCatAuditorSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">
-                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase())).sort(byNipAge).map(p => (
+                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase())).sort(byNipAge).map(p => (
                         <div key={p.id} onClick={() => { setNewCatAuditorName(p.full_name || p.email); setIsNewCatAuditorDropdownOpen(false); setNewCatAuditorSearchQuery(''); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${newCatAuditorName === (p.full_name || p.email) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
-                          <span>{p.full_name || p.email}</span>
+                          <div>
+                            <span className="block">{p.full_name || p.email}</span>
+                            {p.role && <span className="text-[9px] text-dark-gray/40 font-normal">{p.role}</span>}
+                          </div>
                           {newCatAuditorName === (p.full_name || p.email) && <Check className="w-3 h-3" />}
                         </div>
                       ))}
@@ -910,10 +907,13 @@ export default function AuditWorkspaceView({
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={newCatTeamSearchQuery} onChange={e => setNewCatTeamSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">
-                      {userProfiles.filter(p => FUNGSIONAL_ROLES.includes(p.role)).filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
+                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
                         const name = p.full_name || p.email;
                         return <div key={p.id} onClick={e => { e.stopPropagation(); if (newCatTeamMembers.includes(name)) setNewCatTeamMembers(prev => prev.filter(n => n !== name)); else setNewCatTeamMembers(prev => [...prev, name]); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${newCatTeamMembers.includes(name) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
-                          <span>{name}</span>
+                          <div>
+                            <span className="block">{name}</span>
+                            {p.role && <span className="text-[9px] text-dark-gray/40 font-normal">{p.role}</span>}
+                          </div>
                           {newCatTeamMembers.includes(name) && <Check className="w-3 h-3" />}
                         </div>;
                       })}
@@ -946,9 +946,12 @@ export default function AuditWorkspaceView({
                 {isEditCatAuditorDropdownOpen && (
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatAuditorSearchQuery} onChange={e => setEditCatAuditorSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
-                    <div className="overflow-y-auto p-1">{userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(editCatAuditorSearchQuery.toLowerCase())).sort(byNipAge).map(p => (
+                    <div className="overflow-y-auto p-1">{userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(editCatAuditorSearchQuery.toLowerCase())).sort(byNipAge).map(p => (
                       <div key={p.id} onClick={() => { setEditCatAuditorName(p.full_name || p.email); setIsEditCatAuditorDropdownOpen(false); setEditCatAuditorSearchQuery(''); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${editCatAuditorName === (p.full_name || p.email) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
-                        <span>{p.full_name || p.email}</span>
+                        <div>
+                          <span className="block">{p.full_name || p.email}</span>
+                          {p.role && <span className="text-[9px] text-dark-gray/40 font-normal">{p.role}</span>}
+                        </div>
                         {editCatAuditorName === (p.full_name || p.email) && <Check className="w-3 h-3" />}
                       </div>
                     ))}</div>
@@ -963,10 +966,13 @@ export default function AuditWorkspaceView({
                 {isEditCatTeamDropdownOpen && (
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatTeamSearchQuery} onChange={e => setEditCatTeamSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
-                    <div className="overflow-y-auto p-1">{userProfiles.filter(p => FUNGSIONAL_ROLES.includes(p.role)).filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
+                    <div className="overflow-y-auto p-1">{userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
                       const name = p.full_name || p.email;
                       return <div key={p.id} onClick={e => { e.stopPropagation(); if (editCatTeamMembers.includes(name)) setEditCatTeamMembers(prev => prev.filter(n => n !== name)); else setEditCatTeamMembers(prev => [...prev, name]); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${editCatTeamMembers.includes(name) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
-                        <span>{name}</span>
+                        <div>
+                          <span className="block">{name}</span>
+                          {p.role && <span className="text-[9px] text-dark-gray/40 font-normal">{p.role}</span>}
+                        </div>
                         {editCatTeamMembers.includes(name) && <Check className="w-3 h-3" />}
                       </div>;
                     })}</div>
