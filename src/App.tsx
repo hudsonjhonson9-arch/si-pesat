@@ -362,11 +362,27 @@ export default function App() {
 
 
 
-  // Supabase Background Sync (Debounced)
-  useEffect(() => {
-    const handleSync = async () => {
-      if (!navigator.onLine) return;
-      
+  // Ref agar logout/unload bisa memaksa sync dengan data TERBARU (menghindari stale closure)
+  const auditsRef = React.useRef(audits);
+  const templatesRef = React.useRef(templates);
+  useEffect(() => { auditsRef.current = audits; }, [audits]);
+  useEffect(() => { templatesRef.current = templates; }, [templates]);
+  const syncTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSyncingRef = React.useRef(false);
+
+  // Supabase Background Sync (Debounced) — bisa juga dipaksa langsung lewat forceSyncNow()
+  const forceSyncNow = React.useCallback(async () => {
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
+    }
+    if (!navigator.onLine) return;
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
+
+    const audits = auditsRef.current;
+    const templates = templatesRef.current;
+
       try {
         if (audits.length > 0) {
           // UUID validation regex to prevent Supabase rejection
@@ -432,15 +448,45 @@ export default function App() {
         }
       } catch (err) {
         console.error('Background sync error:', err);
+      } finally {
+        isSyncingRef.current = false;
       }
-    };
+  }, []);
 
-    const timer = setTimeout(() => {
-      handleSync();
+  // Trigger debounce 5 detik setiap kali audits/templates berubah
+  useEffect(() => {
+    syncTimerRef.current = setTimeout(() => {
+      forceSyncNow();
     }, 5000); // Debounce 5 seconds
 
-    return () => clearTimeout(timer);
-  }, [audits, templates]);
+    return () => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    };
+  }, [audits, templates, forceSyncNow]);
+
+  // Flush sinkronisasi saat tab disembunyikan (ganti tab/app, minimize) atau sebelum tab ditutup.
+  // Ini jaring pengaman tambahan untuk kasus user menutup browser / pindah tab tanpa klik "Keluar",
+  // sehingga perubahan (mis. upload dokumen) yang masih pending tidak hilang karena debounce belum sempat jalan.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        forceSyncNow();
+      }
+    };
+    const handleBeforeUnload = () => {
+      // Best-effort: browser bisa memotong request async saat unload,
+      // tapi tetap dicoba supaya perubahan terakhir punya kesempatan tersimpan.
+      forceSyncNow();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+    };
+  }, [forceSyncNow]);
 
   // 3. Setup Supabase Auth state listener
   useEffect(() => {
@@ -643,6 +689,16 @@ export default function App() {
   };
 
   const handleSessionLogout = async () => {
+    // Paksa simpan dulu semua perubahan yang masih pending (mis. upload dokumen)
+    // sebelum sesi ditutup, supaya tidak hilang karena debounce 5 detik belum sempat jalan.
+    if (navigator.onLine) {
+      showToast('Menyimpan perubahan sebelum keluar...', 'info');
+      try {
+        await forceSyncNow();
+      } catch (err) {
+        console.error('Gagal flush sync sebelum logout:', err);
+      }
+    }
     await logActivity('logout');
     await supabase.auth.signOut();
     setUser(null);
