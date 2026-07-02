@@ -426,6 +426,7 @@ export default function App() {
               id: a.id,
               opd_name: a.opdName,
               opd_type: a.opdType,
+              audit_type: a.auditType,
               fiscal_year: a.fiscalYear,
               auditor_name: a.auditorName,
               audit_date: a.auditDate,
@@ -903,6 +904,28 @@ export default function App() {
     }
   };
 
+  const syncAuditToSupabase = (audit: OpdAudit) => {
+    if (!navigator.onLine) return;
+    supabase.from('audits').upsert({
+      id: audit.id,
+      opd_name: audit.opdName,
+      opd_type: audit.opdType,
+      audit_type: audit.auditType,
+      fiscal_year: audit.fiscalYear,
+      auditor_name: audit.auditorName,
+      audit_date: audit.auditDate,
+      status: audit.status,
+      progress: calculateProgress(audit),
+      categories: audit.categories,
+      team_members: audit.teamMembers || [],
+      schedule: audit.schedule || [],
+      bidang_id: audit.bidang_id || null,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' }).then(({ error }) => {
+      if (error) console.error('Immediate sync failed:', error);
+    });
+  };
+
   const handleUpdateAudit = (updatedAudit: OpdAudit) => {
     logActivity('update_audit', 'audit', updatedAudit.opdName, { auditType: updatedAudit.auditType, fiscalYear: updatedAudit.fiscalYear, status: updatedAudit.status });
 
@@ -917,6 +940,7 @@ export default function App() {
     }
 
     setAudits(prev => prev.map(a => a.id === updatedAudit.id ? updatedAudit : a));
+    syncAuditToSupabase(updatedAudit);
   };
 
   const handleDeleteAudit = async (auditId: string) => {
