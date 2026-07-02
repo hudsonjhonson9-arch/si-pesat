@@ -1,12 +1,13 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, FileText, FileSpreadsheet, File, Image, Link2, Loader2, AlertTriangle, Eye, ExternalLink, Download, Copy, CheckCircle2, Edit2 } from 'lucide-react';
+import { EvidenceFile } from '../types';
 
 interface EvidencePanelProps {
-  evidenceLink?: string;
-  evidenceName?: string;
+  evidenceFiles?: EvidenceFile[];
   isReadOnly?: boolean;
   isAuditor?: boolean;
   onUploadFile: (file: File, newName?: string) => Promise<void>;
+  onUploadFolder: (files: File[]) => Promise<void>;
   onCopyFromUrl: (url: string, name: string) => Promise<void>;
   onChangeLink: (link: string) => void;
   onChangeName: (name: string) => void;
@@ -71,11 +72,11 @@ function getDirectDownloadUrl(url: string) {
 }
 
 export default function EvidencePanel({
-  evidenceLink,
-  evidenceName,
+  evidenceFiles,
   isReadOnly = false,
   isAuditor = true,
   onUploadFile,
+  onUploadFolder,
   onCopyFromUrl,
   onChangeLink,
   onChangeName,
@@ -94,10 +95,17 @@ export default function EvidencePanel({
   const [linkCopied, setLinkCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const hasEvidence = !!(evidenceLink);
-  const embedUrl = evidenceLink ? toEmbedUrl(evidenceLink) : null;
-  const isDriveLink = evidenceLink?.includes('drive.google.com');
-  const fileInfo = getFileIcon(evidenceName, evidenceLink);
+  const [previewFile, setPreviewFile] = useState<EvidenceFile | null>(null);
+  const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const [isDragFolder, setIsDragFolder] = useState(false);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  const singleFile = evidenceFiles && evidenceFiles.length === 1 ? evidenceFiles[0] : null;
+  const currentEvidenceLink = singleFile?.link ?? '';
+  const currentEvidenceName = singleFile?.name ?? '';
+  const embedUrl = currentEvidenceLink ? toEmbedUrl(currentEvidenceLink) : null;
+  const isDriveLink = currentEvidenceLink?.includes('drive.google.com');
+  const fileInfo = getFileIcon(currentEvidenceName, currentEvidenceLink);
   const FileIcon = fileInfo.icon;
 
   const initiateUpload = (file: File) => {
@@ -127,27 +135,54 @@ export default function EvidencePanel({
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
+    setIsDragFolder(false);
+    const items = e.dataTransfer.items;
+    if (items.length > 0) {
+      const entry = items[0].webkitGetAsEntry?.();
+      if (entry?.isDirectory) {
+        const files = (Array.from(e.dataTransfer.files) as File[]).filter(f => f.size > 0);
+        if (files.length > 0) onUploadFolder(files);
+        return;
+      }
+    }
     const file = e.dataTransfer.files[0];
     if (file) initiateUpload(file);
+  }, [onUploadFolder]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+    if (e.dataTransfer.items?.[0]?.webkitGetAsEntry?.()?.isDirectory) {
+      setIsDragFolder(true);
+    } else {
+      setIsDragFolder(false);
+    }
   }, []);
+
+  const handleClickUpload = () => {
+    if (isUploading) return;
+    setShowFolderPicker(true);
+  };
 
   const handlePasteUrlSubmit = async () => {
     if (!pasteUrl.trim()) return;
     const url = pasteUrl.trim();
     onChangeLink(url);
     if (url.includes('drive.google.com')) {
-      await onCopyFromUrl(url, evidenceName || '');
+      await onCopyFromUrl(url, currentEvidenceName || '');
     }
     setPasteUrl('');
   };
 
   const handleCopyLink = () => {
-    if (!evidenceLink) return;
-    navigator.clipboard.writeText(evidenceLink).then(() => {
+    if (!currentEvidenceLink) return;
+    navigator.clipboard.writeText(currentEvidenceLink).then(() => {
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
     });
   };
+
+  const previewUrl = previewFile?.link || currentEvidenceLink;
 
   return (
     <div className="mt-3 pt-3 border-t border-dark-gray/10 space-y-3">
@@ -155,7 +190,47 @@ export default function EvidencePanel({
         <Link2 className="w-3 h-3" /> Bukti Dokumen
       </span>
 
-      {hasEvidence ? (
+      {evidenceFiles && evidenceFiles.length > 1 ? (
+        <div className="space-y-2">
+          <span className="text-[10px] font-bold text-dark-gray/60">{evidenceFiles.length} dokumen</span>
+          <div className="max-h-60 overflow-y-auto space-y-1">
+            {[...evidenceFiles].sort((a, b) => a.relativePath.localeCompare(b.relativePath)).map((ef) => {
+              const info = getFileIcon(ef.name, ef.link);
+              const Icon = info.icon;
+              const pathParts = ef.relativePath.split('/');
+              const displayPath = pathParts.length > 1 ? pathParts.slice(0, -1).join(' / ') : '';
+              return (
+                <div key={ef.id} className="flex items-center gap-2 bg-violet-50/40 border border-violet-200/40 rounded-lg px-2.5 py-1.5">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 bg-violet-100">
+                    <Icon className={`w-3 h-3 ${info.color}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-dark-gray truncate">{ef.name}</p>
+                    {displayPath && <p className="text-[8px] text-dark-gray/40 truncate">{displayPath}</p>}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {toEmbedUrl(ef.link) && (
+                      <button onClick={() => setPreviewFile(ef)}
+                        className="p-1.5 text-dark-gray/50 hover:text-dark-gray hover:bg-violet-100 rounded-lg cursor-pointer" title="Preview">
+                        <Eye className="w-3 h-3" />
+                      </button>
+                    )}
+                    <a href={ef.link} target="_blank" rel="noopener noreferrer"
+                      className="p-1.5 text-dark-gray/50 hover:text-dark-gray hover:bg-violet-100 rounded-lg" title="Buka Drive">
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {isAuditor && !isReadOnly && (
+            <button onClick={onClear} className="text-[9px] font-bold text-rose-600 hover:text-rose-800 cursor-pointer">
+              Hapus Semua Dokumen
+            </button>
+          )}
+        </div>
+      ) : singleFile ? (
         <>
           <div className="flex items-center gap-2 bg-violet-50/60 border border-violet-200/60 rounded-lg px-3 py-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-violet-100">
@@ -170,13 +245,13 @@ export default function EvidencePanel({
                     onKeyDown={e => { if (e.key === 'Enter') { if (editNameVal.trim()) onChangeName(editNameVal.trim()); setIsEditName(false); } if (e.key === 'Escape') setIsEditName(false); }}
                     className="text-xs font-bold text-dark-gray border border-dark-gray/30 rounded px-1 py-0.5 w-full outline-none" autoFocus />
                 ) : (
-                  <p className="text-xs font-bold text-dark-gray truncate">{evidenceName || 'Dokumen Bukti'}</p>
+                  <p className="text-xs font-bold text-dark-gray truncate">{currentEvidenceName || 'Dokumen Bukti'}</p>
                 )}
                 {isAuditor && !isReadOnly && !isEditName && (
-                  <button onClick={() => { setIsEditName(true); setEditNameVal(evidenceName || ''); }} className="p-1 text-violet-500 hover:text-violet-700 hover:bg-violet-100 rounded cursor-pointer shrink-0" title="Edit nama dokumen"><Edit2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => { setIsEditName(true); setEditNameVal(currentEvidenceName || ''); }} className="p-1 text-violet-500 hover:text-violet-700 hover:bg-violet-100 rounded cursor-pointer shrink-0" title="Edit nama dokumen"><Edit2 className="w-3.5 h-3.5" /></button>
                 )}
               </div>
-              <p className="text-[9px] text-violet-600/50 truncate">{evidenceLink}</p>
+              <p className="text-[9px] text-violet-600/50 truncate">{currentEvidenceLink}</p>
             </div>
           </div>
 
@@ -187,12 +262,12 @@ export default function EvidencePanel({
                 <Eye className="w-3.5 h-3.5" /> Preview
               </button>
             )}
-            <a href={evidenceLink} target="_blank" rel="noopener noreferrer"
+            <a href={currentEvidenceLink} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1 text-[10px] font-extrabold bg-white hover:bg-peach-accent/40 text-dark-gray border border-dark-gray/15 px-2.5 py-1.5 rounded-lg transition-all">
               <ExternalLink className="w-3.5 h-3.5" /> Buka
             </a>
             {isDriveLink && (
-              <a href={getDirectDownloadUrl(evidenceLink!)} download
+              <a href={getDirectDownloadUrl(currentEvidenceLink)} download
                 className="flex items-center gap-1 text-[10px] font-extrabold bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition-all">
                 <Download className="w-3.5 h-3.5" /> Unduh
               </a>
@@ -224,17 +299,22 @@ export default function EvidencePanel({
           </div>
 
           {tab === 'upload' ? (
-            <div onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }} onDragLeave={() => setIsDragOver(false)} onDrop={handleDrop}
-              onClick={() => !isUploading && fileInputRef.current?.click()}
+            <div onDragOver={handleDragOver} onDragLeave={() => setIsDragOver(false)} onDrop={handleDrop}
+              onClick={handleClickUpload}
               className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all cursor-pointer ${isUploading ? 'border-peach-accent/50 bg-peach-accent/5 cursor-wait' : isDragOver ? 'border-baby-blue bg-baby-blue/10' : 'border-dark-gray/15 bg-white hover:border-peach-accent/50 hover:bg-peach-accent/5'}`}>
               <input ref={fileInputRef} type="file" accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" disabled={isUploading}
                 onChange={(e) => { const file = e.target.files?.[0]; if (file) { if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; } initiateUpload(file); } }} className="hidden" />
+              <input ref={folderInputRef} type="file" webkitdirectory="true" className="hidden"
+                onChange={(e) => {
+                  const files = e.target.files ? (Array.from(e.target.files) as File[]).filter(f => f.size > 0) : [];
+                  if (files.length > 0) { onUploadFolder(files); if (folderInputRef.current) folderInputRef.current.value = ''; }
+                }} />
               {isUploading ? (
                 <div className="flex flex-col items-center gap-1.5"><Loader2 className="w-5 h-5 text-peach-accent animate-spin" /><p className="text-[10px] font-bold text-dark-gray">Mengunggah...</p></div>
               ) : (
                 <div className="flex flex-col items-center gap-1.5">
                   <Upload className="w-4 h-4 text-dark-gray/40" />
-                  <p className="text-[10px] font-bold text-dark-gray">{isDragOver ? 'Lepaskan untuk mengunggah' : 'Seret atau klik untuk unggah'}</p>
+                  <p className="text-[10px] font-bold text-dark-gray">{isDragOver ? (isDragFolder ? 'Lepaskan folder untuk mengunggah' : 'Lepaskan untuk mengunggah') : 'Seret atau klik untuk unggah'}</p>
                   <p className="text-[8px] text-dark-gray/40">PDF, Excel, Word, Gambar — Maks. 15MB</p>
                 </div>
               )}
@@ -264,6 +344,25 @@ export default function EvidencePanel({
         </div>
       )}
 
+      {showFolderPicker && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowFolderPicker(false)}>
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-xs w-full p-5" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-sm mb-4">Pilih jenis upload</h3>
+            <div className="space-y-2">
+              <button onClick={() => { setShowFolderPicker(false); fileInputRef.current?.click(); }}
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:bg-peach-accent/10 font-bold text-xs flex items-center gap-3 cursor-pointer">
+                <Upload className="w-4 h-4" /> Unggah File
+              </button>
+              <button onClick={() => { setShowFolderPicker(false); folderInputRef.current?.click(); }}
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:bg-peach-accent/10 font-bold text-xs flex items-center gap-3 cursor-pointer">
+                <Upload className="w-4 h-4" /> Unggah Folder
+              </button>
+              <button onClick={() => setShowFolderPicker(false)} className="w-full text-center py-2 text-[10px] font-bold text-slate-500 cursor-pointer">Batal</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {pendingUploadFile && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-5">
@@ -281,37 +380,37 @@ export default function EvidencePanel({
         </div>
       )}
 
-      {showPreviewModal && evidenceLink && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-dark-gray/80 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && setShowPreviewModal(false)}>
+      {(showPreviewModal || previewFile) && previewUrl && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-dark-gray/80 backdrop-blur-sm" onClick={(e) => { if (e.target === e.currentTarget) { setShowPreviewModal(false); setPreviewFile(null); } }}>
           <div className="flex items-center justify-between px-4 py-3 bg-dark-gray text-white flex-shrink-0">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/10"><FileIcon className={`w-3.5 h-3.5 ${fileInfo.color}`} /></div>
-              <div className="min-w-0"><p className="text-xs font-extrabold text-white truncate">{evidenceName || 'Dokumen Bukti'}</p><p className="text-[9px] text-white/50 font-semibold">Preview Dokumen</p></div>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/10">{(() => { const pi = getFileIcon(previewFile?.name || currentEvidenceName, previewUrl); const PI = pi.icon; return <PI className={`w-3.5 h-3.5 ${pi.color}`} />; })()}</div>
+              <div className="min-w-0"><p className="text-xs font-extrabold text-white truncate">{previewFile?.name || currentEvidenceName || 'Dokumen Bukti'}</p><p className="text-[9px] text-white/50 font-semibold">Preview Dokumen</p></div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {isDriveLink && (
-                <a href={getDirectDownloadUrl(evidenceLink)} className="flex items-center gap-1.5 text-[10px] font-extrabold bg-white/10 hover:bg-white/20 text-white border border-white/20 px-2.5 py-1.5 rounded-lg transition-all">
+              {previewUrl.includes('drive.google.com') && (
+                <a href={getDirectDownloadUrl(previewUrl)} className="flex items-center gap-1.5 text-[10px] font-extrabold bg-white/10 hover:bg-white/20 text-white border border-white/20 px-2.5 py-1.5 rounded-lg transition-all">
                   <Download className="w-3.5 h-3.5" /><span>Unduh</span>
                 </a>
               )}
-              <a href={evidenceLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[10px] font-extrabold bg-white/10 hover:bg-white/20 text-white border border-white/20 px-2.5 py-1.5 rounded-lg transition-all">
+              <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[10px] font-extrabold bg-white/10 hover:bg-white/20 text-white border border-white/20 px-2.5 py-1.5 rounded-lg transition-all">
                 <ExternalLink className="w-3.5 h-3.5" /><span>Buka Drive</span>
               </a>
-              <button onClick={() => setShowPreviewModal(false)} className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-rose-500 text-white rounded-lg transition-all cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={() => { setShowPreviewModal(false); setPreviewFile(null); }} className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-rose-500 text-white rounded-lg transition-all cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
           </div>
           <div className="flex-1 overflow-hidden relative bg-neutral-900">
-            {embedUrl ? (
-              <iframe src={embedUrl} className="w-full h-full border-0" allow="autoplay" title="Preview Dokumen" loading="lazy" />
+            {(() => { const mu = toEmbedUrl(previewUrl); return mu ? (
+              <iframe src={mu} className="w-full h-full border-0" allow="autoplay" title="Preview Dokumen" loading="lazy" />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-white/60 gap-3">
                 <File className="w-16 h-16 opacity-30" />
                 <p className="text-sm font-bold">Preview tidak tersedia</p>
-                <a href={evidenceLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-extrabold transition-all">
+                <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-extrabold transition-all">
                   <ExternalLink className="w-4 h-4" /> Buka di Browser
                 </a>
               </div>
-            )}
+            ); })()}
           </div>
         </div>
       )}

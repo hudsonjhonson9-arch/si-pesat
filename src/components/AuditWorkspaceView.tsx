@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, UserProfile, KKATemplate, AuditMilestone } from '../types';
-import { uploadEvidenceFile, copyEvidenceFileFromUrl } from '../lib/googleDrive';
+import { uploadEvidenceFile, copyEvidenceFileFromUrl, uploadFolderFiles } from '../lib/googleDrive';
 import { toDisplay, fromDisplay } from '../lib/formatDate';
 import { supabase } from '../lib/supabase';
 import EvidencePanel from './EvidencePanel';
@@ -221,6 +221,41 @@ export default function AuditWorkspaceView({
       alert(`Gagal menyalin tautan: ${err.message || err}`);
     } finally {
       setCopyingIds(prev => ({ ...prev, [itemId]: false }));
+    }
+  };
+
+  const handleFolderUpload = async (itemId: string, files: File[]) => {
+    setUploadingIds(prev => ({ ...prev, [itemId]: true }));
+    try {
+      const results = await uploadFolderFiles(files, {
+        fiscalYear: audit.fiscalYear,
+        opdName: audit.opdName,
+        auditType: audit.auditType,
+        uploadedBy: currentUserName || audit.auditorName || 'Auditor'
+      }, (done, total) => {
+        onShowToast?.(`Mengunggah ${done} dari ${total}...`, 'info');
+      });
+      const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+      if (item) {
+        const existing = item.evidenceFiles || [];
+        handleFindingDetailsUpdate(itemId, {
+          evidenceFiles: [...existing, ...results],
+          evidenceHistory: [
+            ...(item.evidenceHistory || []),
+            ...results.map(r => ({
+              name: r.name,
+              link: r.link,
+              uploadedAt: r.uploadedAt,
+              uploadedBy: r.uploadedBy,
+              action: 'diunggah' as const
+            }))
+          ]
+        });
+      }
+    } catch (err: any) {
+      onShowToast?.(`Upload folder gagal: ${err.message}`, 'error');
+    } finally {
+      setUploadingIds(prev => ({ ...prev, [itemId]: false }));
     }
   };
 
@@ -607,10 +642,11 @@ export default function AuditWorkspaceView({
                   </div>
 
                   <EvidencePanel
-                    evidenceLink={item.evidenceLink} evidenceName={item.evidenceName}
+                    evidenceFiles={item.evidenceFiles}
                     isReadOnly={isReadOnly} isAuditor={FUNGSIONAL_ROLES.includes(userRole)}
                     isUploading={!!uploadingIds[item.id]} isCopying={!!copyingIds[item.id]}
                     onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
+                    onUploadFolder={async (files) => handleFolderUpload(item.id, files)}
                     onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
                     onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
                     onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
