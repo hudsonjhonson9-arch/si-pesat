@@ -130,16 +130,16 @@ export default function AuditListView({
   };
 
   const calculateProgress = (audit: OpdAudit) => {
-    let evaluatedItems = 0;
     let totalItems = 0;
+    let uploadedItems = 0;
     audit.categories.forEach(cat => {
       cat.items.forEach(item => {
         totalItems++;
-        if (item.status !== 'N/A') evaluatedItems++;
+        if (item.evidenceFiles && item.evidenceFiles.length > 0) uploadedItems++;
       });
     });
     if (totalItems === 0) return 0;
-    return Math.round((evaluatedItems / totalItems) * 100);
+    return Math.round((uploadedItems / totalItems) * 100);
   };
 
   // Filter computations
@@ -325,7 +325,7 @@ export default function AuditListView({
                       <Trash2 className="w-3 h-3" /> Hapus
                     </button>
                   )}
-                  <div className="bg-peach-accent/20 px-3 py-1 rounded-full text-[10px] font-black text-dark-gray">
+                  <div className="bg-gray-100 px-3 py-1 rounded-full text-[10px] font-black text-dark-gray">
                     {group.audits.reduce((s, a) => s + (a.categories?.length || 0), 0)} KKA
                   </div>
                 </div>
@@ -349,13 +349,13 @@ export default function AuditListView({
                         </div>
                         {audit.categories && audit.categories.length > 0 ? (
                           audit.categories.map((cat, idx) => {
-                            let evaluatedItems = 0;
                             let totalItems = 0;
+                            let uploadedItems = 0;
                             cat.items.forEach(item => {
                               totalItems++;
-                              if (item.status !== 'N/A') evaluatedItems++;
+                              if (item.evidenceFiles && item.evidenceFiles.length > 0) uploadedItems++;
                             });
-                            const catProgress = totalItems === 0 ? 0 : Math.round((evaluatedItems / totalItems) * 100);
+                            const catProgress = totalItems === 0 ? 0 : Math.round((uploadedItems / totalItems) * 100);
 
                             return (
                               <div 
@@ -368,7 +368,7 @@ export default function AuditListView({
                               >
                                 {/* Cat Name */}
                                 <div className="w-[150px] shrink-0">
-                                  <span className="text-[10px] bg-peach-accent/30 border border-peach-accent/50 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate" title={cat.name}>
+                                  <span className="text-[10px] bg-gray-100 border border-gray-200 text-dark-gray px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block text-center truncate" title={cat.name}>
                                     {cat.name}
                                   </span>
                                 </div>
@@ -400,7 +400,7 @@ export default function AuditListView({
                                   </span>
                                   <div className="flex-1 h-1.5 bg-dark-gray/10 rounded-full overflow-hidden">
                                     <div
-                                      className="h-full bg-peach-accent rounded-full transition-all duration-500"
+                                      className="h-full bg-blue-500 rounded-full transition-all duration-500"
                                       style={{ width: `${catProgress}%` }}
                                     />
                                   </div>
