@@ -255,26 +255,24 @@ export default function AuditWorkspaceView({
     if (!isTeamMember) { alert('Hanya anggota tim yang dapat mengunggah dokumen.'); return; }
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
-      await uploadFolderFiles(files, {
+      const results = await uploadFolderFiles(files, {
         fiscalYear: audit.fiscalYear,
         opdName: audit.opdName,
         auditType: audit.auditType,
         uploadedBy: currentUserName || audit.auditorName || 'Auditor'
-      }, (done, total, file) => {
-        onProgress?.(done, total);
-        if (file) {
-          const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
-          if (item) {
-            handleFindingDetailsUpdate(itemId, {
-              evidenceFiles: [...(item.evidenceFiles || []), file],
-              evidenceHistory: [
-                ...(item.evidenceHistory || []),
-                { name: file.name, link: file.link, uploadedAt: file.uploadedAt, uploadedBy: file.uploadedBy, action: 'diunggah' as const }
-              ]
-            });
-          }
+      }, (done, total) => onProgress?.(done, total));
+      if (results.length > 0) {
+        const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+        if (item) {
+          handleFindingDetailsUpdate(itemId, {
+            evidenceFiles: [...(item.evidenceFiles || []), ...results],
+            evidenceHistory: [
+              ...(item.evidenceHistory || []),
+              ...results.map(r => ({ name: r.name, link: r.link, uploadedAt: r.uploadedAt, uploadedBy: r.uploadedBy, action: 'diunggah' as const }))
+            ]
+          });
         }
-      });
+      }
     } catch (err: any) {
       onShowToast?.(`Upload folder gagal: ${err.message}`, 'error');
     } finally {
