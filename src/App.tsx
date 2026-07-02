@@ -906,8 +906,7 @@ export default function App() {
 
   const syncAuditToSupabase = (audit: OpdAudit) => {
     if (!navigator.onLine) return;
-    supabase.from('audits').upsert({
-      id: audit.id,
+    supabase.from('audits').update({
       opd_name: audit.opdName,
       opd_type: audit.opdType,
       audit_type: audit.auditType,
@@ -921,7 +920,7 @@ export default function App() {
       schedule: audit.schedule || [],
       bidang_id: audit.bidang_id || null,
       updated_at: new Date().toISOString()
-    }, { onConflict: 'id' }).then(({ error }) => {
+    }).eq('id', audit.id).then(({ error }) => {
       if (error) console.error('Immediate sync failed:', error);
     });
   };
