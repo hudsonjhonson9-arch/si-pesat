@@ -194,7 +194,18 @@ export default function AuditWorkspaceView({
       const existingItem = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
       const prevHistory = existingItem?.evidenceHistory || [];
       const historyEntry = { name: res.name, link: res.webViewLink, uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'diunggah' as const };
-      handleFindingDetailsUpdate(itemId, { evidenceLink: res.webViewLink, evidenceName: res.name, evidenceHistory: [...prevHistory, historyEntry] });
+      handleFindingDetailsUpdate(itemId, {
+        evidenceFiles: [...(existingItem?.evidenceFiles || []), {
+          id: crypto.randomUUID?.() || `ev_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+          name: res.name,
+          link: res.webViewLink,
+          relativePath: res.name,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: currentUserName || audit.auditorName || 'Auditor',
+          size: 0
+        }],
+        evidenceHistory: [...prevHistory, historyEntry]
+      });
       alert(`Sukses! Berkas bukti "${res.name}" berhasil diunggah.`);
     } catch (err: any) {
       console.error(err);
@@ -214,7 +225,18 @@ export default function AuditWorkspaceView({
       const existingItem = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
       const prevHistory = existingItem?.evidenceHistory || [];
       const historyEntry = { name: res.name, link: res.webViewLink, uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'ditautkan' as const };
-      handleFindingDetailsUpdate(itemId, { evidenceLink: res.webViewLink, evidenceName: res.name, evidenceHistory: [...prevHistory, historyEntry] });
+      handleFindingDetailsUpdate(itemId, {
+        evidenceFiles: [...(existingItem?.evidenceFiles || []), {
+          id: crypto.randomUUID?.() || `ev_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+          name: res.name,
+          link: res.webViewLink,
+          relativePath: res.name,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: currentUserName || audit.auditorName || 'Auditor',
+          size: 0
+        }],
+        evidenceHistory: [...prevHistory, historyEntry]
+      });
       alert(`Sukses! Berkas dari tautan berhasil disalin.`);
     } catch (err: any) {
       console.error(err);
@@ -269,7 +291,10 @@ export default function AuditWorkspaceView({
         const localItem = activeCategory?.items.find(i => i.id === itemId) || audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
         if (remoteItem && localItem) {
           const hasStatusConflict = remoteItem.status !== localItem.status;
-          const hasEvidenceConflict = remoteItem.evidenceLink !== localItem.evidenceLink || (remoteItem.evidenceHistory?.length || 0) !== (localItem.evidenceHistory?.length || 0);
+          const hasEvidenceConflict =
+            JSON.stringify(remoteItem.evidenceFiles) !== JSON.stringify(localItem.evidenceFiles) ||
+            remoteItem.evidenceLink !== localItem.evidenceLink ||
+            (remoteItem.evidenceHistory?.length || 0) !== (localItem.evidenceHistory?.length || 0);
           if (hasStatusConflict || hasEvidenceConflict) {
             onShowToast?.(`${actionName} ditolak. Data telah dimodifikasi pengguna lain.`, 'error');
             onUpdates({ ...audit, categories: data.categories });
@@ -649,12 +674,20 @@ export default function AuditWorkspaceView({
                     onUploadFolder={async (files) => handleFolderUpload(item.id, files)}
                     onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
                     onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
-                    onChangeName={(name) => handleFindingDetailChange(item.id, 'evidenceName', name)}
+                    onChangeName={(name) => {
+                      const files = item.evidenceFiles ? [...item.evidenceFiles] : [];
+                      if (files.length > 0) {
+                        files[0] = { ...files[0], name };
+                        handleFindingDetailsUpdate(item.id, { evidenceFiles: files, evidenceName: name });
+                      } else {
+                        handleFindingDetailChange(item.id, 'evidenceName', name);
+                      }
+                    }}
                     onClear={async () => {
                       const hasConflict = await checkConflict(item.id, 'Hapus item');
                       if (hasConflict) return;
                       const prevHistory = item.evidenceHistory || [];
-                      handleFindingDetailsUpdate(item.id, { evidenceLink: '', evidenceName: '', evidenceHistory: [...prevHistory, { name: item.evidenceName || 'Dokumen', link: item.evidenceLink || '', uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] });
+                      handleFindingDetailsUpdate(item.id, { evidenceFiles: [], evidenceLink: '', evidenceName: '', evidenceHistory: [...prevHistory, { name: item.evidenceName || 'Dokumen', link: item.evidenceLink || '', uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] });
                       onShowToast?.('Dokumen dihapus.', 'info');
                     }}
                   />
