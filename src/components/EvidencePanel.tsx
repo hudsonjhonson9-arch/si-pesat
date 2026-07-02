@@ -78,6 +78,7 @@ export default function EvidencePanel({
   isAuditor = true,
   onUploadFile,
   onUploadFolder,
+  onDeleteEvidenceFile,
   onCopyFromUrl,
   onChangeLink,
   onChangeName,
