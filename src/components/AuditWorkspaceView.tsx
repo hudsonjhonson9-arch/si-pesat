@@ -77,10 +77,13 @@ export default function AuditWorkspaceView({
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemDescription, setNewItemDescription] = useState('');
   const [dragItemIdx, setDragItemIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
   const [editItemTitle, setEditItemTitle] = useState('');
   const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
+  const itemsListRef = useRef<HTMLDivElement>(null);
+  const scrollRafRef = useRef<number | null>(null);
 
   const [uploadingIds, setUploadingIds] = useState<Record<string, boolean>>({});
   const [copyingIds, setCopyingIds] = useState<Record<string, boolean>>({});
@@ -347,10 +350,60 @@ export default function AuditWorkspaceView({
     setNewItemTitle(''); setNewItemDescription(''); setIsAddingItem(false);
   };
 
-  const handleDragStart = (index: number) => setDragItemIdx(index);
-  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
+  const handleDragStart = (index: number) => {
+    setDragItemIdx(index);
+    setDragOverIdx(index);
+  };
+
+  // Auto-scroll logic: called continuously via rAF while dragging near edges
+  const handleDragOverList = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const container = itemsListRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const ZONE = 56; // px zone from edge that triggers scroll
+    const MAX_SPEED = 14;
+    const relY = e.clientY - rect.top;
+    const relFromBottom = rect.bottom - e.clientY;
+
+    // Cancel previous frame
+    if (scrollRafRef.current !== null) {
+      cancelAnimationFrame(scrollRafRef.current);
+      scrollRafRef.current = null;
+    }
+
+    let speed = 0;
+    if (relY < ZONE) {
+      // Near top — scroll up, stronger the closer to edge
+      speed = -MAX_SPEED * (1 - relY / ZONE);
+    } else if (relFromBottom < ZONE) {
+      // Near bottom — scroll down
+      speed = MAX_SPEED * (1 - relFromBottom / ZONE);
+    }
+
+    if (speed !== 0) {
+      const scroll = () => {
+        window.scrollBy({ top: speed, behavior: 'instant' });
+        scrollRafRef.current = requestAnimationFrame(scroll);
+      };
+      scrollRafRef.current = requestAnimationFrame(scroll);
+    }
+  };
+
+  const handleDragOverItem = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    setDragOverIdx(idx);
+  };
+
+  const stopAutoScroll = () => {
+    if (scrollRafRef.current !== null) {
+      cancelAnimationFrame(scrollRafRef.current);
+      scrollRafRef.current = null;
+    }
+  };
 
   const handleDrop = (targetIdx: number) => {
+    stopAutoScroll();
     if (dragItemIdx === null || !activeCategory || searchQuery.trim()) return;
     const items = [...activeCategory.items];
     const [moved] = items.splice(dragItemIdx, 1);
@@ -358,6 +411,13 @@ export default function AuditWorkspaceView({
     const updatedCategories = audit.categories.map(cat => cat.id === activeCategory.id ? { ...cat, items } : cat);
     onUpdates({ ...audit, categories: updatedCategories });
     setDragItemIdx(null);
+    setDragOverIdx(null);
+  };
+
+  const handleDragEnd = () => {
+    stopAutoScroll();
+    setDragItemIdx(null);
+    setDragOverIdx(null);
   };
 
   const handleDeleteItem = (itemId: string) => {
@@ -613,7 +673,11 @@ export default function AuditWorkspaceView({
         </div>
 
         {/* Dokumen KKA */}
-        <div className="p-4 space-y-4 bg-baby-blue rounded-b-xl">
+        <div
+          ref={itemsListRef}
+          onDragOver={dragItemIdx !== null ? handleDragOverList : undefined}
+          onDragLeave={stopAutoScroll}
+          className="p-4 space-y-4 bg-baby-blue rounded-b-xl relative">
 
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-black uppercase tracking-wide text-dark-gray">Dokumen KKA</h2>
@@ -658,12 +722,46 @@ export default function AuditWorkspaceView({
             </form>
           )}
 
+          {/* Auto-scroll sentinel — top */}
+          {dragItemIdx !== null && (
+            <div
+              className="sticky top-0 z-10 pointer-events-none h-14 -mt-2 mb-2 rounded-xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(100,116,139,0.13) 0%, transparent 100%)',
+                opacity: dragOverIdx !== null && dragOverIdx < 2 ? 1 : 0,
+                transition: 'opacity 0.2s'
+              }}
+            >
+              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                <svg className="w-3 h-3 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
+                Gulir ke atas
+              </span>
+            </div>
+          )}
+
           {filteredItems.map((item, idx) => {
+            const isDragging = dragItemIdx === idx;
+            const isDropTarget = dragOverIdx === idx && dragItemIdx !== idx;
             return (
               <div key={item.id}
                 draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
-                onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
-                className="bg-gray-50/80 border-gray-200/60 rounded-xl border transition-all shadow-xs overflow-hidden">
+                onDragStart={() => handleDragStart(idx)}
+                onDragOver={(e) => handleDragOverItem(e, idx)}
+                onDrop={() => handleDrop(idx)}
+                onDragEnd={handleDragEnd}
+                style={{
+                  opacity: isDragging ? 0.38 : 1,
+                  transform: isDropTarget ? 'scale(1.012)' : 'scale(1)',
+                  transition: 'opacity 0.18s, transform 0.15s, box-shadow 0.15s',
+                  boxShadow: isDropTarget ? '0 0 0 2px #3b82f6, 0 4px 16px rgba(59,130,246,0.13)' : undefined,
+                }}
+                className={`rounded-xl border transition-colors shadow-xs overflow-hidden ${
+                  isDropTarget
+                    ? 'bg-blue-50/80 border-blue-300'
+                    : isDragging
+                      ? 'bg-gray-100/60 border-gray-200/40'
+                      : 'bg-gray-50/80 border-gray-200/60'
+                }`}>
                 <div className="bg-emerald-50/60 px-4 py-3 border-b border-emerald-100/60">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -736,6 +834,23 @@ export default function AuditWorkspaceView({
               </div>
             );
           })}
+
+          {/* Auto-scroll sentinel — bottom */}
+          {dragItemIdx !== null && (
+            <div
+              className="sticky bottom-0 z-10 pointer-events-none h-14 mt-2 -mb-2 rounded-xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(to top, rgba(100,116,139,0.13) 0%, transparent 100%)',
+                opacity: dragOverIdx !== null && dragOverIdx >= filteredItems.length - 2 ? 1 : 0,
+                transition: 'opacity 0.2s'
+              }}
+            >
+              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                <svg className="w-3 h-3 animate-bounce" style={{ animationDirection: 'alternate-reverse' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                Gulir ke bawah
+              </span>
+            </div>
+          )}
 
           {filteredItems.length === 0 && (
             <div className="text-center py-8 text-xs text-dark-gray/50 italic font-medium">
