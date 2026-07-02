@@ -251,7 +251,7 @@ export default function AuditWorkspaceView({
     }
   };
 
-  const handleFolderUpload = async (itemId: string, files: File[]) => {
+  const handleFolderUpload = async (itemId: string, files: File[], onProgress?: (done: number, total: number) => void) => {
     if (!isTeamMember) { alert('Hanya anggota tim yang dapat mengunggah dokumen.'); return; }
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
@@ -261,7 +261,7 @@ export default function AuditWorkspaceView({
         auditType: audit.auditType,
         uploadedBy: currentUserName || audit.auditorName || 'Auditor'
       }, (done, total, file) => {
-        onShowToast?.(`Mengunggah ${done} dari ${total}...`, 'info');
+        onProgress?.(done, total);
         if (file) {
           const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
           if (item) {
@@ -689,7 +689,7 @@ export default function AuditWorkspaceView({
                     isReadOnly={isReadOnly} isAuditor={FUNGSIONAL_ROLES.includes(userRole)}
                     isUploading={!!uploadingIds[item.id]} isCopying={!!copyingIds[item.id]}
                     onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
-                    onUploadFolder={async (files) => handleFolderUpload(item.id, files)}
+                    onUploadFolder={async (files, onProgress) => handleFolderUpload(item.id, files, onProgress)}
                     onDeleteEvidenceFile={async (fileId) => handleDeleteEvidenceFile(item.id, fileId)}
                     onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
                     onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}

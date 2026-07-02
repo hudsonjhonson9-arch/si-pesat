@@ -7,7 +7,7 @@ interface EvidencePanelProps {
   isReadOnly?: boolean;
   isAuditor?: boolean;
   onUploadFile: (file: File, newName?: string) => Promise<void>;
-  onUploadFolder: (files: File[]) => Promise<void>;
+  onUploadFolder: (files: File[], onProgress?: (done: number, total: number) => void) => Promise<void>;
   onDeleteEvidenceFile?: (fileId: string) => Promise<void>;
   onCopyFromUrl: (url: string, name: string) => Promise<void>;
   onChangeLink: (link: string) => void;
@@ -324,12 +324,18 @@ export default function EvidencePanel({
                   if (files.length > 0) { setPendingFiles(files); }
                   if (folderInputRef.current) folderInputRef.current.value = '';
                 }} />
-              {isUploading ? (
-                <div className="flex flex-col items-center gap-2 py-6">
+              {(isUploading || uploadProgress) ? (
+                <div className="flex flex-col items-center gap-3 py-6">
                   <Loader2 className="w-6 h-6 text-peach-accent animate-spin" />
                   <p className="text-xs font-bold text-dark-gray">
-                    {uploadProgress ? `Mengunggah ${uploadProgress.done}/${uploadProgress.total}...` : 'Mengunggah...'}
+                    {uploadProgress ? `Mengunggah ${uploadProgress.done}/${uploadProgress.total}` : 'Mengunggah...'}
                   </p>
+                  {uploadProgress && (
+                    <div className="w-full max-w-xs bg-dark-gray/8 rounded-full h-2 overflow-hidden">
+                      <div className="bg-peach-accent h-full rounded-full transition-all duration-300"
+                        style={{ width: `${Math.round((uploadProgress.done / uploadProgress.total) * 100)}%` }} />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
@@ -415,7 +421,7 @@ export default function EvidencePanel({
                 setPendingFiles([]);
                 setUploadProgress({ done: 0, total: toUpload.length });
                 try {
-                  await onUploadFolder(toUpload);
+                  await onUploadFolder(toUpload, (done, total) => setUploadProgress({ done, total }));
                 } finally {
                   setUploadProgress(null);
                 }
