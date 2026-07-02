@@ -476,6 +476,25 @@ export default function NewAuditView({
                           </button>
                         );
                       })}
+                      {userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').length === 0 && (
+                        <>
+                          <p className="px-3 py-1 text-[9px] text-dark-gray/40 font-bold uppercase tracking-wider">Semua Pengguna</p>
+                          {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).map(p => {
+                            const name = p.full_name || p.email;
+                            const isSel = catTeamMembers.includes(name);
+                            return (
+                              <button key={p.id} onClick={e => { e.stopPropagation(); setCatTeamMembers(prev => isSel ? prev.filter(n => n !== name) : [...prev, name]); }}
+                                className={`w-full text-left px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 cursor-pointer transition-colors ${isSel ? 'bg-peach-accent text-dark-gray' : 'hover:bg-slate-50 text-dark-gray'}`}>
+                                {isSel ? <Check className="w-3 h-3 shrink-0" /> : <Users className="w-3 h-3 shrink-0 text-dark-gray/40" />}
+                                {name}
+                              </button>
+                            );
+                          })}
+                        </>
+                      )}
+                      {userProfiles.length === 0 && (
+                        <p className="px-3 py-2 text-[10px] text-dark-gray/40 italic">Belum ada data pengguna.</p>
+                      )}
                     </div>
                   </div>
                 )}

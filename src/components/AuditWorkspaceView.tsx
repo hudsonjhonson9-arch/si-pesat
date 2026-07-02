@@ -663,7 +663,7 @@ export default function AuditWorkspaceView({
               <div key={item.id}
                 draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
                 onDragStart={() => handleDragStart(idx)} onDragOver={handleDragOver} onDrop={() => handleDrop(idx)}
-                className="bg-sky-50/30 border-sky-200/60 rounded-xl border transition-all shadow-xs overflow-hidden">
+                className="bg-gray-50/80 border-gray-200/60 rounded-xl border transition-all shadow-xs overflow-hidden">
                 <div className="bg-emerald-50/60 px-4 py-3 border-b border-emerald-100/60">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
