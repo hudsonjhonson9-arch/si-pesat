@@ -249,31 +249,26 @@ export default function AuditWorkspaceView({
   const handleFolderUpload = async (itemId: string, files: File[]) => {
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
-      const results = await uploadFolderFiles(files, {
+      await uploadFolderFiles(files, {
         fiscalYear: audit.fiscalYear,
         opdName: audit.opdName,
         auditType: audit.auditType,
         uploadedBy: currentUserName || audit.auditorName || 'Auditor'
-      }, (done, total) => {
+      }, (done, total, file) => {
         onShowToast?.(`Mengunggah ${done} dari ${total}...`, 'info');
+        if (file) {
+          const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+          if (item) {
+            handleFindingDetailsUpdate(itemId, {
+              evidenceFiles: [...(item.evidenceFiles || []), file],
+              evidenceHistory: [
+                ...(item.evidenceHistory || []),
+                { name: file.name, link: file.link, uploadedAt: file.uploadedAt, uploadedBy: file.uploadedBy, action: 'diunggah' as const }
+              ]
+            });
+          }
+        }
       });
-      const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
-      if (item) {
-        const existing = item.evidenceFiles || [];
-        handleFindingDetailsUpdate(itemId, {
-          evidenceFiles: [...existing, ...results],
-          evidenceHistory: [
-            ...(item.evidenceHistory || []),
-            ...results.map(r => ({
-              name: r.name,
-              link: r.link,
-              uploadedAt: r.uploadedAt,
-              uploadedBy: r.uploadedBy,
-              action: 'diunggah' as const
-            }))
-          ]
-        });
-      }
     } catch (err: any) {
       onShowToast?.(`Upload folder gagal: ${err.message}`, 'error');
     } finally {
@@ -304,6 +299,23 @@ export default function AuditWorkspaceView({
       }
     } catch (err) { console.error('Failed to check conflict', err); }
     return false;
+  };
+
+  const handleDeleteEvidenceFile = async (itemId: string, fileId: string) => {
+    const hasConflict = await checkConflict(itemId, 'Hapus dokumen');
+    if (hasConflict) return;
+    const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+    if (!item) return;
+    const remaining = (item.evidenceFiles || []).filter(ef => ef.id !== fileId);
+    const removed = (item.evidenceFiles || []).find(ef => ef.id === fileId);
+    handleFindingDetailsUpdate(itemId, {
+      evidenceFiles: remaining,
+      evidenceHistory: [
+        ...(item.evidenceHistory || []),
+        ...(removed ? [{ name: removed.name, link: removed.link, uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] : [])
+      ]
+    });
+    onShowToast?.('Dokumen dihapus.', 'info');
   };
 
   const handleFindingDetailChange = (itemId: string, field: keyof AuditItem, value: any) => {
@@ -672,6 +684,7 @@ export default function AuditWorkspaceView({
                     isUploading={!!uploadingIds[item.id]} isCopying={!!copyingIds[item.id]}
                     onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
                     onUploadFolder={async (files) => handleFolderUpload(item.id, files)}
+                    onDeleteEvidenceFile={async (fileId) => handleDeleteEvidenceFile(item.id, fileId)}
                     onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
                     onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
                     onChangeName={(name) => {

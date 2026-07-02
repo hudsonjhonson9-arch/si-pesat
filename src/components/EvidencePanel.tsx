@@ -8,6 +8,7 @@ interface EvidencePanelProps {
   isAuditor?: boolean;
   onUploadFile: (file: File, newName?: string) => Promise<void>;
   onUploadFolder: (files: File[]) => Promise<void>;
+  onDeleteEvidenceFile?: (fileId: string) => Promise<void>;
   onCopyFromUrl: (url: string, name: string) => Promise<void>;
   onChangeLink: (link: string) => void;
   onChangeName: (name: string) => void;
@@ -98,6 +99,8 @@ export default function EvidencePanel({
   const [previewFile, setPreviewFile] = useState<EvidenceFile | null>(null);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [isDragFolder, setIsDragFolder] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
 
   const singleFile = evidenceFiles && evidenceFiles.length === 1 ? evidenceFiles[0] : null;
@@ -219,6 +222,12 @@ export default function EvidencePanel({
                       className="p-1.5 text-dark-gray/50 hover:text-dark-gray hover:bg-violet-100 rounded-lg" title="Buka Drive">
                       <ExternalLink className="w-3 h-3" />
                     </a>
+                    {isAuditor && !isReadOnly && onDeleteEvidenceFile && (
+                      <button onClick={() => onDeleteEvidenceFile(ef.id)}
+                        className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer" title="Hapus dokumen ini">
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -312,16 +321,23 @@ export default function EvidencePanel({
                     initiateUpload(file);
                   } else {
                     const validFiles = Array.from(files).filter(f => f.size > 0);
-                    if (validFiles.length > 0) { onUploadFolder(validFiles); if (fileInputRef.current) fileInputRef.current.value = ''; }
+                    if (validFiles.length > 0) { setPendingFiles(validFiles); }
                   }
+                  if (fileInputRef.current) fileInputRef.current.value = '';
                 }} className="hidden" />
               <input ref={folderInputRef} type="file" webkitdirectory="true" className="hidden"
                 onChange={(e) => {
                   const files = e.target.files ? (Array.from(e.target.files) as File[]).filter(f => f.size > 0) : [];
-                  if (files.length > 0) { onUploadFolder(files); if (folderInputRef.current) folderInputRef.current.value = ''; }
+                  if (files.length > 0) { setPendingFiles(files); }
+                  if (folderInputRef.current) folderInputRef.current.value = '';
                 }} />
               {isUploading ? (
-                <div className="flex flex-col items-center gap-1.5"><Loader2 className="w-5 h-5 text-peach-accent animate-spin" /><p className="text-[10px] font-bold text-dark-gray">Mengunggah...</p></div>
+                <div className="flex flex-col items-center gap-1.5">
+                  <Loader2 className="w-5 h-5 text-peach-accent animate-spin" />
+                  <p className="text-[10px] font-bold text-dark-gray">
+                    {uploadProgress ? `Mengunggah ${uploadProgress.done}/${uploadProgress.total}...` : 'Mengunggah...'}
+                  </p>
+                </div>
               ) : (
                 <div className="flex flex-col items-center gap-1.5">
                   <Upload className="w-4 h-4 text-dark-gray/40" />
@@ -369,6 +385,52 @@ export default function EvidencePanel({
                 <Upload className="w-4 h-4" /> Unggah Semua Isi Folder
               </button>
               <button onClick={() => setShowFolderPicker(false)} className="w-full text-center py-2 text-[10px] font-bold text-slate-500 cursor-pointer">Batal</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingFiles.length > 0 && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => setPendingFiles([])}>
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-5" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-sm">Konfirmasi Unggah Berkas</h3>
+              <span className="text-[10px] font-bold bg-dark-gray/10 px-2 py-0.5 rounded">{pendingFiles.length} berkas</span>
+            </div>
+            <div className="max-h-48 overflow-y-auto space-y-1 mb-4">
+              {pendingFiles.map((f, i) => {
+                const info = getFileIcon(f.name);
+                const Icon = info.icon;
+                const sizeKB = Math.round(f.size / 1024);
+                return (
+                  <div key={i} className="flex items-center gap-2 bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-100">
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${info.color}`} />
+                    <span className="flex-1 text-[10px] font-bold text-dark-gray truncate">{f.name}</span>
+                    <span className="text-[8px] text-dark-gray/40 font-medium shrink-0">{sizeKB} KB</span>
+                    <button onClick={() => setPendingFiles(prev => prev.filter((_, j) => j !== i))}
+                      className="p-1 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer shrink-0">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            {pendingFiles.length === 0 && <p className="text-[10px] text-slate-500 mb-4 italic">Tidak ada berkas dipilih.</p>}
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setPendingFiles([])} className="px-4 py-2 text-[10px] font-extrabold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer">Batal</button>
+              <button onClick={async () => {
+                const toUpload = [...pendingFiles];
+                setPendingFiles([]);
+                setUploadProgress({ done: 0, total: toUpload.length });
+                try {
+                  await onUploadFolder(toUpload);
+                } finally {
+                  setUploadProgress(null);
+                }
+              }} disabled={pendingFiles.length === 0}
+                className="px-4 py-2 text-[10px] font-extrabold text-white bg-slate-800 rounded-lg hover:bg-slate-900 flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                <Upload className="w-3.5 h-3.5" /> Konfirmasi & Unggah
+              </button>
             </div>
           </div>
         </div>

@@ -141,7 +141,7 @@ export async function copyEvidenceFileFromUrl(
 export async function uploadFolderFiles(
   files: File[],
   auditInfo: { fiscalYear?: string; opdName?: string; auditType?: string; uploadedBy: string },
-  onProgress?: (completed: number, total: number) => void
+  onProgress?: (completed: number, total: number, file?: EvidenceFile) => void
 ): Promise<EvidenceFile[]> {
   const baseUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
   if (!baseUrl) {
@@ -182,22 +182,23 @@ export async function uploadFolderFiles(
             headers: { 'Content-Type': 'text/plain;charset=utf-8' }
           });
           if (!resp.ok) throw new Error(`Upload ${file.name} gagal: ${resp.status}`);
-          const result = await resp.json();
-          if (!result.success) throw new Error(result.error || `Upload ${file.name} gagal`);
-          const relativePath = (file as any).webkitRelativePath || file.name;
-          resolve({
-            id: result.data.id,
-            name: result.data.name,
-            link: result.data.webViewLink,
-            relativePath: relativePath,
-            uploadedAt: new Date().toISOString(),
-            uploadedBy: auditInfo.uploadedBy,
-            size: file.size
-          });
-        } catch (err) { reject(err); }
+      const result = await resp.json();
+      if (!result.success) throw new Error(result.error || `Upload ${file.name} gagal`);
+      const relativePath = (file as any).webkitRelativePath || file.name;
+      const ef: EvidenceFile = {
+        id: result.data.id,
+        name: result.data.name,
+        link: result.data.webViewLink,
+        relativePath: relativePath,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: auditInfo.uploadedBy,
+        size: file.size
       };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
+      resolve(ef);
+    } catch (err) { reject(err); }
+  };
+  reader.onerror = () => reject(reader.error);
+  reader.readAsDataURL(file);
     });
   };
 
@@ -209,7 +210,7 @@ export async function uploadFolderFiles(
       const result = await uploadOne(file);
       results.push(result);
       completed++;
-      onProgress?.(completed, files.length);
+      onProgress?.(completed, files.length, result);
     }
   }
   const workers = Array.from({ length: Math.min(CONCURRENCY, files.length) }, () => worker());
