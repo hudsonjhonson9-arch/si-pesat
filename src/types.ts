@@ -8,6 +8,16 @@ export type AuditType = string;
 
 export type FindingStatus = 'Sesuai' | 'Temuan' | 'N/A';
 
+export interface EvidenceFile {
+  id: string;
+  name: string;
+  link: string;
+  relativePath: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  size: number;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -32,6 +42,7 @@ export interface AuditItem {
   rekomendasi: string;
   evidenceLink?: string; // Tautan dokumen Google Drive (pdf, excel, docx)
   evidenceName?: string; // Nama berkas bukti
+  evidenceFiles?: EvidenceFile[];
   evidenceHistory?: { name: string; link: string; uploadedAt: string; uploadedBy: string; action?: 'diunggah' | 'ditautkan' | 'dihapus' | 'diubah' }[]; // Riwayat dokumen
   catatanReview?: string; // Catatan review dari Inspektur Pembantu / Inspektur
 }

@@ -27,7 +27,7 @@ import {
   Clock
 } from 'lucide-react';
 
-import { OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity, Permission, Bidang, Role, RolePermission } from './types';
+import { EvidenceFile, OpdAudit, KKATemplate, SyncLog, AuditCategory, AuditItem, UserProfile, TargetEntity, Permission, Bidang, Role, RolePermission } from './types';
 import { EMPTY_KKA_TEMPLATE } from './data';
 import { supabase } from './lib/supabase';
 import { logActivity } from './lib/log';
@@ -210,6 +210,29 @@ export default function App() {
     }, 5000);
   }, []);
 
+  function migrateAuditItems(categories: AuditCategory[], defaultAuditorName: string): AuditCategory[] {
+    return categories.map(cat => ({
+      ...cat,
+      items: (cat.items || []).map(item => {
+        if (item.evidenceLink?.trim() && !item.evidenceFiles) {
+          return {
+            ...item,
+            evidenceFiles: [{
+              id: crypto.randomUUID?.() || `ev_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+              name: item.evidenceName || 'Dokumen Bukti',
+              link: item.evidenceLink,
+              relativePath: item.evidenceName || 'Dokumen Bukti',
+              uploadedAt: new Date().toISOString(),
+              uploadedBy: defaultAuditorName,
+              size: 0
+            }]
+          };
+        }
+        return item;
+      })
+    }));
+  }
+
   const fetchAudits = () => {
     supabase.from('audits').select('*').then(({ data, error }) => {
       if (!error && data) {
@@ -229,11 +252,15 @@ export default function App() {
           schedule: d.schedule || [],
           bidang_id: d.bidang_id || null
         }));
+        const migrated = mapped.map(a => ({
+          ...a,
+          categories: migrateAuditItems(a.categories || [], a.auditorName || 'Unknown')
+        }));
         setAudits(prevLocalAudits => {
           const offlineCreatedAudits = prevLocalAudits.filter(
-            local => !mapped.find(m => m.id === local.id) && !local.lastSyncedAt
+            local => !migrated.find(m => m.id === local.id) && !local.lastSyncedAt
           );
-          return [...mapped, ...offlineCreatedAudits];
+          return [...migrated, ...offlineCreatedAudits];
         });
       }
     });
@@ -264,7 +291,12 @@ export default function App() {
           }
           return a;
         });
-        
+
+        parsed = parsed.map((a: any) => ({
+          ...a,
+          categories: migrateAuditItems(a.categories || [], a.auditorName || 'Unknown')
+        }));
+
         setAudits(parsed);
       } catch (e) {
         console.error('Error parsing cached school audits:', e);
