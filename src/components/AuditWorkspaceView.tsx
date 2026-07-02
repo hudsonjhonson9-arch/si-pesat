@@ -188,7 +188,7 @@ export default function AuditWorkspaceView({
   }, []);
 
   const handleDirectUpload = async (itemId: string, file: File, newName?: string) => {
-    if (!isTeamMember) { alert('Hanya anggota tim yang dapat mengunggah dokumen.'); return; }
+    if (!isTeamMember) { onShowToast?.('Hanya anggota tim yang dapat mengunggah dokumen.', 'error'); return; }
     const hasConflict = await checkConflict(itemId, 'Unggah dokumen');
     if (hasConflict) return;
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
@@ -210,17 +210,17 @@ export default function AuditWorkspaceView({
         }],
         evidenceHistory: [...prevHistory, historyEntry]
       });
-      alert(`Sukses! Berkas bukti "${res.name}" berhasil diunggah.`);
+      onShowToast?.(`Berkas "${res.name}" berhasil diunggah.`, 'success');
     } catch (err: any) {
       console.error(err);
-      alert(`Gagal mengunggah: ${err.message || err}`);
+      onShowToast?.(`Gagal mengunggah: ${err.message || err}`, 'error');
     } finally {
       setUploadingIds(prev => ({ ...prev, [itemId]: false }));
     }
   };
 
   const handleDirectCopy = async (itemId: string, sourceUrl: string, currentName: string) => {
-    if (!isTeamMember) { alert('Hanya anggota tim yang dapat menautkan dokumen.'); return; }
+    if (!isTeamMember) { onShowToast?.('Hanya anggota tim yang dapat menautkan dokumen.', 'error'); return; }
     if (!sourceUrl || !sourceUrl.includes('drive.google.com')) return;
     const hasConflict = await checkConflict(itemId, 'Tautkan dokumen');
     if (hasConflict) return;
@@ -242,17 +242,17 @@ export default function AuditWorkspaceView({
         }],
         evidenceHistory: [...prevHistory, historyEntry]
       });
-      alert(`Sukses! Berkas dari tautan berhasil disalin.`);
+      onShowToast?.('Berkas dari tautan berhasil disalin.', 'success');
     } catch (err: any) {
       console.error(err);
-      alert(`Gagal menyalin tautan: ${err.message || err}`);
+      onShowToast?.(`Gagal menyalin tautan: ${err.message || err}`, 'error');
     } finally {
       setCopyingIds(prev => ({ ...prev, [itemId]: false }));
     }
   };
 
   const handleFolderUpload = async (itemId: string, files: File[], onProgress?: (done: number, total: number) => void) => {
-    if (!isTeamMember) { alert('Hanya anggota tim yang dapat mengunggah dokumen.'); return; }
+    if (!isTeamMember) { onShowToast?.('Hanya anggota tim yang dapat mengunggah dokumen.', 'error'); return; }
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const results = await uploadFolderFiles(files, {
@@ -395,7 +395,7 @@ export default function AuditWorkspaceView({
   };
 
   const handleDeleteCategory = (catId: string) => {
-    if (audit.categories.length <= 1) { alert('Pemeriksaan KKA harus menyisakan minimal satu Jenis Audit.'); return; }
+    if (audit.categories.length <= 1) { onShowToast?.('Pemeriksaan KKA harus menyisakan minimal satu Jenis Audit.', 'error'); return; }
     const name = audit.categories.find(c => c.id === catId)?.name || '';
     if (!window.confirm(`Hapus Jenis Audit "${name}" beserta seluruh dokumennya?`)) return;
     const updatedCategories = audit.categories.filter(c => c.id !== catId);
@@ -700,6 +700,12 @@ export default function AuditWorkspaceView({
                         handleFindingDetailChange(item.id, 'evidenceName', name);
                       }
                     }}
+                    onRenameFile={(fileId, newName) => {
+                      const files = item.evidenceFiles ? [...item.evidenceFiles] : [];
+                      const idx = files.findIndex(f => f.id === fileId);
+                      if (idx !== -1) { files[idx] = { ...files[idx], name: newName }; handleFindingDetailsUpdate(item.id, { evidenceFiles: files }); }
+                    }}
+                    onReorderFiles={(files) => handleFindingDetailsUpdate(item.id, { evidenceFiles: files })}
                     onClear={async () => {
                       const hasConflict = await checkConflict(item.id, 'Hapus item');
                       if (hasConflict) return;
@@ -707,6 +713,7 @@ export default function AuditWorkspaceView({
                       handleFindingDetailsUpdate(item.id, { evidenceFiles: [], evidenceLink: '', evidenceName: '', evidenceHistory: [...prevHistory, { name: item.evidenceName || 'Dokumen', link: item.evidenceLink || '', uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] });
                       onShowToast?.('Dokumen dihapus.', 'info');
                     }}
+                    onShowToast={onShowToast}
                   />
 
                   {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (

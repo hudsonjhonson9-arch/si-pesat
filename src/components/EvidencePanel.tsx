@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, FileText, FileSpreadsheet, File, Image, Link2, Loader2, AlertTriangle, Eye, ExternalLink, Download, Copy, CheckCircle2, Edit2, Folder } from 'lucide-react';
+import { Upload, X, FileText, FileSpreadsheet, File, Image, Link2, Loader2, AlertTriangle, Eye, ExternalLink, Download, Copy, CheckCircle2, Edit2, Folder, GripVertical } from 'lucide-react';
 import { EvidenceFile } from '../types';
 
 interface EvidencePanelProps {
@@ -12,9 +12,12 @@ interface EvidencePanelProps {
   onCopyFromUrl: (url: string, name: string) => Promise<void>;
   onChangeLink: (link: string) => void;
   onChangeName: (name: string) => void;
+  onRenameFile?: (fileId: string, newName: string) => void;
+  onReorderFiles?: (files: EvidenceFile[]) => void;
   onClear: () => void;
   isUploading?: boolean;
   isCopying?: boolean;
+  onShowToast?: (message: string, type: 'success' | 'info' | 'error') => void;
 }
 
 function extractDriveFileId(url: string): string | null {
@@ -82,9 +85,12 @@ export default function EvidencePanel({
   onCopyFromUrl,
   onChangeLink,
   onChangeName,
+  onRenameFile,
+  onReorderFiles,
   onClear,
   isUploading = false,
   isCopying = false,
+  onShowToast,
 }: EvidencePanelProps) {
   const [pasteUrl, setPasteUrl] = useState('');
   const [isEditName, setIsEditName] = useState(false);
@@ -102,6 +108,9 @@ export default function EvidencePanel({
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+  const [dragFileId, setDragFileId] = useState<string | null>(null);
+  const [editFileId, setEditFileId] = useState<string | null>(null);
+  const [editFileVal, setEditFileVal] = useState('');
 
   const singleFile = evidenceFiles && evidenceFiles.length === 1 ? evidenceFiles[0] : null;
   const currentEvidenceLink = singleFile?.link ?? '';
@@ -190,23 +199,58 @@ export default function EvidencePanel({
 
       {evidenceFiles && evidenceFiles.length > 1 ? (
         <div className="space-y-2">
-          <span className="text-[10px] font-bold text-dark-gray/60">{evidenceFiles.length} dokumen</span>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-dark-gray/60">{evidenceFiles.length} dokumen — seret untuk urutkan</span>
+            <span className="text-[8px] text-dark-gray/30">⬍ urutkan</span>
+          </div>
           <div className="max-h-60 overflow-y-auto space-y-1">
-            {[...evidenceFiles].sort((a, b) => a.relativePath.localeCompare(b.relativePath)).map((ef) => {
+            {evidenceFiles.map((ef, idx) => {
               const info = getFileIcon(ef.name, ef.link);
               const Icon = info.icon;
               const pathParts = ef.relativePath.split('/');
               const displayPath = pathParts.length > 1 ? pathParts.slice(0, -1).join(' / ') : '';
+              const isEditing = editFileId === ef.id;
               return (
-                <div key={ef.id} className="flex items-center gap-2 bg-violet-50/40 border border-violet-200/40 rounded-lg px-2.5 py-1.5">
+                <div key={ef.id} draggable={!!onReorderFiles}
+                  onDragStart={() => setDragFileId(ef.id)}
+                  onDragOver={(e) => { e.preventDefault(); setDragFileId(ef.id); }}
+                  onDragEnd={() => {
+                    if (dragFileId && dragFileId !== ef.id && onReorderFiles) {
+                      const arr = [...evidenceFiles];
+                      const from = arr.findIndex(f => f.id === dragFileId);
+                      const to = arr.findIndex(f => f.id === ef.id);
+                      if (from !== -1 && to !== -1) { const [moved] = arr.splice(from, 1); arr.splice(to, 0, moved); onReorderFiles(arr); }
+                    }
+                    setDragFileId(null);
+                  }}
+                  className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 transition-all cursor-default ${dragFileId === ef.id ? 'opacity-50 border-2 border-violet-300 bg-violet-100' : 'bg-violet-50/40 border border-violet-200/40'}`}>
+                  {onReorderFiles && (
+                    <div className="shrink-0 cursor-grab active:cursor-grabbing text-dark-gray/25 hover:text-dark-gray/50">
+                      <GripVertical className="w-3.5 h-3.5" />
+                    </div>
+                  )}
                   <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 bg-violet-100">
                     <Icon className={`w-3 h-3 ${info.color}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-dark-gray truncate">{ef.name}</p>
-                    {displayPath && <p className="text-[8px] text-dark-gray/40 truncate">{displayPath}</p>}
+                    {isEditing ? (
+                      <input type="text" value={editFileVal}
+                        onChange={e => setEditFileVal(e.target.value)}
+                        onBlur={() => { if (editFileVal.trim() && onRenameFile) onRenameFile(ef.id, editFileVal.trim()); setEditFileId(null); }}
+                        onKeyDown={e => { if (e.key === 'Enter') { if (editFileVal.trim() && onRenameFile) onRenameFile(ef.id, editFileVal.trim()); setEditFileId(null); } if (e.key === 'Escape') setEditFileId(null); }}
+                        className="text-[10px] font-bold text-dark-gray border border-dark-gray/30 rounded px-1 py-0.5 w-full outline-none" autoFocus />
+                    ) : (
+                      <p className="text-[10px] font-bold text-dark-gray truncate">{ef.name}</p>
+                    )}
+                    {!isEditing && displayPath && <p className="text-[8px] text-dark-gray/40 truncate">{displayPath}</p>}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
+                    {isAuditor && !isReadOnly && onRenameFile && !isEditing && (
+                      <button onClick={() => { setEditFileId(ef.id); setEditFileVal(ef.name); }}
+                        className="p-1.5 text-dark-gray/35 hover:text-dark-gray hover:bg-violet-100 rounded-lg cursor-pointer" title="Edit nama">
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                    )}
                     {toEmbedUrl(ef.link) && (
                       <button onClick={() => setPreviewFile(ef)}
                         className="p-1.5 text-dark-gray/50 hover:text-dark-gray hover:bg-violet-100 rounded-lg cursor-pointer" title="Preview">
@@ -311,7 +355,7 @@ export default function EvidencePanel({
                   if (!files || files.length === 0) return;
                   if (files.length === 1) {
                     const file = files[0];
-                    if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; }
+                    if (file.size > 15 * 1024 * 1024) { onShowToast?.('Ukuran file maksimal 15 MB.', 'error'); if (fileInputRef.current) fileInputRef.current.value = ''; return; }
                     initiateUpload(file);
                   } else {
                     const validFiles = Array.from(files).filter(f => f.size > 0);
