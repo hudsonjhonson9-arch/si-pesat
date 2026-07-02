@@ -161,11 +161,6 @@ export default function EvidencePanel({
     }
   }, []);
 
-  const handleClickUpload = () => {
-    if (isUploading) return;
-    fileInputRef.current?.click();
-  };
-
   const handlePasteUrlSubmit = async () => {
     if (!pasteUrl.trim()) return;
     const url = pasteUrl.trim();
@@ -307,44 +302,54 @@ export default function EvidencePanel({
           </div>
 
           {tab === 'upload' ? (
-            <div onDragOver={handleDragOver} onDragLeave={() => setIsDragOver(false)} onDrop={handleDrop}
-              onClick={handleClickUpload}
-              className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all cursor-pointer ${isUploading ? 'border-peach-accent/50 bg-peach-accent/5 cursor-wait' : isDragOver ? 'border-baby-blue bg-baby-blue/10' : 'border-dark-gray/15 bg-white hover:border-peach-accent/50 hover:bg-peach-accent/5'}`}>
-              <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" disabled={isUploading}
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (!files || files.length === 0) return;
-                  if (files.length === 1) {
-                    const file = files[0];
-                    if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; }
-                    initiateUpload(file);
-                  } else {
-                    const validFiles = Array.from(files).filter(f => f.size > 0);
-                    if (validFiles.length > 0) { setPendingFiles(validFiles); }
-                  }
-                  if (fileInputRef.current) fileInputRef.current.value = '';
-                }} className="hidden" />
-              <input ref={folderInputRef} type="file" webkitdirectory="true" className="hidden"
-                onChange={(e) => {
-                  const files = e.target.files ? (Array.from(e.target.files) as File[]).filter(f => f.size > 0) : [];
-                  if (files.length > 0) { setPendingFiles(files); }
-                  if (folderInputRef.current) folderInputRef.current.value = '';
-                }} />
-              {isUploading ? (
-                <div className="flex flex-col items-center gap-1.5">
-                  <Loader2 className="w-5 h-5 text-peach-accent animate-spin" />
-                  <p className="text-[10px] font-bold text-dark-gray">
-                    {uploadProgress ? `Mengunggah ${uploadProgress.done}/${uploadProgress.total}...` : 'Mengunggah...'}
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-1.5">
-                  <Upload className="w-4 h-4 text-dark-gray/40" />
-                  <p className="text-[10px] font-bold text-dark-gray">{isDragOver ? (isDragFolder ? 'Lepaskan folder untuk mengunggah' : 'Lepaskan untuk mengunggah') : 'Seret atau klik untuk pilih berkas'}</p>
-                  <p className="text-[8px] text-dark-gray/40">PDF, Excel, Word, Gambar — Maks. 15MB</p>
-                  <button onClick={(e) => { e.stopPropagation(); folderInputRef.current?.click(); }} className="text-[8px] text-peach-accent hover:text-peach-accent/70 underline cursor-pointer">atau unggah semua isi folder</button>
-                </div>
-              )}
+            <div>
+              <div onDragOver={handleDragOver} onDragLeave={() => setIsDragOver(false)} onDrop={handleDrop}
+                className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all ${isUploading ? 'border-peach-accent/50 bg-peach-accent/5 cursor-wait' : isDragOver ? 'border-baby-blue bg-baby-blue/10' : 'border-dark-gray/15 bg-white'}`}>
+                <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" disabled={isUploading}
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (!files || files.length === 0) return;
+                    if (files.length === 1) {
+                      const file = files[0];
+                      if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; }
+                      initiateUpload(file);
+                    } else {
+                      const validFiles = Array.from(files).filter(f => f.size > 0);
+                      if (validFiles.length > 0) { setPendingFiles(validFiles); }
+                    }
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }} className="hidden" />
+                <input ref={folderInputRef} type="file" webkitdirectory="true" className="hidden"
+                  onChange={(e) => {
+                    const files = e.target.files ? (Array.from(e.target.files) as File[]).filter(f => f.size > 0) : [];
+                    if (files.length > 0) { setPendingFiles(files); }
+                    if (folderInputRef.current) folderInputRef.current.value = '';
+                  }} />
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Loader2 className="w-5 h-5 text-peach-accent animate-spin" />
+                    <p className="text-[10px] font-bold text-dark-gray">
+                      {uploadProgress ? `Mengunggah ${uploadProgress.done}/${uploadProgress.total}...` : 'Mengunggah...'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Upload className="w-4 h-4 text-dark-gray/40" />
+                    <p className="text-[10px] font-bold text-dark-gray">{isDragOver ? (isDragFolder ? 'Lepaskan folder untuk mengunggah' : 'Lepaskan untuk mengunggah') : 'Seret dan lepas berkas di sini'}</p>
+                    <p className="text-[8px] text-dark-gray/40">PDF, Excel, Word, Gambar — Maks. 15MB</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => fileInputRef.current?.click()} disabled={isUploading}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-dark-gray hover:bg-dark-gray/80 text-white rounded-lg text-[10px] font-extrabold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                  <Upload className="w-3.5 h-3.5" /> Pilih Berkas
+                </button>
+                <button onClick={() => folderInputRef.current?.click()} disabled={isUploading}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border-2 border-dashed border-dark-gray/20 hover:border-peach-accent/50 text-dark-gray/70 hover:text-peach-accent rounded-lg text-[10px] font-extrabold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                  <Upload className="w-3.5 h-3.5" /> Pilih Folder
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-2">
