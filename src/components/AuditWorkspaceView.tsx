@@ -120,7 +120,7 @@ export default function AuditWorkspaceView({
         return d.toISOString().split('T')[0];
       };
       return [
-        { id: 'milestone_2', name: 'Pelaksanaan / KKA', startDate: getFutureDate(0), targetDate: getFutureDate(14), notes: '' },
+        { id: 'milestone_2', name: 'Pelaksanaan Audit', startDate: getFutureDate(0), targetDate: getFutureDate(14), notes: '' },
       ];
     }
     return data.filter(m => m.id === 'milestone_2');

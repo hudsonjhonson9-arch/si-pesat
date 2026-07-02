@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, FileText, FileSpreadsheet, File, Image, Link2, Loader2, AlertTriangle, Eye, ExternalLink, Download, Copy, CheckCircle2, Edit2 } from 'lucide-react';
+import { Upload, X, FileText, FileSpreadsheet, File, Image, Link2, Loader2, AlertTriangle, Eye, ExternalLink, Download, Copy, CheckCircle2, Edit2, Folder } from 'lucide-react';
 import { EvidenceFile } from '../types';
 
 interface EvidencePanelProps {
@@ -333,22 +333,20 @@ export default function EvidencePanel({
                 </div>
               ) : (
                 <>
-                  <div className={`grid grid-cols-2 gap-3 ${isDragOver ? 'opacity-40' : ''}`}>
+                  <div className={`space-y-2.5 ${isDragOver ? 'opacity-40' : ''}`}>
                     <button onClick={() => fileInputRef.current?.click()} disabled={isUploading}
-                      className="flex flex-col items-center gap-2 px-4 py-5 bg-white border border-dark-gray/12 hover:border-violet-300 hover:bg-violet-50/40 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                      <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center">
-                        <Upload className="w-4 h-4 text-violet-600" />
+                      className="w-full flex flex-col items-center gap-2 px-6 py-8 bg-white border-2 border-dashed border-dark-gray/12 hover:border-violet-300 hover:bg-violet-50/40 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group">
+                      <div className="w-12 h-12 rounded-2xl bg-violet-100 group-hover:bg-violet-200 transition-colors flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-violet-600" />
                       </div>
-                      <span className="text-xs font-extrabold text-dark-gray">Pilih Berkas</span>
-                      <span className="text-[9px] text-dark-gray/40">PDF, Excel, Word, Gambar</span>
+                      <span className="text-sm font-extrabold text-dark-gray">Klik untuk pilih file</span>
+                      <span className="text-[10px] text-dark-gray/40">PDF, Excel, Word, Gambar — Maks. 15 MB per file</span>
+                      <span className="text-[9px] text-dark-gray/30">Atau seret & lepas file ke sini</span>
                     </button>
                     <button onClick={() => folderInputRef.current?.click()} disabled={isUploading}
-                      className="flex flex-col items-center gap-2 px-4 py-5 bg-white border border-dark-gray/12 hover:border-amber-300 hover:bg-amber-50/40 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                      <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
-                        <Upload className="w-4 h-4 text-amber-600" />
-                      </div>
-                      <span className="text-xs font-extrabold text-dark-gray">Pilih Folder</span>
-                      <span className="text-[9px] text-dark-gray/40">Unggah semua isi folder</span>
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-dark-gray/10 hover:border-amber-300 hover:bg-amber-50/40 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                      <Folder className="w-4 h-4 text-amber-600" />
+                      <span className="text-xs font-extrabold text-dark-gray">Atau unggah seluruh isi folder</span>
                     </button>
                   </div>
                   {isDragOver && (
