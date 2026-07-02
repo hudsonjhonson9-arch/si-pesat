@@ -350,33 +350,29 @@ export default function AuditWorkspaceView({
     setNewItemTitle(''); setNewItemDescription(''); setIsAddingItem(false);
   };
 
-  const handleDragStart = (index: number) => {
+  const handleDragStart = (e: React.DragEvent, index: number) => {
     setDragItemIdx(index);
     setDragOverIdx(index);
+    // Make the ghost image look right
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  // Auto-scroll logic: called continuously via rAF while dragging near screen viewport edges
+  // Auto-scroll when dragging near top/bottom of viewport
   const handleDragOverList = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const ZONE = 80; // px zone from screen top/bottom edges
-    const MAX_SPEED = 20;
+    const ZONE = 80;
+    const MAX_SPEED = 18;
     const clientY = e.clientY;
-    const viewportHeight = window.innerHeight;
+    const viewportH = window.innerHeight;
 
-    // Cancel previous frame
     if (scrollRafRef.current !== null) {
       cancelAnimationFrame(scrollRafRef.current);
       scrollRafRef.current = null;
     }
 
     let speed = 0;
-    if (clientY < ZONE) {
-      // Near top of screen viewport — scroll up
-      speed = -MAX_SPEED * (1 - clientY / ZONE);
-    } else if (viewportHeight - clientY < ZONE) {
-      // Near bottom of screen viewport — scroll down
-      speed = MAX_SPEED * (1 - (viewportHeight - clientY) / ZONE);
-    }
+    if (clientY < ZONE) speed = -MAX_SPEED * (1 - clientY / ZONE);
+    else if (viewportH - clientY < ZONE) speed = MAX_SPEED * (1 - (viewportH - clientY) / ZONE);
 
     if (speed !== 0) {
       const scroll = () => {
@@ -389,21 +385,10 @@ export default function AuditWorkspaceView({
 
   const handleDragOverItem = (e: React.DragEvent, idx: number) => {
     e.preventDefault();
-    if (dragItemIdx === null || dragItemIdx === idx || !activeCategory || searchQuery.trim()) return;
-
-    // Immediately swap indices in local state for live preview
-    const items = [...activeCategory.items];
-    const [moved] = items.splice(dragItemIdx, 1);
-    items.splice(idx, 0, moved);
-
-    const updatedCategories = audit.categories.map(cat => 
-      cat.id === activeCategory.id ? { ...cat, items } : cat
-    );
-
-    // Live update the list layout immediately
-    onUpdates({ ...audit, categories: updatedCategories });
-    setDragItemIdx(idx);
-    setDragOverIdx(idx);
+    e.dataTransfer.dropEffect = 'move';
+    if (dragItemIdx === null || searchQuery.trim()) return;
+    // Only update the visual indicator, do NOT reorder data yet
+    if (dragOverIdx !== idx) setDragOverIdx(idx);
   };
 
   const stopAutoScroll = () => {
@@ -413,8 +398,19 @@ export default function AuditWorkspaceView({
     }
   };
 
-  const handleDrop = (targetIdx: number) => {
+  const handleDrop = (e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault();
     stopAutoScroll();
+    if (dragItemIdx !== null && dragItemIdx !== targetIdx && activeCategory && !searchQuery.trim()) {
+      // Perform the actual reorder only on drop
+      const items = [...activeCategory.items];
+      const [moved] = items.splice(dragItemIdx, 1);
+      items.splice(targetIdx, 0, moved);
+      const updatedCategories = audit.categories.map(cat =>
+        cat.id === activeCategory.id ? { ...cat, items } : cat
+      );
+      onUpdates({ ...audit, categories: updatedCategories });
+    }
     setDragItemIdx(null);
     setDragOverIdx(null);
   };
@@ -743,34 +739,41 @@ export default function AuditWorkspaceView({
             </div>
           )}
 
+          {/* Drop zone before first item */}
+          {dragItemIdx !== null && dragItemIdx !== 0 && (
+            <div
+              onDragOver={(e) => { e.preventDefault(); if (dragOverIdx !== 0) setDragOverIdx(0); }}
+              onDrop={(e) => handleDrop(e, 0)}
+              className={`h-2 rounded-full mx-2 transition-all duration-150 ${dragOverIdx === 0 ? 'h-10 bg-blue-100 border-2 border-dashed border-blue-400 flex items-center justify-center' : 'bg-transparent'}`}>
+              {dragOverIdx === 0 && <div className="w-full h-0.5 bg-blue-500 rounded-full mx-3" />}
+            </div>
+          )}
+
           {filteredItems.map((item, idx) => {
             const isDragging = dragItemIdx === idx;
-            const isDropTarget = dragOverIdx === idx && dragItemIdx !== idx;
+            const isDropTarget = dragOverIdx === idx + 1 && dragItemIdx !== null && dragItemIdx !== idx && dragItemIdx !== idx + 1;
             return (
-              <div key={item.id}
-                draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
-                onDragStart={() => handleDragStart(idx)}
-                onDragOver={(e) => handleDragOverItem(e, idx)}
-                onDrop={() => handleDrop(idx)}
-                onDragEnd={handleDragEnd}
-                style={{
-                  opacity: isDragging ? 0.4 : 1,
-                  transform: isDropTarget ? 'scale(0.98)' : 'scale(1)',
-                  transition: 'opacity 0.15s, transform 0.15s, border-color 0.15s',
-                }}
-                className={`rounded-xl border transition-all shadow-xs overflow-hidden ${
-                  isDropTarget
-                    ? 'border-blue-500 bg-blue-50/50'
-                    : isDragging
-                      ? 'border-dashed border-slate-300 bg-slate-100/40'
-                      : 'border-gray-200/60 bg-gray-50/80'
-                }`}>
+              <React.Fragment key={item.id}>
+                <div
+                  draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
+                  onDragStart={(e) => handleDragStart(e, idx)}
+                  onDragOver={(e) => handleDragOverItem(e, idx)}
+                  onDrop={(e) => handleDrop(e, idx)}
+                  onDragEnd={handleDragEnd}
+                  style={{ opacity: isDragging ? 0.32 : 1, transition: 'opacity 0.12s' }}
+                  className={`rounded-xl border shadow-xs overflow-hidden ${
+                    isDragging
+                      ? 'border-dashed border-blue-400 bg-blue-50/20'
+                      : dragOverIdx === idx && dragItemIdx !== null && dragItemIdx !== idx
+                        ? 'border-blue-400 ring-2 ring-blue-200'
+                        : 'border-gray-200/60 bg-gray-50/80'
+                  }`}>
                 <div className="bg-emerald-50/60 px-4 py-3 border-b border-emerald-100/60">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim() && (
-                          <GripVertical className="w-3.5 h-3.5 text-dark-gray/25 shrink-0 cursor-grab active:cursor-grabbing" />
+                          <GripVertical className="w-3.5 h-3.5 text-dark-gray/30 shrink-0 cursor-grab active:cursor-grabbing" />
                         )}
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 bg-sky-100 text-sky-700">Dokumen {idx + 1}</span>
                         {editingTitleId === item.id ? (
@@ -825,6 +828,34 @@ export default function AuditWorkspaceView({
                     onShowToast={onShowToast}
                   />
 
+                  {/* Riwayat Dokumen */}
+                  {item.evidenceHistory && item.evidenceHistory.length > 0 && (
+                    <details className="group">
+                      <summary className="cursor-pointer list-none flex items-center gap-1.5 text-[10px] font-bold text-dark-gray/50 hover:text-dark-gray/70 select-none">
+                        <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                        Riwayat Dokumen ({item.evidenceHistory.length})
+                      </summary>
+                      <div className="mt-2 space-y-1.5 border-l-2 border-slate-200 pl-3 ml-1">
+                        {[...item.evidenceHistory].reverse().map((h, hi) => (
+                          <div key={hi} className="text-[10px] text-dark-gray/60">
+                            <span className={`inline-block px-1.5 py-0.5 rounded font-bold mr-1.5 ${
+                              h.action === 'diunggah' ? 'bg-emerald-100 text-emerald-700' :
+                              h.action === 'ditautkan' ? 'bg-blue-100 text-blue-700' :
+                              h.action === 'dihapus' ? 'bg-rose-100 text-rose-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>{h.action || 'diubah'}</span>
+                            {h.link ? (
+                              <a href={h.link} target="_blank" rel="noreferrer" className="font-semibold text-dark-gray/80 hover:underline mr-1.5">{h.name}</a>
+                            ) : (
+                              <span className="font-semibold text-dark-gray/80 mr-1.5">{h.name}</span>
+                            )}
+                            <span className="text-dark-gray/40">oleh {h.uploadedBy} · {new Date(h.uploadedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
                   {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (
                     <div className="flex justify-end pt-1">
                       <button onClick={() => handleDeleteItem(item.id)}
@@ -834,7 +865,19 @@ export default function AuditWorkspaceView({
                     </div>
                   )}
                 </div>
-              </div>
+                </div>
+                {/* Drop zone AFTER this item — acts as insertion point between cards */}
+                {dragItemIdx !== null && (
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); const target = idx + 1; if (dragOverIdx !== target) setDragOverIdx(target); }}
+                    onDrop={(e) => handleDrop(e, idx + 1)}
+                    className={`transition-all duration-150 rounded-lg mx-1 ${
+                      dragOverIdx === idx + 1 && dragItemIdx !== null && dragItemIdx !== idx && dragItemIdx !== idx + 1
+                        ? 'h-10 my-1 bg-blue-100 border-2 border-dashed border-blue-400'
+                        : 'h-1.5'
+                    }`} />
+                )}
+              </React.Fragment>
             );
           })}
 

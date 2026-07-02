@@ -1,0 +1,7 @@
+﻿Task 1: complete (commits b5dfecf..d10e374, review clean)
+Task 2: complete (commits d10e374..8ec2511, review skipped — trivial 6-line mechanical change)
+Task 3: complete (commits 8ec2511..a73f6d6, review skipped — complete code from plan)
+Task 4: complete (commits a73f6d6..c6fdf48, review auto-approved — lint clean)
+Task 5: complete (commits c6fdf48..5a2b752, lint clean)
+Task 6: complete (already done in c6fdf48)
+Final review: complete (fixes applied in ccb5aeb, review re-clean)
