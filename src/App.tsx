@@ -33,8 +33,6 @@ import { supabase } from './lib/supabase';
 import { logActivity } from './lib/log';
 import { permissionChecker } from './lib/permissions';
 import { Session, User } from '@supabase/supabase-js';
-import { Notification, createNotification } from './lib/notifications';
-import NotificationBell from './components/NotificationBell';
 
 // Custom subcomponents
 import HomeView from './components/HomeView';
@@ -64,8 +62,6 @@ export default function App() {
   const [bidangList, setBidangList] = useState<Bidang[]>([]);
   const [rolesList, setRolesList] = useState<Role[]>([]);
   const [permissionsList, setPermissionsList] = useState<Permission[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const notificationChannelRef = React.useRef<any>(null);
 
   // Router logic for hash changes (browser back/forward support)
   useEffect(() => {
@@ -607,35 +603,13 @@ export default function App() {
             if (data) permissionChecker.setRolePermissions(data as RolePermission[]);
           });
 
-          supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(30).then(({ data }) => {
-            if (data) setNotifications(data as Notification[]);
-          });
-
-          if (notificationChannelRef.current) {
-            supabase.removeChannel(notificationChannelRef.current);
-          }
-          const nChannel = supabase.channel('notifications_changes')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${session.user.id}` }, (payload) => {
-              if (payload.new) {
-                setNotifications(prev => [payload.new as Notification, ...prev].slice(0, 30));
-              }
-            })
-            .subscribe();
-          notificationChannelRef.current = nChannel;
-      } else {
-         setIsSessionActive(false);
-         if (notificationChannelRef.current) {
-           supabase.removeChannel(notificationChannelRef.current);
-           notificationChannelRef.current = null;
-         }
-      }
+       } else {
+          setIsSessionActive(false);
+       }
     });
 
     return () => {
       subscription.unsubscribe();
-      if (notificationChannelRef.current) {
-        supabase.removeChannel(notificationChannelRef.current);
-      }
     };
   }, []);
 
@@ -868,39 +842,13 @@ export default function App() {
     showToast(`Pemeriksaan KKA ${opdName} berhasil diinisiasi.`, 'success');
   };
 
-  const notifyCategoryStatusChange = async (oldCat: AuditCategory, newCat: AuditCategory, audit: OpdAudit) => {
-    let title = '';
-    let message = '';
-    let type = 'info';
-    let entityType = 'audit';
-    let entityId = `${audit.id}/${newCat.id}`;
-
+  const notifyCategoryStatusChange = (oldCat: AuditCategory, newCat: AuditCategory, audit: OpdAudit) => {
     if ((!oldCat.status || oldCat.status === 'Draft' || oldCat.status === 'Sedang Berjalan') && newCat.status === 'Direview') {
-      title = `Review diminta: ${audit.opdName}`;
-      message = `${newCat.name} diajukan untuk review oleh ${newCat.auditorName || 'Auditor'}`;
-      type = 'review_requested';
-      const strukturalUsers = userProfiles.filter(p =>
-        p.role === 'Inspektur' || p.role === 'Inspektur Pembantu'
-      );
-      for (const u of strukturalUsers) {
-        await createNotification(u.id, title, message, type, `workspace/${entityId}`, entityType, entityId);
-      }
+      showToast(`"${newCat.name}" diajukan untuk review`, 'info');
     } else if (oldCat.status === 'Direview' && newCat.status === 'Selesai') {
-      title = `Kategori disetujui: ${audit.opdName}`;
-      message = `${newCat.name} telah disetujui oleh reviewer.`;
-      type = 'approved';
-      const targetUser = userProfiles.find(p => p.full_name === newCat.auditorName);
-      if (targetUser) {
-        await createNotification(targetUser.id, title, message, type, `workspace/${entityId}`, entityType, entityId);
-      }
+      showToast(`"${newCat.name}" telah disetujui`, 'success');
     } else if (oldCat.status === 'Direview' && newCat.status === 'Sedang Berjalan') {
-      title = `Revisi diminta: ${audit.opdName}`;
-      message = `${newCat.name} dikembalikan oleh reviewer untuk diperbaiki.`;
-      type = 'revision_requested';
-      const targetUser = userProfiles.find(p => p.full_name === newCat.auditorName);
-      if (targetUser) {
-        await createNotification(targetUser.id, title, message, type, `workspace/${entityId}`, entityType, entityId);
-      }
+      showToast(`"${newCat.name}" dikembalikan untuk diperbaiki`, 'info');
     }
   };
 
@@ -1404,13 +1352,6 @@ export default function App() {
             >
               <PlusCircle className="w-4 h-4" /> Mulai Audit Baru
             </button>
-
-            {/* Notification Bell */}
-            <NotificationBell
-              notifications={notifications}
-              userId={user?.id || ''}
-              onNavigate={(hash) => navigateTo(hash)}
-            />
 
             {/* Right Profile & Role */}
             <div className="flex items-center gap-3">
