@@ -302,54 +302,62 @@ export default function EvidencePanel({
           </div>
 
           {tab === 'upload' ? (
-            <div>
-              <div onDragOver={handleDragOver} onDragLeave={() => setIsDragOver(false)} onDrop={handleDrop}
-                className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all ${isUploading ? 'border-peach-accent/50 bg-peach-accent/5 cursor-wait' : isDragOver ? 'border-baby-blue bg-baby-blue/10' : 'border-dark-gray/15 bg-white'}`}>
-                <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" disabled={isUploading}
-                  onChange={(e) => {
-                    const files = e.target.files;
-                    if (!files || files.length === 0) return;
-                    if (files.length === 1) {
-                      const file = files[0];
-                      if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; }
-                      initiateUpload(file);
-                    } else {
-                      const validFiles = Array.from(files).filter(f => f.size > 0);
-                      if (validFiles.length > 0) { setPendingFiles(validFiles); }
-                    }
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }} className="hidden" />
-                <input ref={folderInputRef} type="file" webkitdirectory="true" className="hidden"
-                  onChange={(e) => {
-                    const files = e.target.files ? (Array.from(e.target.files) as File[]).filter(f => f.size > 0) : [];
-                    if (files.length > 0) { setPendingFiles(files); }
-                    if (folderInputRef.current) folderInputRef.current.value = '';
-                  }} />
-                {isUploading ? (
-                  <div className="flex flex-col items-center gap-1.5">
-                    <Loader2 className="w-5 h-5 text-peach-accent animate-spin" />
-                    <p className="text-[10px] font-bold text-dark-gray">
-                      {uploadProgress ? `Mengunggah ${uploadProgress.done}/${uploadProgress.total}...` : 'Mengunggah...'}
-                    </p>
+            <div onDragOver={handleDragOver} onDragLeave={() => setIsDragOver(false)} onDrop={handleDrop}
+              className={`relative rounded-xl p-4 transition-all ${isUploading ? 'opacity-60 pointer-events-none' : ''}`}>
+              <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" disabled={isUploading}
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (!files || files.length === 0) return;
+                  if (files.length === 1) {
+                    const file = files[0];
+                    if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; }
+                    initiateUpload(file);
+                  } else {
+                    const validFiles = Array.from(files).filter(f => f.size > 0);
+                    if (validFiles.length > 0) { setPendingFiles(validFiles); }
+                  }
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }} className="hidden" />
+              <input ref={folderInputRef} type="file" webkitdirectory="true" className="hidden"
+                onChange={(e) => {
+                  const files = e.target.files ? (Array.from(e.target.files) as File[]).filter(f => f.size > 0) : [];
+                  if (files.length > 0) { setPendingFiles(files); }
+                  if (folderInputRef.current) folderInputRef.current.value = '';
+                }} />
+              {isUploading ? (
+                <div className="flex flex-col items-center gap-2 py-6">
+                  <Loader2 className="w-6 h-6 text-peach-accent animate-spin" />
+                  <p className="text-xs font-bold text-dark-gray">
+                    {uploadProgress ? `Mengunggah ${uploadProgress.done}/${uploadProgress.total}...` : 'Mengunggah...'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className={`grid grid-cols-2 gap-3 ${isDragOver ? 'opacity-40' : ''}`}>
+                    <button onClick={() => fileInputRef.current?.click()} disabled={isUploading}
+                      className="flex flex-col items-center gap-2 px-4 py-5 bg-white border border-dark-gray/12 hover:border-violet-300 hover:bg-violet-50/40 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                      <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center">
+                        <Upload className="w-4 h-4 text-violet-600" />
+                      </div>
+                      <span className="text-xs font-extrabold text-dark-gray">Pilih Berkas</span>
+                      <span className="text-[9px] text-dark-gray/40">PDF, Excel, Word, Gambar</span>
+                    </button>
+                    <button onClick={() => folderInputRef.current?.click()} disabled={isUploading}
+                      className="flex flex-col items-center gap-2 px-4 py-5 bg-white border border-dark-gray/12 hover:border-amber-300 hover:bg-amber-50/40 rounded-xl transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                      <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
+                        <Upload className="w-4 h-4 text-amber-600" />
+                      </div>
+                      <span className="text-xs font-extrabold text-dark-gray">Pilih Folder</span>
+                      <span className="text-[9px] text-dark-gray/40">Unggah semua isi folder</span>
+                    </button>
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-1.5">
-                    <Upload className="w-4 h-4 text-dark-gray/40" />
-                    <p className="text-[10px] font-bold text-dark-gray">{isDragOver ? (isDragFolder ? 'Lepaskan folder untuk mengunggah' : 'Lepaskan untuk mengunggah') : 'Seret dan lepas berkas di sini'}</p>
-                    <p className="text-[8px] text-dark-gray/40">PDF, Excel, Word, Gambar — Maks. 15MB</p>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2 mt-2">
-                <button onClick={() => fileInputRef.current?.click()} disabled={isUploading}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-dark-gray hover:bg-dark-gray/80 text-white rounded-lg text-[10px] font-extrabold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                  <Upload className="w-3.5 h-3.5" /> Pilih Berkas
-                </button>
-                <button onClick={() => folderInputRef.current?.click()} disabled={isUploading}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border-2 border-dashed border-dark-gray/20 hover:border-peach-accent/50 text-dark-gray/70 hover:text-peach-accent rounded-lg text-[10px] font-extrabold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                  <Upload className="w-3.5 h-3.5" /> Pilih Folder
-                </button>
-              </div>
+                  {isDragOver && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-baby-blue/10 border-2 border-dashed border-baby-blue rounded-xl pointer-events-none">
+                      <p className="text-sm font-bold text-baby-blue">{isDragFolder ? 'Lepaskan folder' : 'Lepaskan berkas'}</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
