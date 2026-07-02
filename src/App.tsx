@@ -456,7 +456,7 @@ export default function App() {
         }
 
         const realTemplates = templates.filter(t => t.id !== 'template_kosong' && t.categories.length > 0);
-        if (realTemplates.length > 0) {
+        if (realTemplates.length > 0 && isAdmin) {
           const templatePayloads = realTemplates.map(t => ({
             id: t.id,
             name: t.name,
@@ -480,7 +480,7 @@ export default function App() {
       } finally {
         isSyncingRef.current = false;
       }
-  }, []);
+  }, [isAdmin]);
 
   // Trigger debounce 5 detik setiap kali audits/templates berubah
   useEffect(() => {

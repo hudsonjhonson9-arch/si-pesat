@@ -389,6 +389,20 @@ export default function AuditWorkspaceView({
 
   const handleDragOverItem = (e: React.DragEvent, idx: number) => {
     e.preventDefault();
+    if (dragItemIdx === null || dragItemIdx === idx || !activeCategory || searchQuery.trim()) return;
+
+    // Immediately swap indices in local state for live preview
+    const items = [...activeCategory.items];
+    const [moved] = items.splice(dragItemIdx, 1);
+    items.splice(idx, 0, moved);
+
+    const updatedCategories = audit.categories.map(cat => 
+      cat.id === activeCategory.id ? { ...cat, items } : cat
+    );
+
+    // Live update the list layout immediately
+    onUpdates({ ...audit, categories: updatedCategories });
+    setDragItemIdx(idx);
     setDragOverIdx(idx);
   };
 
@@ -401,12 +415,6 @@ export default function AuditWorkspaceView({
 
   const handleDrop = (targetIdx: number) => {
     stopAutoScroll();
-    if (dragItemIdx === null || !activeCategory || searchQuery.trim()) return;
-    const items = [...activeCategory.items];
-    const [moved] = items.splice(dragItemIdx, 1);
-    items.splice(targetIdx, 0, moved);
-    const updatedCategories = audit.categories.map(cat => cat.id === activeCategory.id ? { ...cat, items } : cat);
-    onUpdates({ ...audit, categories: updatedCategories });
     setDragItemIdx(null);
     setDragOverIdx(null);
   };

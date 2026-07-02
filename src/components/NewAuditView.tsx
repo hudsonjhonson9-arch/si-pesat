@@ -97,7 +97,7 @@ export default function NewAuditView({
   // For the add-category panel
   const [selTemplateId, setSelTemplateId] = useState(templates[0]?.id || '');
   const [selCategoryId, setSelCategoryId] = useState('');
-  const [catAuditorName, setCatAuditorName] = useState(defaultAuditorName);
+  const [catAuditorName, setCatAuditorName] = useState('');
   const [catTeamMembers, setCatTeamMembers] = useState<string[]>([]);
   const [catAuditorSearch, setCatAuditorSearch] = useState('');
   const [catTeamSearch, setCatTeamSearch] = useState('');
@@ -396,8 +396,8 @@ export default function NewAuditView({
                           Gunakan "{catAuditorSearch.trim()}"
                         </button>
                       )}
-                      {/* Semua profil yang memenuhi syarat ketua */}
-                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).sort(byNipAge).map(p => {
+                      {/* Semua profil */}
+                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).sort(byNipAge).map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catAuditorName === name;
                         return (
@@ -410,35 +410,16 @@ export default function NewAuditView({
                           </button>
                         );
                       })}
-                      {/* Jika tidak ada yang memenuhi syarat ketua, tampilkan semua profil dengan label */}
-                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role)).length === 0 && (
-                        <>
-                          <p className="px-3 py-1 text-[9px] text-dark-gray/40 font-bold uppercase tracking-wider">Semua Pengguna</p>
-                          {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).map(p => {
-                            const name = p.full_name || p.email;
-                            const isSel = catAuditorName === name;
-                            return (
-                              <button key={p.id} onClick={() => { setCatAuditorName(name); setIsAuditorDropdownOpen(false); setCatAuditorSearch(''); }}
-                                className={`w-full text-left px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 cursor-pointer transition-colors ${isSel ? 'bg-peach-accent text-dark-gray' : 'hover:bg-slate-50 text-dark-gray'}`}>
-                                {isSel && <Check className="w-3 h-3 shrink-0" />}
-                                <User className="w-3 h-3 shrink-0 text-dark-gray/40" />
-                                {name}
-                              </button>
-                            );
-                          })}
-                        </>
-                      )}
-                      {userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).length === 0
-                        && userProfiles.filter(p => KETUA_TIM_ROLES.includes(p.role)).length > 0
+                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).length === 0
                         && !catAuditorSearch.trim() && (
-                        <div className="px-3 py-2 text-[10px] text-dark-gray/40 italic">Tidak ada auditor yang memenuhi syarat ketua tim</div>
+                        <div className="px-3 py-2 text-[10px] text-dark-gray/40 italic">Tidak ada data pengguna</div>
                       )}
                     </div>
                   </div>
                 )}
-                {/* Info kalau nama default tidak memenuhi syarat */}
-                {catAuditorName && !userProfiles.find(p => KETUA_TIM_ROLES.includes(p.role) && (p.full_name || p.email) === catAuditorName) && (
-                  <p className="text-[9px] text-amber-600 font-semibold">⚠ Nama ini tidak memenuhi syarat jabatan ketua tim, namun tetap bisa digunakan.</p>
+                {/* Info role */}
+                {catAuditorName && (
+                  <p className="text-[9px] text-slate-500 font-semibold">Ketua tim yang dipilih: {catAuditorName}</p>
                 )}
               </div>
 
@@ -465,7 +446,7 @@ export default function NewAuditView({
                         className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-none focus:border-peach-accent" />
                     </div>
                     <div className="overflow-y-auto p-1 space-y-0.5">
-                      {userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).sort(byNipAge).map(p => {
+                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).sort(byNipAge).map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catTeamMembers.includes(name);
                         return (
@@ -473,25 +454,10 @@ export default function NewAuditView({
                             className={`w-full text-left px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 cursor-pointer transition-colors ${isSel ? 'bg-peach-accent text-dark-gray' : 'hover:bg-slate-50 text-dark-gray'}`}>
                             {isSel ? <Check className="w-3 h-3 shrink-0" /> : <Users className="w-3 h-3 shrink-0 text-dark-gray/40" />}
                             {name}
+                            <span className="ml-auto text-[9px] text-dark-gray/40 font-normal">{p.role}</span>
                           </button>
                         );
                       })}
-                      {userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').length === 0 && (
-                        <>
-                          <p className="px-3 py-1 text-[9px] text-dark-gray/40 font-bold uppercase tracking-wider">Semua Pengguna</p>
-                          {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).map(p => {
-                            const name = p.full_name || p.email;
-                            const isSel = catTeamMembers.includes(name);
-                            return (
-                              <button key={p.id} onClick={e => { e.stopPropagation(); setCatTeamMembers(prev => isSel ? prev.filter(n => n !== name) : [...prev, name]); }}
-                                className={`w-full text-left px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 cursor-pointer transition-colors ${isSel ? 'bg-peach-accent text-dark-gray' : 'hover:bg-slate-50 text-dark-gray'}`}>
-                                {isSel ? <Check className="w-3 h-3 shrink-0" /> : <Users className="w-3 h-3 shrink-0 text-dark-gray/40" />}
-                                {name}
-                              </button>
-                            );
-                          })}
-                        </>
-                      )}
                       {userProfiles.length === 0 && (
                         <p className="px-3 py-2 text-[10px] text-dark-gray/40 italic">Belum ada data pengguna.</p>
                       )}
