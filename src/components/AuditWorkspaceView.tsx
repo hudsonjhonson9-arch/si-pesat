@@ -9,7 +9,7 @@ import SuratTugasGenerator from './SuratTugasGenerator';
 import NotaDinasGenerator from './NotaDinasGenerator';
 import SPPDGenerator from './SPPDGenerator';
 import {
-  Plus, Trash2, Check, ChevronDown, ShieldOff, Lock, FileText, Edit2, Calendar
+  Plus, Trash2, Check, ChevronDown, ShieldOff, Lock, FileText, Edit2, Calendar, GripVertical
 } from 'lucide-react';
 
 const byNipAge = (a: UserProfile, b: UserProfile) => {
@@ -668,6 +668,9 @@ export default function AuditWorkspaceView({
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
+                        {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim() && (
+                          <GripVertical className="w-3.5 h-3.5 text-dark-gray/25 shrink-0 cursor-grab active:cursor-grabbing" />
+                        )}
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 bg-sky-100 text-sky-700">Dokumen {idx + 1}</span>
                         {editingTitleId === item.id ? (
                           <input type="text" value={editItemTitle}
