@@ -765,7 +765,7 @@ export default function App() {
     audit.categories.forEach(cat => {
       cat.items.forEach(item => {
         totalItems++;
-        if (item.evidenceLink && item.evidenceLink.trim() !== '') uploadedItems++;
+        if (item.evidenceFiles && item.evidenceFiles.length > 0) uploadedItems++;
       });
     });
 

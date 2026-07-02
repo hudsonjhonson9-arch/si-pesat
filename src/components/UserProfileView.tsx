@@ -65,7 +65,7 @@ export default function UserProfileView({ currentUser, userRole, isAdmin = false
       let total = 0, uploaded = 0;
       a.categories.forEach(c => c.items.forEach(item => {
         total++;
-        if (item.evidenceLink && item.evidenceLink.trim() !== '') uploaded++;
+        if (item.evidenceFiles && item.evidenceFiles.length > 0) uploaded++;
       }));
       map[a.id] = { uploaded, total, pct: total > 0 ? Math.round((uploaded / total) * 100) : 0 };
     });
