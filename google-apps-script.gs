@@ -156,6 +156,14 @@ function doPost(e) {
       currentFolder = getOrCreateFolder(currentFolder, payload.auditType);
     }
 
+    // subPath for nested folder structure from browser folder upload
+    if (payload.subPath) {
+      var pathParts = payload.subPath.split('/').filter(function(p) { return p.trim() !== ''; });
+      for (var i = 0; i < pathParts.length; i++) {
+        currentFolder = getOrCreateFolder(currentFolder, pathParts[i]);
+      }
+    }
+
     var file;
     if (payload.action === 'copy') {
       const sourceFile = DriveApp.getFileById(payload.sourceId);
