@@ -302,8 +302,19 @@ export default function EvidencePanel({
             <div onDragOver={handleDragOver} onDragLeave={() => setIsDragOver(false)} onDrop={handleDrop}
               onClick={handleClickUpload}
               className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all cursor-pointer ${isUploading ? 'border-peach-accent/50 bg-peach-accent/5 cursor-wait' : isDragOver ? 'border-baby-blue bg-baby-blue/10' : 'border-dark-gray/15 bg-white hover:border-peach-accent/50 hover:bg-peach-accent/5'}`}>
-              <input ref={fileInputRef} type="file" accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" disabled={isUploading}
-                onChange={(e) => { const file = e.target.files?.[0]; if (file) { if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; } initiateUpload(file); } }} className="hidden" />
+              <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" disabled={isUploading}
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (!files || files.length === 0) return;
+                  if (files.length === 1) {
+                    const file = files[0];
+                    if (file.size > 15 * 1024 * 1024) { alert('Ukuran file maksimal 15 MB.'); if (fileInputRef.current) fileInputRef.current.value = ''; return; }
+                    initiateUpload(file);
+                  } else {
+                    const validFiles = Array.from(files).filter(f => f.size > 0);
+                    if (validFiles.length > 0) { onUploadFolder(validFiles); if (fileInputRef.current) fileInputRef.current.value = ''; }
+                  }
+                }} className="hidden" />
               <input ref={folderInputRef} type="file" webkitdirectory="true" className="hidden"
                 onChange={(e) => {
                   const files = e.target.files ? (Array.from(e.target.files) as File[]).filter(f => f.size > 0) : [];
@@ -351,11 +362,11 @@ export default function EvidencePanel({
             <div className="space-y-2">
               <button onClick={() => { setShowFolderPicker(false); fileInputRef.current?.click(); }}
                 className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:bg-peach-accent/10 font-bold text-xs flex items-center gap-3 cursor-pointer">
-                <Upload className="w-4 h-4" /> Unggah File
+                <Upload className="w-4 h-4" /> Unggah File (1 atau banyak)
               </button>
               <button onClick={() => { setShowFolderPicker(false); folderInputRef.current?.click(); }}
                 className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:bg-peach-accent/10 font-bold text-xs flex items-center gap-3 cursor-pointer">
-                <Upload className="w-4 h-4" /> Unggah Folder
+                <Upload className="w-4 h-4" /> Unggah Semua Isi Folder
               </button>
               <button onClick={() => setShowFolderPicker(false)} className="w-full text-center py-2 text-[10px] font-bold text-slate-500 cursor-pointer">Batal</button>
             </div>
