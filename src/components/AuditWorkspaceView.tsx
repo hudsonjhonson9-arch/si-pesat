@@ -123,7 +123,10 @@ export default function AuditWorkspaceView({
         { id: 'milestone_2', name: 'Pelaksanaan Audit', startDate: getFutureDate(0), targetDate: getFutureDate(14), notes: '' },
       ];
     }
-    return data.filter(m => m.id === 'milestone_2');
+    return data.filter(m => m.id === 'milestone_2').map(m => ({
+      ...m,
+      name: m.name === 'Pelaksanaan / KKA' ? 'Pelaksanaan Audit' : m.name,
+    }));
   }, [audit.schedule, audit.auditDate]);
 
   const handleUpdateSchedule = (updatedMilestones: AuditMilestone[]) => {
