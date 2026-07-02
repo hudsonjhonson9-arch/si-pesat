@@ -185,6 +185,7 @@ export default function AuditWorkspaceView({
   }, []);
 
   const handleDirectUpload = async (itemId: string, file: File, newName?: string) => {
+    if (!isTeamMember) { alert('Hanya anggota tim yang dapat mengunggah dokumen.'); return; }
     const hasConflict = await checkConflict(itemId, 'Unggah dokumen');
     if (hasConflict) return;
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
@@ -216,6 +217,7 @@ export default function AuditWorkspaceView({
   };
 
   const handleDirectCopy = async (itemId: string, sourceUrl: string, currentName: string) => {
+    if (!isTeamMember) { alert('Hanya anggota tim yang dapat menautkan dokumen.'); return; }
     if (!sourceUrl || !sourceUrl.includes('drive.google.com')) return;
     const hasConflict = await checkConflict(itemId, 'Tautkan dokumen');
     if (hasConflict) return;
@@ -247,6 +249,7 @@ export default function AuditWorkspaceView({
   };
 
   const handleFolderUpload = async (itemId: string, files: File[]) => {
+    if (!isTeamMember) { alert('Hanya anggota tim yang dapat mengunggah dokumen.'); return; }
     setUploadingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       await uploadFolderFiles(files, {

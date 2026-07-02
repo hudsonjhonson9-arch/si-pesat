@@ -97,7 +97,6 @@ export default function EvidencePanel({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [previewFile, setPreviewFile] = useState<EvidenceFile | null>(null);
-  const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [isDragFolder, setIsDragFolder] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
@@ -164,7 +163,7 @@ export default function EvidencePanel({
 
   const handleClickUpload = () => {
     if (isUploading) return;
-    setShowFolderPicker(true);
+    fileInputRef.current?.click();
   };
 
   const handlePasteUrlSubmit = async () => {
@@ -341,8 +340,9 @@ export default function EvidencePanel({
               ) : (
                 <div className="flex flex-col items-center gap-1.5">
                   <Upload className="w-4 h-4 text-dark-gray/40" />
-                  <p className="text-[10px] font-bold text-dark-gray">{isDragOver ? (isDragFolder ? 'Lepaskan folder untuk mengunggah' : 'Lepaskan untuk mengunggah') : 'Seret atau klik untuk unggah'}</p>
+                  <p className="text-[10px] font-bold text-dark-gray">{isDragOver ? (isDragFolder ? 'Lepaskan folder untuk mengunggah' : 'Lepaskan untuk mengunggah') : 'Seret atau klik untuk pilih berkas'}</p>
                   <p className="text-[8px] text-dark-gray/40">PDF, Excel, Word, Gambar — Maks. 15MB</p>
+                  <button onClick={(e) => { e.stopPropagation(); folderInputRef.current?.click(); }} className="text-[8px] text-peach-accent hover:text-peach-accent/70 underline cursor-pointer">atau unggah semua isi folder</button>
                 </div>
               )}
             </div>
@@ -368,25 +368,6 @@ export default function EvidencePanel({
         <div className="flex items-center gap-2 bg-dark-gray/4 rounded-lg px-3 py-2 border border-dark-gray/8">
           <File className="w-4 h-4 text-dark-gray/30" />
           <span className="text-[10px] text-dark-gray/45 italic">Belum ada dokumen bukti</span>
-        </div>
-      )}
-
-      {showFolderPicker && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowFolderPicker(false)}>
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-xs w-full p-5" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-sm mb-4">Pilih jenis upload</h3>
-            <div className="space-y-2">
-              <button onClick={() => { setShowFolderPicker(false); fileInputRef.current?.click(); }}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:bg-peach-accent/10 font-bold text-xs flex items-center gap-3 cursor-pointer">
-                <Upload className="w-4 h-4" /> Unggah File (1 atau banyak)
-              </button>
-              <button onClick={() => { setShowFolderPicker(false); folderInputRef.current?.click(); }}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:bg-peach-accent/10 font-bold text-xs flex items-center gap-3 cursor-pointer">
-                <Upload className="w-4 h-4" /> Unggah Semua Isi Folder
-              </button>
-              <button onClick={() => setShowFolderPicker(false)} className="w-full text-center py-2 text-[10px] font-bold text-slate-500 cursor-pointer">Batal</button>
-            </div>
-          </div>
         </div>
       )}
 
