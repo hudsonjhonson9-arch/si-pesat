@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, UserProfile, KKATemplate, AuditMilestone } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl, uploadFolderFiles } from '../lib/googleDrive';
 import { toDisplay, fromDisplay } from '../lib/formatDate';
@@ -87,7 +87,7 @@ export default function AuditWorkspaceView({
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [selectedMasterCatId, setSelectedMasterCatId] = useState('');
-  const [newCatAuditorName, setNewCatAuditorName] = useState(audit.auditorName || '');
+  const [newCatAuditorName, setNewCatAuditorName] = useState('');
   const [newCatTeamMembers, setNewCatTeamMembers] = useState<string[]>([]);
   const [isNewCatAuditorDropdownOpen, setIsNewCatAuditorDropdownOpen] = useState(false);
   const [newCatAuditorSearchQuery, setNewCatAuditorSearchQuery] = useState('');
@@ -795,7 +795,7 @@ export default function AuditWorkspaceView({
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={newCatTeamSearchQuery} onChange={e => setNewCatTeamSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">
-                      {userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
+                      {userProfiles.filter(p => FUNGSIONAL_ROLES.includes(p.role)).filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
                         const name = p.full_name || p.email;
                         return <div key={p.id} onClick={e => { e.stopPropagation(); if (newCatTeamMembers.includes(name)) setNewCatTeamMembers(prev => prev.filter(n => n !== name)); else setNewCatTeamMembers(prev => [...prev, name]); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${newCatTeamMembers.includes(name) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
                           <span>{name}</span>
@@ -848,7 +848,7 @@ export default function AuditWorkspaceView({
                 {isEditCatTeamDropdownOpen && (
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatTeamSearchQuery} onChange={e => setEditCatTeamSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
-                    <div className="overflow-y-auto p-1">{userProfiles.filter(p => p.role === 'Auditor Ahli Pertama').filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
+                    <div className="overflow-y-auto p-1">{userProfiles.filter(p => FUNGSIONAL_ROLES.includes(p.role)).filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
                       const name = p.full_name || p.email;
                       return <div key={p.id} onClick={e => { e.stopPropagation(); if (editCatTeamMembers.includes(name)) setEditCatTeamMembers(prev => prev.filter(n => n !== name)); else setEditCatTeamMembers(prev => [...prev, name]); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${editCatTeamMembers.includes(name) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
                         <span>{name}</span>
