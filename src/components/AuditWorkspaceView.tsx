@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { Reorder, useDragControls, AnimatePresence, motion } from 'motion/react';
 import { OpdAudit, AuditCategory, AuditItem, AuditStatus, UserProfile, KKATemplate, AuditMilestone } from '../types';
 import { uploadEvidenceFile, copyEvidenceFileFromUrl, uploadFolderFiles } from '../lib/googleDrive';
 import { toDisplay, fromDisplay } from '../lib/formatDate';
@@ -82,16 +83,14 @@ export default function AuditWorkspaceView({
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemDescription, setNewItemDescription] = useState('');
-  const [dragItemIdx, setDragItemIdx] = useState<number | null>(null);
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-  const [dragItemId, setDragItemId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
   const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
   const [editItemTitle, setEditItemTitle] = useState('');
   const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
   const itemsListRef = useRef<HTMLDivElement>(null);
-  const scrollRafRef = useRef<number | null>(null);
+  const autoScrollRafRef = useRef<number | null>(null);
+  const autoScrollSpeedRef = useRef<number>(0);
 
   const [uploadingIds, setUploadingIds] = useState<Record<string, boolean>>({});
   const [copyingIds, setCopyingIds] = useState<Record<string, boolean>>({});
@@ -358,87 +357,60 @@ export default function AuditWorkspaceView({
     setNewItemTitle(''); setNewItemDescription(''); setIsAddingItem(false);
   };
 
-  const handleDragStart = (e: React.DragEvent, index: number, itemId: string) => {
-    setDragItemIdx(index);
-    setDragItemId(itemId);
-    setDragOverIdx(index);
-    setDragOverId(itemId);
-    // Make the ghost image look right
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  // Auto-scroll when dragging near top/bottom of viewport
-  const handleDragOverList = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const ZONE = 80;
-    const MAX_SPEED = 18;
-    const clientY = e.clientY;
+  // Called live while an item is being dragged (Framer Motion Reorder.Item onDrag)
+  const handleItemDrag = useCallback((_event: any, info: { point: { x: number; y: number } }) => {
+    const clientY = info?.point?.y;
+    if (clientY == null) return;
+    const ZONE = 130;
+    const MAX_SPEED = 20;
     const viewportH = window.innerHeight;
-
-    if (scrollRafRef.current !== null) {
-      cancelAnimationFrame(scrollRafRef.current);
-      scrollRafRef.current = null;
-    }
 
     let speed = 0;
     if (clientY < ZONE) speed = -MAX_SPEED * (1 - clientY / ZONE);
     else if (viewportH - clientY < ZONE) speed = MAX_SPEED * (1 - (viewportH - clientY) / ZONE);
 
-    if (speed !== 0) {
-      const scroll = () => {
-        window.scrollBy(0, speed);
-        scrollRafRef.current = requestAnimationFrame(scroll);
+    autoScrollSpeedRef.current = speed;
+
+    if (speed !== 0 && autoScrollRafRef.current === null) {
+      const step = () => {
+        window.scrollBy(0, autoScrollSpeedRef.current);
+        if (autoScrollSpeedRef.current !== 0) {
+          autoScrollRafRef.current = requestAnimationFrame(step);
+        } else {
+          autoScrollRafRef.current = null;
+        }
       };
-      scrollRafRef.current = requestAnimationFrame(scroll);
+      autoScrollRafRef.current = requestAnimationFrame(step);
+    } else if (speed === 0 && autoScrollRafRef.current !== null) {
+      cancelAnimationFrame(autoScrollRafRef.current);
+      autoScrollRafRef.current = null;
     }
-  };
+  }, []);
 
-  const handleDragOverItem = (e: React.DragEvent, idx: number, itemId: string) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragItemId === null || searchQuery.trim()) return;
-    // Only update the visual indicator, do NOT reorder data yet
-    if (dragOverId !== itemId) setDragOverId(itemId);
-    if (dragOverIdx !== idx) setDragOverIdx(idx);
-  };
-
-  const stopAutoScroll = () => {
-    if (scrollRafRef.current !== null) {
-      cancelAnimationFrame(scrollRafRef.current);
-      scrollRafRef.current = null;
+  const stopAutoScroll = useCallback(() => {
+    autoScrollSpeedRef.current = 0;
+    if (autoScrollRafRef.current !== null) {
+      cancelAnimationFrame(autoScrollRafRef.current);
+      autoScrollRafRef.current = null;
     }
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent, targetIdx: number, targetId: string) => {
-    e.preventDefault();
+  const handleItemDragStart = useCallback((itemId: string) => {
+    setDraggingItemId(itemId);
+  }, []);
+
+  const handleItemDragEnd = useCallback(() => {
     stopAutoScroll();
-    if (dragItemId !== null && dragItemId !== targetId && activeCategory && !searchQuery.trim()) {
-      // Perform the actual reorder only on drop
-      const items = [...activeCategory.items];
-      const fromIndex = items.findIndex(i => i.id === dragItemId);
-      const toIndex = items.findIndex(i => i.id === targetId);
-      if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
-        const [moved] = items.splice(fromIndex, 1);
-        items.splice(toIndex, 0, moved);
-        const updatedCategories = audit.categories.map(cat =>
-          cat.id === activeCategory.id ? { ...cat, items } : cat
-        );
-        onUpdates({ ...audit, categories: updatedCategories });
-      }
-    }
-    setDragItemIdx(null);
-    setDragItemId(null);
-    setDragOverIdx(null);
-    setDragOverId(null);
-  };
+    setDraggingItemId(null);
+  }, [stopAutoScroll]);
 
-  const handleDragEnd = () => {
-    stopAutoScroll();
-    setDragItemIdx(null);
-    setDragItemId(null);
-    setDragOverIdx(null);
-    setDragOverId(null);
-  };
+  const handleReorder = useCallback((newOrder: AuditItem[]) => {
+    if (!activeCategory) return;
+    const updatedCategories = audit.categories.map(cat =>
+      cat.id === activeCategory.id ? { ...cat, items: newOrder } : cat
+    );
+    onUpdates({ ...audit, categories: updatedCategories });
+  }, [activeCategory, audit, onUpdates]);
 
   const handleDeleteItem = (itemId: string) => {
     const confirmed = window.confirm('Apakah Anda yakin ingin menghapus dokumen pemeriksaan ini dari berkas KKA?');
@@ -695,8 +667,6 @@ export default function AuditWorkspaceView({
         {/* Dokumen KKA */}
         <div
           ref={itemsListRef}
-          onDragOver={dragItemIdx !== null ? handleDragOverList : undefined}
-          onDragLeave={stopAutoScroll}
           className="p-4 space-y-4 bg-baby-blue rounded-b-xl relative">
 
           <div className="flex items-center justify-between gap-3">
@@ -742,179 +712,115 @@ export default function AuditWorkspaceView({
             </form>
           )}
 
-          {/* Auto-scroll sentinel — top */}
-          {dragItemId !== null && (
-            <div
-              className="sticky top-0 z-50 pointer-events-none h-14 -mt-2 mb-2 rounded-xl flex items-center justify-center border border-dashed border-slate-300 bg-slate-50/90 backdrop-blur-xs"
-              style={{
-                opacity: dragOverId !== null && dragOverIdx !== null && dragOverIdx < 2 ? 1 : 0.3,
-                transition: 'opacity 0.2s'
-              }}
+          {/* Top auto-scroll hint zone — shown while dragging near the top of the screen */}
+          <AnimatePresence>
+            {draggingItemId !== null && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 40 }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.18 }}
+                className="sticky top-0 z-50 pointer-events-none mb-2 rounded-xl flex items-center justify-center border border-dashed border-blue-300 bg-blue-50/90 backdrop-blur-xs overflow-hidden"
+              >
+                <span className="text-[10px] font-bold text-blue-500 flex items-center gap-1">
+                  <svg className="w-3 h-3 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
+                  Dekatkan ke sini untuk gulir ke atas
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {!searchQuery.trim() ? (
+            <Reorder.Group
+              axis="y"
+              values={filteredItems}
+              onReorder={handleReorder}
+              className="space-y-3"
             >
-              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                <svg className="w-3 h-3 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
-                Gulir ke atas (Dekatkan ke atas layar)
-              </span>
-            </div>
-          )}
-
-          {/* Drop zone before first item */}
-          {dragItemId !== null && filteredItems.length > 0 && dragItemId !== filteredItems[0].id && (
-            <div
-              onDragOver={(e) => { e.preventDefault(); if (dragOverId !== filteredItems[0].id) { setDragOverId(filteredItems[0].id); setDragOverIdx(0); } }}
-              onDrop={(e) => handleDrop(e, 0, filteredItems[0].id)}
-              className={`h-2 rounded-full mx-2 transition-all duration-150 ${dragOverId === filteredItems[0].id ? 'h-10 bg-blue-100 border-2 border-dashed border-blue-400 flex items-center justify-center' : 'bg-transparent'}`}>
-              {dragOverId === filteredItems[0].id && <div className="w-full h-0.5 bg-blue-500 rounded-full mx-3" />}
-            </div>
-          )}
-
-          {filteredItems.map((item, idx) => {
-            const isDragging = dragItemId === item.id;
-            const isDropTarget = dragOverId === item.id && dragItemId !== null && dragItemId !== item.id;
-            return (
-              <React.Fragment key={item.id}>
-                <div
-                  draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
-                  onDragStart={(e) => handleDragStart(e, idx, item.id)}
-                  onDragOver={(e) => handleDragOverItem(e, idx, item.id)}
-                  onDrop={(e) => handleDrop(e, idx, item.id)}
-                  onDragEnd={handleDragEnd}
-                  style={{ opacity: isDragging ? 0.32 : 1, transition: 'opacity 0.12s' }}
-                  className={`rounded-xl border shadow-xs overflow-hidden ${
-                    isDragging
-                      ? 'border-dashed border-blue-400 bg-blue-50/20'
-                      : dragOverId === item.id && dragItemId !== null && dragItemId !== item.id
-                        ? 'border-blue-400 ring-2 ring-blue-200'
-                        : 'border-gray-200/60 bg-gray-50/80'
-                  }`}>
-                <div className="bg-emerald-50/60 px-4 py-3 border-b border-emerald-100/60">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim() && (
-                          <GripVertical className="w-3.5 h-3.5 text-dark-gray/30 shrink-0 cursor-grab active:cursor-grabbing" />
-                        )}
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 bg-sky-100 text-sky-700">Dokumen {idx + 1}</span>
-                        {editingTitleId === item.id ? (
-                          <input type="text" value={editItemTitle}
-                            onChange={e => setEditItemTitle(e.target.value)}
-                            onBlur={() => { if (editItemTitle.trim()) handleFindingDetailChange(item.id, 'title', editItemTitle.trim()); setEditingTitleId(null); }}
-                            onKeyDown={e => { if (e.key === 'Enter') { if (editItemTitle.trim()) handleFindingDetailChange(item.id, 'title', editItemTitle.trim()); setEditingTitleId(null); } if (e.key === 'Escape') setEditingTitleId(null); }}
-                            className="text-xs md:text-sm font-bold text-dark-gray border border-dark-gray/30 rounded px-1.5 py-0.5 w-full outline-none focus:ring-1 focus:ring-dark-gray/30" autoFocus />
-                        ) : (
-                          <h4 className="text-xs md:text-sm font-bold text-dark-gray">{item.title}</h4>
-                        )}
-                        {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && editingTitleId !== item.id && (
-                          <button onClick={() => { setEditingTitleId(item.id); setEditItemTitle(item.title); }} className="p-0.5 text-dark-gray/30 hover:text-dark-gray/70 cursor-pointer shrink-0"><Edit2 className="w-3 h-3" /></button>
-                        )}
-                      </div>
-                      {item.description && <p className="text-xs text-dark-gray/70 mt-1">{item.description}</p>}
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 space-y-3">
-                  <EvidencePanel
-                    evidenceFiles={item.evidenceFiles}
-                    isReadOnly={isReadOnly} isAuditor={FUNGSIONAL_ROLES.includes(userRole)}
-                    isUploading={!!uploadingIds[item.id]} isCopying={!!copyingIds[item.id]}
-                    onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
-                    onUploadFolder={async (files, onProgress) => handleFolderUpload(item.id, files, onProgress)}
-                    onDeleteEvidenceFile={async (fileId) => handleDeleteEvidenceFile(item.id, fileId)}
-                    onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
-                    onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
-                    onChangeName={(name) => {
-                      const files = item.evidenceFiles ? [...item.evidenceFiles] : [];
-                      if (files.length > 0) {
-                        files[0] = { ...files[0], name };
-                        handleFindingDetailsUpdate(item.id, { evidenceFiles: files, evidenceName: name });
-                      } else {
-                        handleFindingDetailChange(item.id, 'evidenceName', name);
-                      }
-                    }}
-                    onRenameFile={(fileId, newName) => {
-                      const files = item.evidenceFiles ? [...item.evidenceFiles] : [];
-                      const idx = files.findIndex(f => f.id === fileId);
-                      if (idx !== -1) { files[idx] = { ...files[idx], name: newName }; handleFindingDetailsUpdate(item.id, { evidenceFiles: files }); }
-                    }}
-                    onReorderFiles={(files) => handleFindingDetailsUpdate(item.id, { evidenceFiles: files })}
-                    onClear={async () => {
-                      const hasConflict = await checkConflict(item.id, 'Hapus item');
-                      if (hasConflict) return;
-                      const prevHistory = item.evidenceHistory || [];
-                      handleFindingDetailsUpdate(item.id, { evidenceFiles: [], evidenceLink: '', evidenceName: '', evidenceHistory: [...prevHistory, { name: item.evidenceName || 'Dokumen', link: item.evidenceLink || '', uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] });
-                      onShowToast?.('Dokumen dihapus.', 'info');
-                    }}
+              <AnimatePresence initial={false}>
+                {filteredItems.map((item, idx) => (
+                  <AuditItemCard
+                    key={item.id}
+                    item={item}
+                    idx={idx}
+                    canDrag={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly}
+                    isDragging={draggingItemId === item.id}
+                    onDragStart={handleItemDragStart}
+                    onDrag={handleItemDrag}
+                    onDragEnd={handleItemDragEnd}
+                    editingTitleId={editingTitleId}
+                    editItemTitle={editItemTitle}
+                    setEditingTitleId={setEditingTitleId}
+                    setEditItemTitle={setEditItemTitle}
+                    isReadOnly={isReadOnly}
+                    userRole={userRole}
+                    FUNGSIONAL_ROLES={FUNGSIONAL_ROLES}
+                    handleFindingDetailChange={handleFindingDetailChange}
+                    handleFindingDetailsUpdate={handleFindingDetailsUpdate}
+                    uploadingIds={uploadingIds}
+                    copyingIds={copyingIds}
+                    handleDirectUpload={handleDirectUpload}
+                    handleFolderUpload={handleFolderUpload}
+                    handleDeleteEvidenceFile={handleDeleteEvidenceFile}
+                    handleDirectCopy={handleDirectCopy}
+                    checkConflict={checkConflict}
+                    handleDeleteItem={handleDeleteItem}
+                    currentUserName={currentUserName}
+                    audit={audit}
                     onShowToast={onShowToast}
                   />
-
-                  {/* Riwayat Dokumen */}
-                  {item.evidenceHistory && item.evidenceHistory.length > 0 && (
-                    <details className="group">
-                      <summary className="cursor-pointer list-none flex items-center gap-1.5 text-[10px] font-bold text-dark-gray/50 hover:text-dark-gray/70 select-none">
-                        <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                        Riwayat Dokumen ({item.evidenceHistory.length})
-                      </summary>
-                      <div className="mt-2 space-y-1.5 border-l-2 border-slate-200 pl-3 ml-1">
-                        {[...item.evidenceHistory].reverse().map((h, hi) => (
-                          <div key={hi} className="text-[10px] text-dark-gray/60">
-                            <span className={`inline-block px-1.5 py-0.5 rounded font-bold mr-1.5 ${
-                              h.action === 'diunggah' ? 'bg-emerald-100 text-emerald-700' :
-                              h.action === 'ditautkan' ? 'bg-blue-100 text-blue-700' :
-                              h.action === 'dihapus' ? 'bg-rose-100 text-rose-700' :
-                              'bg-amber-100 text-amber-700'
-                            }`}>{h.action || 'diubah'}</span>
-                            {h.link ? (
-                              <a href={h.link} target="_blank" rel="noreferrer" className="font-semibold text-dark-gray/80 hover:underline mr-1.5">{h.name}</a>
-                            ) : (
-                              <span className="font-semibold text-dark-gray/80 mr-1.5">{h.name}</span>
-                            )}
-                            <span className="text-dark-gray/40">oleh {h.uploadedBy} · {new Date(h.uploadedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-
-                  {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (
-                    <div className="flex justify-end pt-1">
-                      <button onClick={() => handleDeleteItem(item.id)}
-                        className="text-[10px] text-rose-700 hover:text-rose-950 font-bold inline-flex items-center gap-0.5 cursor-pointer bg-white border border-dark-gray/10 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors">
-                        <Trash2 className="w-3 h-3" /> Hapus item
-                      </button>
-                    </div>
-                  )}
-                </div>
-                </div>
-                {/* Drop zone AFTER this item — acts as insertion point between cards */}
-                {dragItemId !== null && idx < filteredItems.length - 1 && (
-                  <div
-                    onDragOver={(e) => { e.preventDefault(); const target = filteredItems[idx + 1].id; if (dragOverId !== target) { setDragOverId(target); setDragOverIdx(idx + 1); } }}
-                    onDrop={(e) => handleDrop(e, idx + 1, filteredItems[idx + 1].id)}
-                    className={`transition-all duration-150 rounded-lg mx-1 ${
-                      dragOverId === filteredItems[idx + 1].id && dragItemId !== null && dragItemId !== item.id && dragItemId !== filteredItems[idx + 1].id
-                        ? 'h-10 my-1 bg-blue-100 border-2 border-dashed border-blue-400'
-                        : 'h-1.5'
-                    }`} />
-                )}
-              </React.Fragment>
-            );
-          })}
-
-          {/* Auto-scroll sentinel — bottom */}
-          {dragItemId !== null && (
-            <div
-              className="sticky bottom-0 z-50 pointer-events-none h-14 mt-2 -mb-2 rounded-xl flex items-center justify-center border border-dashed border-slate-300 bg-slate-50/90 backdrop-blur-xs"
-              style={{
-                opacity: dragOverId !== null && dragOverIdx !== null && dragOverIdx >= filteredItems.length - 2 ? 1 : 0.3,
-                transition: 'opacity 0.2s'
-              }}
-            >
-              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                <svg className="w-3 h-3 animate-bounce" style={{ animationDirection: 'alternate-reverse' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-                Gulir ke bawah (Dekatkan ke bawah layar)
-              </span>
+                ))}
+              </AnimatePresence>
+            </Reorder.Group>
+          ) : (
+            <div className="space-y-3">
+              {filteredItems.map((item, idx) => (
+                <AuditItemCardStatic
+                  key={item.id}
+                  item={item}
+                  idx={idx}
+                  editingTitleId={editingTitleId}
+                  editItemTitle={editItemTitle}
+                  setEditingTitleId={setEditingTitleId}
+                  setEditItemTitle={setEditItemTitle}
+                  isReadOnly={isReadOnly}
+                  userRole={userRole}
+                  FUNGSIONAL_ROLES={FUNGSIONAL_ROLES}
+                  handleFindingDetailChange={handleFindingDetailChange}
+                  handleFindingDetailsUpdate={handleFindingDetailsUpdate}
+                  uploadingIds={uploadingIds}
+                  copyingIds={copyingIds}
+                  handleDirectUpload={handleDirectUpload}
+                  handleFolderUpload={handleFolderUpload}
+                  handleDeleteEvidenceFile={handleDeleteEvidenceFile}
+                  handleDirectCopy={handleDirectCopy}
+                  checkConflict={checkConflict}
+                  handleDeleteItem={handleDeleteItem}
+                  currentUserName={currentUserName}
+                  audit={audit}
+                  onShowToast={onShowToast}
+                />
+              ))}
             </div>
           )}
+
+          {/* Bottom auto-scroll hint zone */}
+          <AnimatePresence>
+            {draggingItemId !== null && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 40 }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.18 }}
+                className="sticky bottom-0 z-50 pointer-events-none mt-2 rounded-xl flex items-center justify-center border border-dashed border-blue-300 bg-blue-50/90 backdrop-blur-xs overflow-hidden"
+              >
+                <span className="text-[10px] font-bold text-blue-500 flex items-center gap-1">
+                  <svg className="w-3 h-3 animate-bounce" style={{ animationDirection: 'alternate-reverse' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                  Dekatkan ke sini untuk gulir ke bawah
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {filteredItems.length === 0 && (
             <div className="text-center py-8 text-xs text-dark-gray/50 italic font-medium">
@@ -1087,6 +993,210 @@ export default function AuditWorkspaceView({
       {isSuratTugasModalOpen && <SuratTugasGenerator audit={audit} activeCategory={activeCategory} userProfiles={userProfiles} onClose={() => setIsSuratTugasModalOpen(false)} />}
       {isNotaDinasModalOpen && <NotaDinasGenerator audit={audit} activeCategory={activeCategory} userProfiles={userProfiles} onClose={() => setIsNotaDinasModalOpen(false)} />}
       {isSPPDModalOpen && <SPPDGenerator audit={audit} activeCategory={activeCategory} userProfiles={userProfiles} onClose={() => setIsSPPDModalOpen(false)} />}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Shared props + body for a single "Dokumen KKA" item card
+// ---------------------------------------------------------------------------
+interface AuditItemCardBodyProps {
+  item: AuditItem;
+  idx: number;
+  editingTitleId: string | null;
+  editItemTitle: string;
+  setEditingTitleId: (id: string | null) => void;
+  setEditItemTitle: (title: string) => void;
+  isReadOnly: boolean;
+  userRole: string;
+  FUNGSIONAL_ROLES: string[];
+  handleFindingDetailChange: (itemId: string, field: keyof AuditItem, value: any) => void;
+  handleFindingDetailsUpdate: (itemId: string, updates: Partial<AuditItem>) => void;
+  uploadingIds: Record<string, boolean>;
+  copyingIds: Record<string, boolean>;
+  handleDirectUpload: (itemId: string, file: File, newName?: string) => Promise<void>;
+  handleFolderUpload: (itemId: string, files: File[], onProgress?: (done: number, total: number) => void) => Promise<void>;
+  handleDeleteEvidenceFile: (itemId: string, fileId: string) => Promise<void>;
+  handleDirectCopy: (itemId: string, sourceUrl: string, currentName: string) => Promise<void>;
+  checkConflict: (itemId: string, actionName?: string) => Promise<boolean>;
+  handleDeleteItem: (itemId: string) => void;
+  currentUserName: string;
+  audit: OpdAudit;
+  onShowToast?: (message: string, type: 'error' | 'info' | 'success') => void;
+  dragHandleProps?: { onPointerDown: (e: React.PointerEvent) => void };
+  showGripHandle?: boolean;
+}
+
+function AuditItemCardBody({
+  item, idx, editingTitleId, editItemTitle, setEditingTitleId, setEditItemTitle,
+  isReadOnly, userRole, FUNGSIONAL_ROLES, handleFindingDetailChange, handleFindingDetailsUpdate,
+  uploadingIds, copyingIds, handleDirectUpload, handleFolderUpload, handleDeleteEvidenceFile,
+  handleDirectCopy, checkConflict, handleDeleteItem, currentUserName, audit, onShowToast,
+  dragHandleProps, showGripHandle
+}: AuditItemCardBodyProps) {
+  return (
+    <>
+      <div className="bg-emerald-50/60 px-4 py-3 border-b border-emerald-100/60">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              {showGripHandle && (
+                <GripVertical
+                  className="w-4 h-4 text-dark-gray/40 shrink-0 cursor-grab active:cursor-grabbing touch-none"
+                  onPointerDown={dragHandleProps?.onPointerDown}
+                  style={{ touchAction: 'none' }}
+                />
+              )}
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 bg-sky-100 text-sky-700">Dokumen {idx + 1}</span>
+              {editingTitleId === item.id ? (
+                <input type="text" value={editItemTitle}
+                  onChange={e => setEditItemTitle(e.target.value)}
+                  onBlur={() => { if (editItemTitle.trim()) handleFindingDetailChange(item.id, 'title', editItemTitle.trim()); setEditingTitleId(null); }}
+                  onKeyDown={e => { if (e.key === 'Enter') { if (editItemTitle.trim()) handleFindingDetailChange(item.id, 'title', editItemTitle.trim()); setEditingTitleId(null); } if (e.key === 'Escape') setEditingTitleId(null); }}
+                  className="text-xs md:text-sm font-bold text-dark-gray border border-dark-gray/30 rounded px-1.5 py-0.5 w-full outline-none focus:ring-1 focus:ring-dark-gray/30" autoFocus />
+              ) : (
+                <h4 className="text-xs md:text-sm font-bold text-dark-gray">{item.title}</h4>
+              )}
+              {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && editingTitleId !== item.id && (
+                <button onClick={() => { setEditingTitleId(item.id); setEditItemTitle(item.title); }} className="p-0.5 text-dark-gray/30 hover:text-dark-gray/70 cursor-pointer shrink-0"><Edit2 className="w-3 h-3" /></button>
+              )}
+            </div>
+            {item.description && <p className="text-xs text-dark-gray/70 mt-1">{item.description}</p>}
+          </div>
+        </div>
+      </div>
+      <div className="p-4 space-y-3">
+        <EvidencePanel
+          evidenceFiles={item.evidenceFiles}
+          isReadOnly={isReadOnly} isAuditor={FUNGSIONAL_ROLES.includes(userRole)}
+          isUploading={!!uploadingIds[item.id]} isCopying={!!copyingIds[item.id]}
+          onUploadFile={async (file, newName) => handleDirectUpload(item.id, file, newName)}
+          onUploadFolder={async (files, onProgress) => handleFolderUpload(item.id, files, onProgress)}
+          onDeleteEvidenceFile={async (fileId) => handleDeleteEvidenceFile(item.id, fileId)}
+          onCopyFromUrl={async (url, name) => handleDirectCopy(item.id, url, name)}
+          onChangeLink={(link) => handleFindingDetailChange(item.id, 'evidenceLink', link)}
+          onChangeName={(name) => {
+            const files = item.evidenceFiles ? [...item.evidenceFiles] : [];
+            if (files.length > 0) {
+              files[0] = { ...files[0], name };
+              handleFindingDetailsUpdate(item.id, { evidenceFiles: files, evidenceName: name });
+            } else {
+              handleFindingDetailChange(item.id, 'evidenceName', name);
+            }
+          }}
+          onRenameFile={(fileId, newName) => {
+            const files = item.evidenceFiles ? [...item.evidenceFiles] : [];
+            const fi = files.findIndex(f => f.id === fileId);
+            if (fi !== -1) { files[fi] = { ...files[fi], name: newName }; handleFindingDetailsUpdate(item.id, { evidenceFiles: files }); }
+          }}
+          onReorderFiles={(files) => handleFindingDetailsUpdate(item.id, { evidenceFiles: files })}
+          onClear={async () => {
+            const hasConflict = await checkConflict(item.id, 'Hapus item');
+            if (hasConflict) return;
+            const prevHistory = item.evidenceHistory || [];
+            handleFindingDetailsUpdate(item.id, { evidenceFiles: [], evidenceLink: '', evidenceName: '', evidenceHistory: [...prevHistory, { name: item.evidenceName || 'Dokumen', link: item.evidenceLink || '', uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] });
+            onShowToast?.('Dokumen dihapus.', 'info');
+          }}
+          onShowToast={onShowToast}
+        />
+
+        {/* Riwayat Dokumen */}
+        {item.evidenceHistory && item.evidenceHistory.length > 0 && (
+          <details className="group">
+            <summary className="cursor-pointer list-none flex items-center gap-1.5 text-[10px] font-bold text-dark-gray/50 hover:text-dark-gray/70 select-none">
+              <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              Riwayat Dokumen ({item.evidenceHistory.length})
+            </summary>
+            <div className="mt-2 space-y-1.5 border-l-2 border-slate-200 pl-3 ml-1">
+              {[...item.evidenceHistory].reverse().map((h, hi) => (
+                <div key={hi} className="text-[10px] text-dark-gray/60">
+                  <span className={`inline-block px-1.5 py-0.5 rounded font-bold mr-1.5 ${
+                    h.action === 'diunggah' ? 'bg-emerald-100 text-emerald-700' :
+                    h.action === 'ditautkan' ? 'bg-blue-100 text-blue-700' :
+                    h.action === 'dihapus' ? 'bg-rose-100 text-rose-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>{h.action || 'diubah'}</span>
+                  {h.link ? (
+                    <a href={h.link} target="_blank" rel="noreferrer" className="font-semibold text-dark-gray/80 hover:underline mr-1.5">{h.name}</a>
+                  ) : (
+                    <span className="font-semibold text-dark-gray/80 mr-1.5">{h.name}</span>
+                  )}
+                  <span className="text-dark-gray/40">oleh {h.uploadedBy} · {new Date(h.uploadedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+
+        {FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && (
+          <div className="flex justify-end pt-1">
+            <button onClick={() => handleDeleteItem(item.id)}
+              className="text-[10px] text-rose-700 hover:text-rose-950 font-bold inline-flex items-center gap-0.5 cursor-pointer bg-white border border-dark-gray/10 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors">
+              <Trash2 className="w-3 h-3" /> Hapus item
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Draggable version — used when the list is sortable (no active search filter)
+// ---------------------------------------------------------------------------
+interface AuditItemCardProps extends Omit<AuditItemCardBodyProps, 'dragHandleProps' | 'showGripHandle'> {
+  canDrag: boolean;
+  isDragging: boolean;
+  onDragStart: (itemId: string) => void;
+  onDrag: (event: any, info: { point: { x: number; y: number } }) => void;
+  onDragEnd: () => void;
+}
+
+function AuditItemCard(props: AuditItemCardProps) {
+  const { item, canDrag, isDragging, onDragStart, onDrag, onDragEnd, ...bodyProps } = props;
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={item}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragStart={() => onDragStart(item.id)}
+      onDrag={onDrag}
+      onDragEnd={onDragEnd}
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{
+        opacity: 1,
+        y: 0,
+        scale: isDragging ? 1.02 : 1,
+        boxShadow: isDragging ? '0 12px 28px -8px rgba(30,41,59,0.35)' : '0 1px 2px rgba(0,0,0,0.04)'
+      }}
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
+      transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.6 }}
+      whileDrag={{ cursor: 'grabbing' }}
+      className={`rounded-xl border overflow-hidden bg-gray-50/80 relative ${
+        isDragging ? 'border-blue-400 ring-2 ring-blue-200 z-10' : 'border-gray-200/60'
+      }`}
+      style={{ touchAction: canDrag ? 'pan-y' : undefined }}
+    >
+      <AuditItemCardBody
+        {...bodyProps}
+        item={item}
+        showGripHandle={canDrag}
+        dragHandleProps={{ onPointerDown: (e) => { if (canDrag) dragControls.start(e); } }}
+      />
+    </Reorder.Item>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Static (non-draggable) version — used while a search filter is active
+// ---------------------------------------------------------------------------
+function AuditItemCardStatic(props: AuditItemCardBodyProps) {
+  return (
+    <div className="rounded-xl border border-gray-200/60 shadow-xs overflow-hidden bg-gray-50/80">
+      <AuditItemCardBody {...props} showGripHandle={false} />
     </div>
   );
 }
