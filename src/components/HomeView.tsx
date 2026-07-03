@@ -107,7 +107,7 @@ export default function HomeView() {
       </div>
 
       {/* Tugas & Fungsi — formal legal section */}
-      <div className="bg-white rounded-3xl p-6 md:p-8 border border-pastel-blue/20 shadow-sm">
+      <div className="rounded-3xl p-6 md:p-8" style={{ background: "linear-gradient(135deg, #FEF9F0 0%, #F0F8F8 100%)" }}>
         <div className="flex items-start gap-3 mb-5">
           <span className="shrink-0 w-9 h-9 rounded-xl bg-pastel-green/30 text-[var(--ink-soft)] flex items-center justify-center">
             <ScrollText className="w-4.5 h-4.5" />
@@ -143,7 +143,7 @@ export default function HomeView() {
             {fungsi.map((item, i) => (
               <li key={i} className="flex items-start gap-2.5">
                 <span className="shrink-0 mt-0.5 text-pastel-peach font-black text-[11px] tabular-nums">
-                  {i + 1})
+                  {String.fromCharCode(97 + i)})
                 </span>
                 <span className="text-[12px] text-[var(--text-primary)] leading-relaxed">{item}</span>
               </li>
@@ -153,7 +153,7 @@ export default function HomeView() {
       </div>
 
       {/* Struktur Organisasi */}
-      <div className="bg-white rounded-3xl p-6 border border-pastel-blue/20 shadow-sm">
+      <div className="rounded-3xl p-6" style={{ background: "linear-gradient(135deg, #F8F4F0 0%, #F0F4F8 100%)" }}>
         <div className="flex items-center gap-2.5 mb-4">
           <span className="text-pastel-peach"><Users className="w-5 h-5" /></span>
           <h3 className="font-black text-[var(--ink-soft)] text-sm">Struktur Organisasi</h3>
