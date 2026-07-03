@@ -208,7 +208,7 @@ export default function AuditWorkspaceView({
     try {
       const fileToUpload = newName ? new File([file], newName, { type: file.type }) : file;
       const res = await uploadEvidenceFile(fileToUpload, audit.fiscalYear, audit.opdName, audit.auditType);
-      const existingItem = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+      const existingItem = auditRef.current.categories.flatMap(c => c.items).find(i => i.id === itemId);
       const prevHistory = existingItem?.evidenceHistory || [];
       const historyEntry = { name: res.name, link: res.webViewLink, uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'diunggah' as const };
       handleFindingDetailsUpdate(itemId, {
@@ -240,7 +240,7 @@ export default function AuditWorkspaceView({
     setCopyingIds(prev => ({ ...prev, [itemId]: true }));
     try {
       const res = await copyEvidenceFileFromUrl(sourceUrl, currentName || `Copy_of_${itemId}`, audit.fiscalYear, audit.opdName, audit.auditType);
-      const existingItem = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+      const existingItem = auditRef.current.categories.flatMap(c => c.items).find(i => i.id === itemId);
       const prevHistory = existingItem?.evidenceHistory || [];
       const historyEntry = { name: res.name, link: res.webViewLink, uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'ditautkan' as const };
       handleFindingDetailsUpdate(itemId, {
@@ -321,7 +321,7 @@ export default function AuditWorkspaceView({
   const handleDeleteEvidenceFile = async (itemId: string, fileId: string) => {
     const hasConflict = await checkConflict(itemId, 'Hapus dokumen');
     if (hasConflict) return;
-    const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
+    const item = auditRef.current.categories.flatMap(c => c.items).find(i => i.id === itemId);
     if (!item) return;
     const remaining = (item.evidenceFiles || []).filter(ef => ef.id !== fileId);
     const removed = (item.evidenceFiles || []).find(ef => ef.id === fileId);
@@ -345,7 +345,9 @@ export default function AuditWorkspaceView({
     if (isReadOnly && !('catatanReview' in updates)) return;
     const a = auditRef.current;
     const updatedCategories = a.categories.map(cat => ({ ...cat, items: cat.items.map(item => item.id === itemId ? { ...item, ...updates } : item) }));
-    onUpdates({ ...a, categories: updatedCategories });
+    const next = { ...a, categories: updatedCategories };
+    auditRef.current = next;
+    onUpdates(next);
   };
 
   const handleAddItem = (e: React.FormEvent) => {
