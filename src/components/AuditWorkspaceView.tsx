@@ -84,6 +84,8 @@ export default function AuditWorkspaceView({
   const [newItemDescription, setNewItemDescription] = useState('');
   const [dragItemIdx, setDragItemIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const [dragItemId, setDragItemId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
   const [editItemTitle, setEditItemTitle] = useState('');
   const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
@@ -356,9 +358,11 @@ export default function AuditWorkspaceView({
     setNewItemTitle(''); setNewItemDescription(''); setIsAddingItem(false);
   };
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
+  const handleDragStart = (e: React.DragEvent, index: number, itemId: string) => {
     setDragItemIdx(index);
+    setDragItemId(itemId);
     setDragOverIdx(index);
+    setDragOverId(itemId);
     // Make the ghost image look right
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -389,11 +393,12 @@ export default function AuditWorkspaceView({
     }
   };
 
-  const handleDragOverItem = (e: React.DragEvent, idx: number) => {
+  const handleDragOverItem = (e: React.DragEvent, idx: number, itemId: string) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    if (dragItemIdx === null || searchQuery.trim()) return;
+    if (dragItemId === null || searchQuery.trim()) return;
     // Only update the visual indicator, do NOT reorder data yet
+    if (dragOverId !== itemId) setDragOverId(itemId);
     if (dragOverIdx !== idx) setDragOverIdx(idx);
   };
 
@@ -404,27 +409,35 @@ export default function AuditWorkspaceView({
     }
   };
 
-  const handleDrop = (e: React.DragEvent, targetIdx: number) => {
+  const handleDrop = (e: React.DragEvent, targetIdx: number, targetId: string) => {
     e.preventDefault();
     stopAutoScroll();
-    if (dragItemIdx !== null && dragItemIdx !== targetIdx && activeCategory && !searchQuery.trim()) {
+    if (dragItemId !== null && dragItemId !== targetId && activeCategory && !searchQuery.trim()) {
       // Perform the actual reorder only on drop
       const items = [...activeCategory.items];
-      const [moved] = items.splice(dragItemIdx, 1);
-      items.splice(targetIdx, 0, moved);
-      const updatedCategories = audit.categories.map(cat =>
-        cat.id === activeCategory.id ? { ...cat, items } : cat
-      );
-      onUpdates({ ...audit, categories: updatedCategories });
+      const fromIndex = items.findIndex(i => i.id === dragItemId);
+      const toIndex = items.findIndex(i => i.id === targetId);
+      if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+        const [moved] = items.splice(fromIndex, 1);
+        items.splice(toIndex, 0, moved);
+        const updatedCategories = audit.categories.map(cat =>
+          cat.id === activeCategory.id ? { ...cat, items } : cat
+        );
+        onUpdates({ ...audit, categories: updatedCategories });
+      }
     }
     setDragItemIdx(null);
+    setDragItemId(null);
     setDragOverIdx(null);
+    setDragOverId(null);
   };
 
   const handleDragEnd = () => {
     stopAutoScroll();
     setDragItemIdx(null);
+    setDragItemId(null);
     setDragOverIdx(null);
+    setDragOverId(null);
   };
 
   const handleDeleteItem = (itemId: string) => {
@@ -730,11 +743,11 @@ export default function AuditWorkspaceView({
           )}
 
           {/* Auto-scroll sentinel — top */}
-          {dragItemIdx !== null && (
+          {dragItemId !== null && (
             <div
               className="sticky top-0 z-50 pointer-events-none h-14 -mt-2 mb-2 rounded-xl flex items-center justify-center border border-dashed border-slate-300 bg-slate-50/90 backdrop-blur-xs"
               style={{
-                opacity: dragOverIdx !== null && dragOverIdx < 2 ? 1 : 0.3,
+                opacity: dragOverId !== null && dragOverIdx !== null && dragOverIdx < 2 ? 1 : 0.3,
                 transition: 'opacity 0.2s'
               }}
             >
@@ -746,31 +759,31 @@ export default function AuditWorkspaceView({
           )}
 
           {/* Drop zone before first item */}
-          {dragItemIdx !== null && dragItemIdx !== 0 && (
+          {dragItemId !== null && filteredItems.length > 0 && dragItemId !== filteredItems[0].id && (
             <div
-              onDragOver={(e) => { e.preventDefault(); if (dragOverIdx !== 0) setDragOverIdx(0); }}
-              onDrop={(e) => handleDrop(e, 0)}
-              className={`h-2 rounded-full mx-2 transition-all duration-150 ${dragOverIdx === 0 ? 'h-10 bg-blue-100 border-2 border-dashed border-blue-400 flex items-center justify-center' : 'bg-transparent'}`}>
-              {dragOverIdx === 0 && <div className="w-full h-0.5 bg-blue-500 rounded-full mx-3" />}
+              onDragOver={(e) => { e.preventDefault(); if (dragOverId !== filteredItems[0].id) { setDragOverId(filteredItems[0].id); setDragOverIdx(0); } }}
+              onDrop={(e) => handleDrop(e, 0, filteredItems[0].id)}
+              className={`h-2 rounded-full mx-2 transition-all duration-150 ${dragOverId === filteredItems[0].id ? 'h-10 bg-blue-100 border-2 border-dashed border-blue-400 flex items-center justify-center' : 'bg-transparent'}`}>
+              {dragOverId === filteredItems[0].id && <div className="w-full h-0.5 bg-blue-500 rounded-full mx-3" />}
             </div>
           )}
 
           {filteredItems.map((item, idx) => {
-            const isDragging = dragItemIdx === idx;
-            const isDropTarget = dragOverIdx === idx + 1 && dragItemIdx !== null && dragItemIdx !== idx && dragItemIdx !== idx + 1;
+            const isDragging = dragItemId === item.id;
+            const isDropTarget = dragOverId === item.id && dragItemId !== null && dragItemId !== item.id;
             return (
               <React.Fragment key={item.id}>
                 <div
                   draggable={FUNGSIONAL_ROLES.includes(userRole) && !isReadOnly && !searchQuery.trim()}
-                  onDragStart={(e) => handleDragStart(e, idx)}
-                  onDragOver={(e) => handleDragOverItem(e, idx)}
-                  onDrop={(e) => handleDrop(e, idx)}
+                  onDragStart={(e) => handleDragStart(e, idx, item.id)}
+                  onDragOver={(e) => handleDragOverItem(e, idx, item.id)}
+                  onDrop={(e) => handleDrop(e, idx, item.id)}
                   onDragEnd={handleDragEnd}
                   style={{ opacity: isDragging ? 0.32 : 1, transition: 'opacity 0.12s' }}
                   className={`rounded-xl border shadow-xs overflow-hidden ${
                     isDragging
                       ? 'border-dashed border-blue-400 bg-blue-50/20'
-                      : dragOverIdx === idx && dragItemIdx !== null && dragItemIdx !== idx
+                      : dragOverId === item.id && dragItemId !== null && dragItemId !== item.id
                         ? 'border-blue-400 ring-2 ring-blue-200'
                         : 'border-gray-200/60 bg-gray-50/80'
                   }`}>
@@ -873,12 +886,12 @@ export default function AuditWorkspaceView({
                 </div>
                 </div>
                 {/* Drop zone AFTER this item — acts as insertion point between cards */}
-                {dragItemIdx !== null && (
+                {dragItemId !== null && idx < filteredItems.length - 1 && (
                   <div
-                    onDragOver={(e) => { e.preventDefault(); const target = idx + 1; if (dragOverIdx !== target) setDragOverIdx(target); }}
-                    onDrop={(e) => handleDrop(e, idx + 1)}
+                    onDragOver={(e) => { e.preventDefault(); const target = filteredItems[idx + 1].id; if (dragOverId !== target) { setDragOverId(target); setDragOverIdx(idx + 1); } }}
+                    onDrop={(e) => handleDrop(e, idx + 1, filteredItems[idx + 1].id)}
                     className={`transition-all duration-150 rounded-lg mx-1 ${
-                      dragOverIdx === idx + 1 && dragItemIdx !== null && dragItemIdx !== idx && dragItemIdx !== idx + 1
+                      dragOverId === filteredItems[idx + 1].id && dragItemId !== null && dragItemId !== item.id && dragItemId !== filteredItems[idx + 1].id
                         ? 'h-10 my-1 bg-blue-100 border-2 border-dashed border-blue-400'
                         : 'h-1.5'
                     }`} />
@@ -888,11 +901,11 @@ export default function AuditWorkspaceView({
           })}
 
           {/* Auto-scroll sentinel — bottom */}
-          {dragItemIdx !== null && (
+          {dragItemId !== null && (
             <div
               className="sticky bottom-0 z-50 pointer-events-none h-14 mt-2 -mb-2 rounded-xl flex items-center justify-center border border-dashed border-slate-300 bg-slate-50/90 backdrop-blur-xs"
               style={{
-                opacity: dragOverIdx !== null && dragOverIdx >= filteredItems.length - 2 ? 1 : 0.3,
+                opacity: dragOverId !== null && dragOverIdx !== null && dragOverIdx >= filteredItems.length - 2 ? 1 : 0.3,
                 transition: 'opacity 0.2s'
               }}
             >
