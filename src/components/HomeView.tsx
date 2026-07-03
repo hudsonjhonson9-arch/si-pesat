@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building, Shield, Eye, Target, Users, MapPin, CheckCircle, BookOpen, ChevronDown } from 'lucide-react';
+import { Building, Shield, Eye, Target, Users, BookOpen, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import GuideView from './GuideView';
 
@@ -28,17 +28,18 @@ export default function HomeView() {
       icon: <Target className="w-5 h-5" />,
       title: 'Visi',
       items: [
-        'Terwujudnya Pengawasan Internal Yang Profesional, Berintegritas, dan Terpercaya Menuju Kabupaten Sumba Barat Yang Maju, Mandiri, dan Berdaya Saing',
+        'Terwujudnya Kehidupan Rakyat Sumba Barat yang Maju, Berdaya Saing dan Berkeadilan.',
       ]
     },
     {
       icon: <Eye className="w-5 h-5" />,
       title: 'Misi',
       items: [
-        'Meningkatkan kualitas perencanaan dan pelaksanaan pengawasan',
-        'Mengoptimalkan peran APIP dalam mendorong tata kelola pemerintahan yang baik',
-        'Membangun budaya pengendalian dan kepatuhan di seluruh OPD',
-        'Meningkatkan kompetensi dan profesionalisme auditor',
+        'Mengembangkan usaha ekonomi produktif yang berbasis pertanian dengan pariwisata sebagai penggerak utama',
+        'Mewujudkan sumber daya manusia yang unggul, berkarakter, sehat jasmani rohani, produktif, berkualitas dan profesional melalui peningkatan akses dan kualitas pelayanan kesehatan dan pendidikan',
+        'Meningkatkan pembangunan infrastruktur dan penataan ruang kawasan berwawasan lingkungan untuk menjamin aksesibilitas pemerataan pembangunan',
+        'Meningkatkan ketentraman dan ketertiban umum',
+        'Meningkatkan kapasitas aparatur dan tata kelola pemerintahan yang transparan, akuntabel, profesional dan berjiwa melayani',
       ]
     },
     {
@@ -51,25 +52,6 @@ export default function HomeView() {
         'Inspektur Pembantu Wilayah II — Kecamatan Tana Righu',
         'Inspektur Pembantu Wilayah III — Kecamatan Lamboya, Wanokaka',
         'Inspektur Pembantu Wilayah IV — Kecamatan Loli',
-      ]
-    },
-    {
-      icon: <MapPin className="w-5 h-5" />,
-      title: 'Wilayah Kerja',
-      items: [
-        'Meliputi 6 Kecamatan, 11 Kelurahan, dan 63 Desa di Kabupaten Sumba Barat',
-        'Pengawasan terhadap 35 OPD, 5 Puskesmas, 66 SD, 18 SMP',
-        'Koordinasi dengan Inspektorat Provinsi NTT dan BPKP',
-      ]
-    },
-    {
-      icon: <CheckCircle className="w-5 h-5" />,
-      title: 'Komitmen Mutu',
-      items: [
-        'Pengawasan berbasis risiko (Risk-Based Audit)',
-        'Kepatuhan terhadap Kode Etik APIP',
-        'Ketepatan waktu pelaporan dan tindak lanjut',
-        'Perbaikan berkelanjutan sistem pengawasan',
       ]
     },
   ];
