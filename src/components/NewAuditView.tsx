@@ -50,10 +50,16 @@ interface NewAuditViewProps {
 const OPD_TYPES: OpdAudit['opdType'][] = ['SD', 'SMP', 'Dinas', 'Badan', 'Kecamatan', 'Desa', 'Kelurahan', 'Puskesmas', 'Sekretariat Daerah', 'Lainnya'];
 const FISCAL_YEARS = ['2026', '2025', '2024', '2023'];
 
+const STRUKTURAL_ROLES = ['Inspektur', 'Sekretaris', 'Inspektur Pembantu'];
+
 const KETUA_TIM_ROLES = [
-  'Auditor',
   'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
   'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
+];
+
+const ANGGOTA_TIM_ROLES = [
+  'Auditor Ahli Pertama',
+  'PPUPD Ahli Pertama',
 ];
 
 export default function NewAuditView({
@@ -397,7 +403,11 @@ export default function NewAuditView({
                         </button>
                       )}
                       {/* Semua profil */}
-                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).sort(byNipAge).map(p => {
+                      {userProfiles
+                        .filter(p => KETUA_TIM_ROLES.includes(p.role))
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase()))
+                        .sort(byNipAge)
+                        .map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catAuditorName === name;
                         return (
@@ -446,7 +456,11 @@ export default function NewAuditView({
                         className="w-full text-[10px] font-medium border border-dark-gray/20 px-2 py-1.5 rounded bg-white focus:outline-none focus:border-peach-accent" />
                     </div>
                     <div className="overflow-y-auto p-1 space-y-0.5">
-                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase())).sort(byNipAge).map(p => {
+                      {userProfiles
+                        .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase()))
+                        .sort(byNipAge)
+                        .map(p => {
                         const name = p.full_name || p.email;
                         const isSel = catTeamMembers.includes(name);
                         return (

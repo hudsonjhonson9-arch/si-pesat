@@ -19,12 +19,18 @@ const byNipAge = (a: UserProfile, b: UserProfile) => {
   return (a.full_name || '').localeCompare(b.full_name || '');
 };
 
+const STRUKTURAL_ROLES = ['Inspektur', 'Sekretaris', 'Inspektur Pembantu'];
+
 const KETUA_TIM_ROLES = [
-  'Auditor',
   'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
   'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
 ];
-const STRUKTURAL_ROLES = ['Inspektur', 'Inspektur Pembantu'];
+
+const ANGGOTA_TIM_ROLES = [
+  'Auditor Ahli Pertama',
+  'PPUPD Ahli Pertama',
+];
+
 const FUNGSIONAL_ROLES = [
   'Auditor',
   'Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
@@ -935,7 +941,11 @@ export default function AuditWorkspaceView({
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={newCatAuditorSearchQuery} onChange={e => setNewCatAuditorSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">
-                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase())).sort(byNipAge).map(p => (
+                      {userProfiles
+                        .filter(p => KETUA_TIM_ROLES.includes(p.role))
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase()))
+                        .sort(byNipAge)
+                        .map(p => (
                         <div key={p.id} onClick={() => { setNewCatAuditorName(p.full_name || p.email); setIsNewCatAuditorDropdownOpen(false); setNewCatAuditorSearchQuery(''); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${newCatAuditorName === (p.full_name || p.email) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
                           <div>
                             <span className="block">{p.full_name || p.email}</span>
@@ -958,7 +968,11 @@ export default function AuditWorkspaceView({
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={newCatTeamSearchQuery} onChange={e => setNewCatTeamSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">
-                      {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
+                      {userProfiles
+                        .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase()))
+                        .sort(byNipAge)
+                        .map(p => {
                         const name = p.full_name || p.email;
                         return <div key={p.id} onClick={e => { e.stopPropagation(); if (newCatTeamMembers.includes(name)) setNewCatTeamMembers(prev => prev.filter(n => n !== name)); else setNewCatTeamMembers(prev => [...prev, name]); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${newCatTeamMembers.includes(name) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
                           <div>
@@ -997,7 +1011,11 @@ export default function AuditWorkspaceView({
                 {isEditCatAuditorDropdownOpen && (
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatAuditorSearchQuery} onChange={e => setEditCatAuditorSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
-                    <div className="overflow-y-auto p-1">{userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(editCatAuditorSearchQuery.toLowerCase())).sort(byNipAge).map(p => (
+                    <div className="overflow-y-auto p-1">{userProfiles
+                        .filter(p => KETUA_TIM_ROLES.includes(p.role))
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatAuditorSearchQuery.toLowerCase()))
+                        .sort(byNipAge)
+                        .map(p => (
                       <div key={p.id} onClick={() => { setEditCatAuditorName(p.full_name || p.email); setIsEditCatAuditorDropdownOpen(false); setEditCatAuditorSearchQuery(''); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${editCatAuditorName === (p.full_name || p.email) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
                         <div>
                           <span className="block">{p.full_name || p.email}</span>
@@ -1017,7 +1035,11 @@ export default function AuditWorkspaceView({
                 {isEditCatTeamDropdownOpen && (
                   <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-hidden flex flex-col">
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatTeamSearchQuery} onChange={e => setEditCatTeamSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
-                    <div className="overflow-y-auto p-1">{userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase())).sort(byNipAge).map(p => {
+                    <div className="overflow-y-auto p-1">{userProfiles
+                        .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
+                        .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase()))
+                        .sort(byNipAge)
+                        .map(p => {
                       const name = p.full_name || p.email;
                       return <div key={p.id} onClick={e => { e.stopPropagation(); if (editCatTeamMembers.includes(name)) setEditCatTeamMembers(prev => prev.filter(n => n !== name)); else setEditCatTeamMembers(prev => [...prev, name]); }} className={`text-[10px] p-2 rounded cursor-pointer flex items-center justify-between ${editCatTeamMembers.includes(name) ? 'bg-peach-accent/20 font-bold' : 'hover:bg-dark-gray/5'}`}>
                         <div>
