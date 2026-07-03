@@ -185,30 +185,30 @@ function SectionCard({ section, depth = 0, ...rest }: { section: Section; depth?
   const hasSubs = 'subsections' in section;
 
   return (
-    <div className={`${depth === 0 ? 'bg-white rounded-2xl border border-dark-gray/10 shadow-sm overflow-hidden' : ''}`}>
+    <div className={`${depth === 0 ? 'bg-white rounded-2xl border border-pastel-blue/20 shadow-sm overflow-hidden' : ''}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between gap-3 text-left transition ${
           depth === 0
-            ? 'px-5 py-4 hover:bg-dark-gray/[0.02]'
-            : 'px-4 py-2.5 hover:bg-dark-gray/[0.02] rounded-lg'
+            ? 'px-5 py-4 hover:bg-pastel-blue/5'
+            : 'px-4 py-2.5 hover:bg-pastel-blue/5 rounded-lg'
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className={`${depth === 0 ? 'text-peach-accent' : 'text-dark-gray/50'} shrink-0`}>
+          <span className={`${depth === 0 ? 'text-pastel-peach' : 'text-[var(--text-muted)]'} shrink-0`}>
             {section.icon}
           </span>
-          <span className={`${depth === 0 ? 'font-black text-sm' : 'font-bold text-xs'} text-dark-gray`}>
+          <span className={`${depth === 0 ? 'font-black text-sm' : 'font-bold text-xs'} text-[var(--ink-soft)]`}>
             {section.title}
           </span>
         </div>
-        <ChevronDown className={`w-4 h-4 text-dark-gray/40 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-[var(--text-muted)] shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <div className={depth === 0 ? 'px-5 pb-4 space-y-3' : 'px-4 pb-3 space-y-2'}>
           {'content' in section && section.content && (
-            <pre className="text-xs text-dark-gray/80 leading-relaxed whitespace-pre-wrap font-sans">
+            <pre className="text-xs text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap font-sans">
               {section.content}
             </pre>
           )}
@@ -229,11 +229,11 @@ export default function GuideView() {
   return (
     <div className="space-y-4 animate-fade-in" id="guide-view">
       <div className="flex items-center gap-2">
-        <div className="w-1 h-6 bg-peach-accent rounded-full" />
-        <h2 className="text-lg font-black text-dark-gray tracking-tight">Panduan Aplikasi</h2>
+        <div className="w-1 h-6 bg-pastel-peach rounded-full" />
+        <h2 className="text-lg font-black text-[var(--ink-soft)] tracking-tight">Panduan Aplikasi</h2>
       </div>
 
-      <p className="text-xs text-dark-gray/60 font-medium max-w-2xl">
+      <p className="text-xs text-[var(--text-secondary)] font-medium max-w-2xl">
         Panduan lengkap fitur dan cara penggunaan SI-PESAT. Klik setiap bagian untuk membuka detail.
       </p>
 
