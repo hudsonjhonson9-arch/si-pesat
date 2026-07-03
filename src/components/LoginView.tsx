@@ -142,7 +142,7 @@ export default function LoginView({
         <div className="bg-pastel-cream/40 p-4 border-t border-pastel-blue/20 text-center flex items-center justify-between px-6">
           <div className="flex items-center gap-1 text-[10px] text-[var(--text-secondary)] font-bold">
             <ShieldCheck className="w-4 h-4 text-pastel-green" />
-            <span>Sistem Audit Inspektorat</span>
+            <span>Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi</span>
           </div>
           <span className="text-[9px] font-mono font-medium text-[var(--text-muted)]">v1.6.0</span>
         </div>
