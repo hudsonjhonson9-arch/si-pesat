@@ -985,7 +985,7 @@ export default function App() {
                     : 'text-dark-gray/60 hover:text-dark-gray hover:bg-slate-50'
                 }`}
               >
-                <FileCheck className="w-4 h-4" /> KKA
+                <FileCheck className="w-4 h-4" /> Audit
               </button>
               <button
                 onClick={() => navigateToPengawasan('reviu')}
