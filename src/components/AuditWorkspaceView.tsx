@@ -5,6 +5,7 @@ import { uploadEvidenceFile, copyEvidenceFileFromUrl, uploadFolderFiles } from '
 import { toDisplay, fromDisplay } from '../lib/formatDate';
 import { getWorkingDays } from '../lib/workingDays';
 import { supabase } from '../lib/supabase';
+import { logActivity } from '../lib/log';
 import EvidencePanel from './EvidencePanel';
 import CoverDocumentGenerator from './CoverDocumentGenerator';
 import SuratTugasGenerator from './SuratTugasGenerator';
@@ -225,6 +226,7 @@ export default function AuditWorkspaceView({
         evidenceHistory: [...prevHistory, historyEntry]
       });
       onShowToast?.(`Berkas "${res.name}" berhasil diunggah.`, 'success');
+      logActivity('upload_document', 'audit_item', audit.opdName, { fileName: res.name, category: audit.categories.find(c => c.items.some(i => i.id === itemId))?.name });
     } catch (err: any) {
       console.error(err);
       onShowToast?.(`Gagal mengunggah: ${err.message || err}`, 'error');
@@ -257,6 +259,7 @@ export default function AuditWorkspaceView({
         evidenceHistory: [...prevHistory, historyEntry]
       });
       onShowToast?.('Berkas dari tautan berhasil disalin.', 'success');
+      logActivity('link_document', 'audit_item', audit.opdName, { fileName: res.name, category: audit.categories.find(c => c.items.some(i => i.id === itemId))?.name });
     } catch (err: any) {
       console.error(err);
       onShowToast?.(`Gagal menyalin tautan: ${err.message || err}`, 'error');
@@ -289,6 +292,7 @@ export default function AuditWorkspaceView({
             ...results.map(r => ({ name: r.name, link: r.link, uploadedAt: r.uploadedAt, uploadedBy: r.uploadedBy, action: 'diunggah' as const }))
           ]
         });
+        logActivity('upload_folder', 'audit_item', audit.opdName, { fileCount: results.length, category: audit.categories.find(c => c.items.some(i => i.id === itemId))?.name });
       }
     }
     setUploadingIds(prev => ({ ...prev, [itemId]: false }));
@@ -333,6 +337,7 @@ export default function AuditWorkspaceView({
         ...(removed ? [{ name: removed.name, link: removed.link, uploadedAt: new Date().toISOString(), uploadedBy: currentUserName || audit.auditorName || 'Auditor', action: 'dihapus' as const }] : [])
       ]
     });
+    logActivity('delete_document', 'audit_item', audit.opdName, { fileName: removed?.name, category: audit.categories.find(c => c.items.some(i => i.id === itemId))?.name });
     onShowToast?.('Dokumen dihapus.', 'info');
   };
 
@@ -357,6 +362,7 @@ export default function AuditWorkspaceView({
     const newItem: AuditItem = { id: `item_temp_${Date.now()}`, title: newItemTitle.trim(), description: newItemDescription.trim(), status: 'N/A', nilaiTemuan: 0, uraianTemuan: '', rekomendasi: '' };
     const updatedCategories = audit.categories.map(cat => cat.id === activeCategory.id ? { ...cat, items: [...cat.items, newItem] } : cat);
     onUpdates({ ...audit, categories: updatedCategories });
+    logActivity('add_item', 'audit_item', audit.opdName, { itemName: newItemTitle.trim(), category: activeCategory.name });
     setNewItemTitle(''); setNewItemDescription(''); setIsAddingItem(false);
   };
 
@@ -419,8 +425,10 @@ export default function AuditWorkspaceView({
   const handleDeleteItem = (itemId: string) => {
     const confirmed = window.confirm('Apakah Anda yakin ingin menghapus dokumen pemeriksaan ini dari berkas KKA?');
     if (!confirmed) return;
+    const item = audit.categories.flatMap(c => c.items).find(i => i.id === itemId);
     const updatedCategories = audit.categories.map(cat => ({ ...cat, items: cat.items.filter(item => item.id !== itemId) }));
     onUpdates({ ...audit, categories: updatedCategories });
+    logActivity('delete_item', 'audit_item', audit.opdName, { itemName: item?.title, category: audit.categories.find(c => c.items.some(i => i.id === itemId))?.name });
   };
 
   const handleAddCategory = (e: React.FormEvent) => {
@@ -434,6 +442,7 @@ export default function AuditWorkspaceView({
       items: masterCat.items.map(item => ({ ...item, id: `item_custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, status: 'N/A', nilaiTemuan: 0, uraianTemuan: '', rekomendasi: '' }))
     };
     onUpdates({ ...audit, categories: [...audit.categories, newCategory] });
+    logActivity('add_category', 'audit', audit.opdName, { categoryName: masterCat.name });
     setIsAddingCategory(false); setSelectedMasterCatId(''); setNewCatTeamMembers([]);
   };
 
@@ -597,6 +606,7 @@ export default function AuditWorkspaceView({
                   const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Direview' as any } : c);
                   const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
                   onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
+                  logActivity('submit_review', 'audit_category', audit.opdName, { category: activeCategory.name });
                   onShowToast?.('Diajukan ke Irban untuk review.', 'success');
                 }} className="text-[10px] px-3 py-1.5 rounded-lg font-extrabold bg-blue-500 text-white hover:bg-blue-600 transition cursor-pointer">Ajukan Review</button>
               )}
@@ -607,6 +617,7 @@ export default function AuditWorkspaceView({
                     const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Selesai' as any } : c);
                     const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
                     onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
+                    logActivity('approve_category', 'audit_category', audit.opdName, { category: activeCategory.name });
                     onShowToast?.('Disetujui.', 'success');
                   }} className="text-[10px] px-3 py-1.5 rounded-lg font-extrabold bg-emerald-500 text-white hover:bg-emerald-600 transition cursor-pointer">Setujui</button>
                   <button onClick={() => {
@@ -614,6 +625,7 @@ export default function AuditWorkspaceView({
                     const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Sedang Berjalan' as any } : c);
                     const recalcStatus = newCategories.every(c => c.status === 'Selesai') ? 'Selesai' : newCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
                     onUpdates({ ...audit, status: recalcStatus, categories: newCategories });
+                    logActivity('return_category', 'audit_category', audit.opdName, { category: activeCategory.name });
                     onShowToast?.('Dikembalikan.', 'info');
                   }} className="text-[10px] px-3 py-1.5 rounded-lg font-extrabold bg-rose-500 text-white hover:bg-rose-600 transition cursor-pointer">Kembalikan Revisi</button>
                 </>
