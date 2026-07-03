@@ -480,6 +480,7 @@ export default function AuditWorkspaceView({
   };
 
   return (
+    <>
     <div className="space-y-4 text-dark-gray" id="audit-workspace-view">
 
       {!isTeamMember && FUNGSIONAL_ROLES.includes(userRole) && (
@@ -712,23 +713,7 @@ export default function AuditWorkspaceView({
             </form>
           )}
 
-          {/* Top auto-scroll hint zone — shown while dragging near the top of the screen */}
-          <AnimatePresence>
-            {draggingItemId !== null && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 40 }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.18 }}
-                className="sticky top-0 z-50 pointer-events-none mb-2 rounded-xl flex items-center justify-center border border-dashed border-blue-300 bg-blue-50/90 backdrop-blur-xs overflow-hidden"
-              >
-                <span className="text-[10px] font-bold text-blue-500 flex items-center gap-1">
-                  <svg className="w-3 h-3 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
-                  Dekatkan ke sini untuk gulir ke atas
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
 
           {!searchQuery.trim() ? (
             <Reorder.Group
@@ -804,23 +789,7 @@ export default function AuditWorkspaceView({
             </div>
           )}
 
-          {/* Bottom auto-scroll hint zone */}
-          <AnimatePresence>
-            {draggingItemId !== null && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 40 }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.18 }}
-                className="sticky bottom-0 z-50 pointer-events-none mt-2 rounded-xl flex items-center justify-center border border-dashed border-blue-300 bg-blue-50/90 backdrop-blur-xs overflow-hidden"
-              >
-                <span className="text-[10px] font-bold text-blue-500 flex items-center gap-1">
-                  <svg className="w-3 h-3 animate-bounce" style={{ animationDirection: 'alternate-reverse' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-                  Dekatkan ke sini untuk gulir ke bawah
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
 
           {filteredItems.length === 0 && (
             <div className="text-center py-8 text-xs text-dark-gray/50 italic font-medium">
@@ -994,6 +963,42 @@ export default function AuditWorkspaceView({
       {isNotaDinasModalOpen && <NotaDinasGenerator audit={audit} activeCategory={activeCategory} userProfiles={userProfiles} onClose={() => setIsNotaDinasModalOpen(false)} />}
       {isSPPDModalOpen && <SPPDGenerator audit={audit} activeCategory={activeCategory} userProfiles={userProfiles} onClose={() => setIsSPPDModalOpen(false)} />}
     </div>
+
+      {/* Fixed viewport-level auto-scroll hint zones */}
+      <AnimatePresence>
+        {draggingItemId !== null && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.15 }}
+            className="fixed top-0 left-0 right-0 z-[100] pointer-events-none h-16 flex items-center justify-center border-b border-blue-300 bg-gradient-to-b from-blue-50 to-blue-50/0"
+          >
+            <span className="text-[11px] font-bold text-blue-500 flex items-center gap-1 bg-white/80 px-3 py-1 rounded-full shadow-xs border border-blue-200">
+              <svg className="w-3 h-3 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
+              Gulir ke atas
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {draggingItemId !== null && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.15 }}
+            className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none h-16 flex items-center justify-center border-t border-blue-300 bg-gradient-to-t from-blue-50 to-blue-50/0"
+          >
+            <span className="text-[11px] font-bold text-blue-500 flex items-center gap-1 bg-white/80 px-3 py-1 rounded-full shadow-xs border border-blue-200">
+              <svg className="w-3 h-3 animate-bounce" style={{ animationDirection: 'alternate-reverse' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+              Gulir ke bawah
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -1008,7 +1013,7 @@ interface AuditItemCardBodyProps {
   setEditingTitleId: (id: string | null) => void;
   setEditItemTitle: (title: string) => void;
   isReadOnly: boolean;
-  userRole: string;
+  userRole: 'Auditor' | 'Inspektur Pembantu' | 'Inspektur';
   FUNGSIONAL_ROLES: string[];
   handleFindingDetailChange: (itemId: string, field: keyof AuditItem, value: any) => void;
   handleFindingDetailsUpdate: (itemId: string, updates: Partial<AuditItem>) => void;
