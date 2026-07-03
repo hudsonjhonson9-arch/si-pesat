@@ -361,8 +361,8 @@ export default function AuditWorkspaceView({
   const handleItemDrag = useCallback((_event: any, info: { point: { x: number; y: number } }) => {
     const clientY = info?.point?.y;
     if (clientY == null) return;
-    const ZONE = 130;
-    const MAX_SPEED = 20;
+    const ZONE = 70;
+    const MAX_SPEED = 8;
     const viewportH = window.innerHeight;
 
     let speed = 0;
