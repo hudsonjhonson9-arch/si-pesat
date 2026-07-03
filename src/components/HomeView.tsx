@@ -65,7 +65,7 @@ export default function HomeView() {
       </div>
 
       {/* Visi & Misi — manifesto panel (signature element) */}
-      <div className="rounded-3xl p-6 md:p-10 relative overflow-hidden bg-ink shadow-lg">
+      <div className="bg-white rounded-3xl p-6 md:p-8 border border-dark-gray/10 shadow-sm">
         <div className="absolute -right-16 -top-16 w-64 h-64 bg-peach-accent/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-10 bottom-0 w-40 h-40 bg-baby-blue/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -114,7 +114,7 @@ export default function HomeView() {
           </span>
           <div>
             <h2 className="font-black text-dark-gray text-sm md:text-base tracking-tight">
-              A. Tugas dan Fungsi Unit Kerja
+              Tugas dan Fungsi Unit Kerja
             </h2>
             <p className="text-[11px] text-dark-gray/50 mt-0.5">
               Berdasarkan Peraturan Bupati Sumba Barat Nomor 30 Tahun 2021, Tugas Pokok dan Fungsi
