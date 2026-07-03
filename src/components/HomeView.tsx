@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Building, Users, BookOpen, ChevronDown, ScrollText, Quote } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import GuideView from './GuideView';
@@ -33,12 +33,19 @@ const struktur = [
 export default function HomeView() {
   const [showGuide, setShowGuide] = useState(false);
   const [inspekturName, setInspekturName] = useState('');
+  const guideRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase.from('profiles').select('full_name').eq('role', 'Inspektur').single().then(({ data }) => {
       if (data?.full_name) setInspekturName(data.full_name);
     });
   }, []);
+
+  useEffect(() => {
+    if (showGuide && guideRef.current) {
+      guideRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [showGuide]);
 
   return (
     <div className="space-y-5 animate-fade-in" id="home-view">
@@ -180,7 +187,7 @@ export default function HomeView() {
         </div>
       </div>
 
-      {showGuide && <GuideView />}
+      {showGuide && <div ref={guideRef}><GuideView /></div>}
     </div>
   );
 }
