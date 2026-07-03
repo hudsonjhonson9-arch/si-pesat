@@ -61,6 +61,14 @@ export default function HomeView() {
           <p className="text-[var(--text-secondary)] text-sm max-w-2xl leading-relaxed">
             Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi Inspektur Pembantu Wilayah IV
           </p>
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            className="mt-3 flex items-center gap-2 text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--ink-soft)] transition-colors"
+          >
+            <BookOpen className="w-4 h-4 text-pastel-peach" />
+            {showGuide ? 'Tutup Panduan' : 'Buka Panduan Aplikasi'}
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showGuide ? 'rotate-180' : ''}`} />
+          </button>
         </div>
       </div>
 
@@ -170,18 +178,6 @@ export default function HomeView() {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Guide toggle */}
-      <div className="border-t border-pastel-blue/20 pt-6">
-        <button
-          onClick={() => setShowGuide(!showGuide)}
-          className="flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--ink-soft)] transition-colors mx-auto"
-        >
-          <BookOpen className="w-4 h-4 text-pastel-peach" />
-          {showGuide ? 'Tutup Panduan' : 'Buka Panduan Aplikasi'}
-          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showGuide ? 'rotate-180' : ''}`} />
-        </button>
       </div>
 
       {showGuide && <GuideView />}
