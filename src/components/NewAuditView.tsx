@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { KKATemplate, OpdAudit, UserProfile, TargetEntity, AuditMilestone } from '../types';
 import { toDisplay, fromDisplay } from '../lib/formatDate';
+import { getWorkingDays } from '../lib/workingDays';
 
 const byNipAge = (a: UserProfile, b: UserProfile) => {
   if (a.nip && b.nip) return a.nip.localeCompare(b.nip);
@@ -96,8 +97,7 @@ export default function NewAuditView({
 
   const getDayCount = (startDate: string | undefined, endDate: string) => {
     if (!startDate) return null;
-    const diff = Math.floor((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? diff : 0;
+    return getWorkingDays(startDate, endDate);
   };
 
   // For the add-category panel
@@ -527,20 +527,18 @@ export default function NewAuditView({
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
                     <input
-                      type="text"
-                      placeholder="dd/mm/yyyy"
-                      value={toDisplay(m.startDate)}
-                      onChange={e => updateMilestone(m.id, 'startDate', fromDisplay(e.target.value))}
+                      type="date"
+                      value={m.startDate || ''}
+                      onChange={e => updateMilestone(m.id, 'startDate', e.target.value)}
                       className="w-full text-xs font-bold border border-slate-200 px-2.5 py-1.5 rounded-lg bg-white text-slate-800 outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20"
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
                     <input
-                      type="text"
-                      placeholder="dd/mm/yyyy"
-                      value={toDisplay(m.targetDate)}
-                      onChange={e => updateMilestone(m.id, 'targetDate', fromDisplay(e.target.value))}
+                      type="date"
+                      value={m.targetDate || ''}
+                      onChange={e => updateMilestone(m.id, 'targetDate', e.target.value)}
                       className="w-full text-xs font-bold border border-slate-200 px-2.5 py-1.5 rounded-lg bg-white text-slate-800 outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20"
                     />
                   </div>

@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { EvidenceFile } from '../types';
+import { compressImage } from './compressImage';
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
@@ -25,6 +26,9 @@ export async function uploadEvidenceFile(
     throw new Error("VITE_GOOGLE_SCRIPT_URL belum diatur di environment variable.");
   }
 
+  // Compress images before upload
+  const fileToUpload = file.type.startsWith('image/') ? await compressImage(file) : file;
+
   const token = await getAuthToken();
   const url = baseUrl + '?token=' + encodeURIComponent(token);
 
@@ -36,8 +40,8 @@ export async function uploadEvidenceFile(
         const base64Data = fileContent.split(',')[1];
 
         const payload = {
-          name: file.name,
-          mimeType: file.type || 'application/octet-stream',
+          name: fileToUpload.name,
+          mimeType: fileToUpload.type || 'application/octet-stream',
           base64: base64Data,
           year: year,
           opd: opdName,
@@ -74,7 +78,7 @@ export async function uploadEvidenceFile(
       }
     };
     reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(fileToUpload);
   });
 }
 
@@ -155,15 +159,17 @@ export async function uploadFolderFiles(
   const results: EvidenceFile[] = [];
   let completed = 0;
 
-  const uploadOne = async (file: File): Promise<EvidenceFile> => {
+const uploadOne = async (file: File): Promise<EvidenceFile> => {
+    // Compress images before upload
+    const fileToUpload = file.type.startsWith('image/') ? await compressImage(file) : file;
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async () => {
         try {
           const base64Data = (reader.result as string).split(',')[1];
           const payload: any = {
-            name: file.name,
-            mimeType: file.type || 'application/octet-stream',
+            name: fileToUpload.name,
+            mimeType: fileToUpload.type || 'application/octet-stream',
             base64: base64Data,
             year: auditInfo.fiscalYear,
             opd: auditInfo.opdName,
@@ -200,7 +206,7 @@ export async function uploadFolderFiles(
     } catch (err) { reject(err); }
   };
   reader.onerror = () => reject(reader.error);
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(fileToUpload);
     });
   };
 
