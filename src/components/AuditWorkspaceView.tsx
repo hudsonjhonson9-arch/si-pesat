@@ -359,8 +359,9 @@ export default function AuditWorkspaceView({
 
   // Called live while an item is being dragged (Framer Motion Reorder.Item onDrag)
   const handleItemDrag = useCallback((_event: any, info: { point: { x: number; y: number } }) => {
-    const clientY = info?.point?.y;
-    if (clientY == null) return;
+    const pageY = info?.point?.y;
+    if (pageY == null) return;
+    const clientY = pageY - window.scrollY;
     const ZONE = 70;
     const MAX_SPEED = 8;
     const viewportH = window.innerHeight;
