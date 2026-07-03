@@ -86,6 +86,7 @@ export interface OpdAudit {
   googleDriveFolderId?: string;
   googleDriveFileId?: string; // Cache of consolidated file ID
   lastSyncedAt?: string;
+  updatedAt?: string; // Last local modification timestamp for merge comparison
   schedule?: AuditMilestone[]; // Jadwal pengerjaan audit
   bidang_id?: number;
 }

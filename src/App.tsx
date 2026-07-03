@@ -245,6 +245,7 @@ export default function App() {
           teamMembers: d.team_members || [],
           categories: d.categories || [],
           lastSyncedAt: d.updated_at || new Date().toISOString(),
+          updatedAt: d.updated_at || new Date().toISOString(),
           schedule: d.schedule || [],
           bidang_id: d.bidang_id || null
         }));
@@ -398,7 +399,8 @@ export default function App() {
   const syncTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSyncingRef = React.useRef(false);
 
-  // Supabase Background Sync (Debounced) — bisa juga dipaksa langsung lewat forceSyncNow()
+  // Supabase Background Sync (Debounced) — DB is source of truth
+  // Only pushes local changes where local.updatedAt > DB.updated_at
   const forceSyncNow = React.useCallback(async () => {
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
@@ -408,78 +410,95 @@ export default function App() {
     if (isSyncingRef.current) return;
     isSyncingRef.current = true;
 
-    const audits = auditsRef.current;
+    const localAudits = auditsRef.current;
     const templates = templatesRef.current;
 
-      try {
-        if (audits.length > 0) {
-          // UUID validation regex to prevent Supabase rejection
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-          const validAudits = audits.filter(a => uuidRegex.test(a.id));
+    try {
+      // 1. Fetch current DB state first (DB = source of truth)
+      const { data: dbAudits, error: fetchError } = await supabase.from('audits').select('id, updated_at');
 
-          if (validAudits.length > 0) {
-            const payload = validAudits.map(a => ({
-              id: a.id,
-              opd_name: a.opdName,
-              opd_type: a.opdType,
-              audit_type: a.auditType,
-              fiscal_year: a.fiscalYear,
-              auditor_name: a.auditorName,
-              audit_date: a.auditDate,
-              status: a.status,
-              progress: calculateProgress(a),
-              categories: a.categories,
-              team_members: a.teamMembers || [],
-              schedule: a.schedule || [],
-              bidang_id: a.bidang_id || null,
-              updated_at: new Date().toISOString()
-            }));
-
-            const { error } = await supabase.from('audits').upsert(payload, { onConflict: 'id' });
-            if (error) {
-              console.error('Background sync audits failed:', error);
-              setSyncLogs(prev => [{
-                id: Date.now().toString(),
-                timestamp: new Date().toISOString(),
-                action: 'ERROR',
-                details: `Gagal menyimpan KKA ke Database: ${error.message || JSON.stringify(error)}`
-              }, ...prev].slice(0, 50));
-            } else {
-              setSyncLogs(prev => [{
-                id: Date.now().toString(),
-                timestamp: new Date().toISOString(),
-                action: 'UPLOAD',
-                details: `Sinkronisasi KKA latar belakang berhasil.`
-              }, ...prev].slice(0, 50));
-            }
-          }
+      if (!fetchError && localAudits.length > 0) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const dbMap = new Map<string, string>(); // id → updated_at
+        if (dbAudits) {
+          dbAudits.forEach((d: any) => dbMap.set(d.id, d.updated_at || ''));
         }
 
-        const realTemplates = templates.filter(t => t.id !== 'template_kosong' && t.categories.length > 0);
-        if (realTemplates.length > 0 && isAdmin) {
-          const templatePayloads = realTemplates.map(t => ({
-            id: t.id,
-            name: t.name,
-            is_default: t.isDefault,
-            categories: t.categories,
+        // 2. Only push local audits that are newer than DB or not in DB yet
+        const toPush = localAudits.filter(a => {
+          if (!uuidRegex.test(a.id)) return false;
+          const dbUpdated = dbMap.get(a.id);
+          if (!dbUpdated) return true; // Not in DB → push (new offline audit)
+          const localUpdated = a.updatedAt || a.lastSyncedAt || '';
+          return localUpdated > dbUpdated; // Local is newer → push
+        });
+
+        if (toPush.length > 0) {
+          const payload = toPush.map(a => ({
+            id: a.id,
+            opd_name: a.opdName,
+            opd_type: a.opdType,
+            audit_type: a.auditType,
+            fiscal_year: a.fiscalYear,
+            auditor_name: a.auditorName,
+            audit_date: a.auditDate,
+            status: a.status,
+            progress: calculateProgress(a),
+            categories: a.categories,
+            team_members: a.teamMembers || [],
+            schedule: a.schedule || [],
+            bidang_id: a.bidang_id || null,
             updated_at: new Date().toISOString()
           }));
-          const { error: tError } = await supabase.from('templates').upsert(templatePayloads, { onConflict: 'id' });
-          if (tError) {
-            console.error('Background sync templates failed:', tError);
+
+          const { error } = await supabase.from('audits').upsert(payload, { onConflict: 'id' });
+          if (error) {
+            console.error('Background sync audits failed:', error);
             setSyncLogs(prev => [{
               id: Date.now().toString(),
               timestamp: new Date().toISOString(),
               action: 'ERROR',
-              details: `Gagal mensinkronkan Template ke Database: ${tError.message || JSON.stringify(tError)}`
+              details: `Gagal menyimpan KKA ke Database: ${error.message || JSON.stringify(error)}`
+            }, ...prev].slice(0, 50));
+          } else {
+            setSyncLogs(prev => [{
+              id: Date.now().toString(),
+              timestamp: new Date().toISOString(),
+              action: 'UPLOAD',
+              details: `Sinkronisasi ${toPush.length} KKA ke Database berhasil.`
             }, ...prev].slice(0, 50));
           }
         }
-      } catch (err) {
-        console.error('Background sync error:', err);
-      } finally {
-        isSyncingRef.current = false;
+
+        // 3. Re-fetch from DB to pull any changes from other users
+        fetchAudits();
       }
+
+      const realTemplates = templates.filter(t => t.id !== 'template_kosong' && t.categories.length > 0);
+      if (realTemplates.length > 0 && isAdmin) {
+        const templatePayloads = realTemplates.map(t => ({
+          id: t.id,
+          name: t.name,
+          is_default: t.isDefault,
+          categories: t.categories,
+          updated_at: new Date().toISOString()
+        }));
+        const { error: tError } = await supabase.from('templates').upsert(templatePayloads, { onConflict: 'id' });
+        if (tError) {
+          console.error('Background sync templates failed:', tError);
+          setSyncLogs(prev => [{
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            action: 'ERROR',
+            details: `Gagal mensinkronkan Template ke Database: ${tError.message || JSON.stringify(tError)}`
+          }, ...prev].slice(0, 50));
+        }
+      }
+    } catch (err) {
+      console.error('Background sync error:', err);
+    } finally {
+      isSyncingRef.current = false;
+    }
   }, [isAdmin]);
 
   // Trigger debounce 5 detik setiap kali audits/templates berubah
@@ -791,7 +810,7 @@ export default function App() {
 
     const existingAudit = audits.find(a => a.opdName.toLowerCase() === opdName.trim().toLowerCase() && a.fiscalYear === fiscalYear);
     if (existingAudit) {
-      const updatedAudit = { ...existingAudit, categories: [...existingAudit.categories, ...initialCategories] };
+      const updatedAudit = { ...existingAudit, categories: [...existingAudit.categories, ...initialCategories], updatedAt: new Date().toISOString() };
       setAudits(prev => prev.map(a => a.id === existingAudit.id ? updatedAudit : a));
       setSelectedAuditId(existingAudit.id);
       setActiveTab('workspace');
@@ -834,7 +853,8 @@ export default function App() {
       categories: initialCategories,
       teamMembers,
       schedule: defaultSchedule,
-      bidang_id: entityBidangId
+      bidang_id: entityBidangId,
+      updatedAt: new Date().toISOString()
     };
 
     setAudits(prev => [newAudit, ...prev]);
@@ -867,7 +887,7 @@ export default function App() {
       team_members: audit.teamMembers || [],
       schedule: audit.schedule || [],
       bidang_id: audit.bidang_id || null,
-      updated_at: new Date().toISOString()
+      updated_at: audit.updatedAt || new Date().toISOString()
     }).eq('id', audit.id).then(({ error }) => {
       if (error) console.error('Immediate sync failed:', error);
     });
@@ -886,8 +906,10 @@ export default function App() {
       }
     }
 
-    setAudits(prev => prev.map(a => a.id === updatedAudit.id ? updatedAudit : a));
-    syncAuditToSupabase(updatedAudit);
+    // Set updatedAt for merge comparison (DB is source of truth)
+    const withTimestamp = { ...updatedAudit, updatedAt: new Date().toISOString() };
+    setAudits(prev => prev.map(a => a.id === withTimestamp.id ? withTimestamp : a));
+    syncAuditToSupabase(withTimestamp);
   };
 
   const handleDeleteAudit = async (auditId: string) => {
