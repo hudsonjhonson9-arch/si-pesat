@@ -77,7 +77,7 @@ export default function HomeView() {
             </span>
             <Quote className="w-6 h-6 text-peach-accent/40 mb-2" />
             <p
-              className="text-white text-xl md:text-[26px] leading-snug"
+              className="text-black text-xl md:text-[26px] leading-snug"
               style={{ fontFamily: 'var(--font-serif-display)' }}
             >
               Terwujudnya Kehidupan Rakyat Sumba Barat yang Maju, Berdaya Saing dan Berkeadilan.
@@ -89,7 +89,7 @@ export default function HomeView() {
 
           {/* Misi */}
           <div>
-            <span className="text-white/50 text-[10px] font-bold uppercase tracking-[0.2em] mb-4 inline-block">
+            <span className="text-black/50 text-[10px] font-bold uppercase tracking-[0.2em] mb-4 inline-block">
               Misi
             </span>
             <ol className="space-y-3.5">
