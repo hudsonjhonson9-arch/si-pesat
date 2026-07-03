@@ -1047,11 +1047,13 @@ function AuditItemCardBody({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               {showGripHandle && (
-                <GripVertical
-                  className="w-4 h-4 text-dark-gray/40 shrink-0 cursor-grab active:cursor-grabbing touch-none"
+                <span
+                  className="flex items-center justify-center w-9 h-9 -ml-2 -my-2 shrink-0 cursor-grab active:cursor-grabbing touch-none rounded-lg active:bg-black/5"
                   onPointerDown={dragHandleProps?.onPointerDown}
                   style={{ touchAction: 'none' }}
-                />
+                >
+                  <GripVertical className="w-4 h-4 text-dark-gray/40 pointer-events-none" />
+                </span>
               )}
               <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold shrink-0 bg-sky-100 text-sky-700">Dokumen {idx + 1}</span>
               {editingTitleId === item.id ? (
