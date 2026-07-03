@@ -126,7 +126,7 @@ export default function LoginView({
             <button
               type="submit"
               disabled={isSyncing}
-              className="w-full bg-[var(--ink-soft)] hover:bg-[var(--ink-soft)]/90 text-white py-4 px-4 rounded-xl flex items-center justify-center gap-2.5 transition font-extrabold text-xs shadow-md border border-[var(--ink-soft)]/5 cursor-pointer disabled:opacity-75"
+              className="w-full bg-dark-gray hover:bg-dark-gray/90 text-white py-4 px-4 rounded-xl flex items-center justify-center gap-2.5 transition font-extrabold text-xs shadow-md cursor-pointer disabled:opacity-75"
             >
               {isSyncing ? (
                 <span className="animate-spin inline-block w-4 h-4 rounded-full border-2 border-white border-t-transparent" />
