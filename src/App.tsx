@@ -859,7 +859,7 @@ export default function App() {
 
     setAudits(prev => [newAudit, ...prev]);
     setSelectedAuditId(newAudit.id);
-    showToast(`Pemeriksaan KKA ${opdName} berhasil diinisiasi.`, 'success');
+    showToast(`Pemeriksaan  ${opdName} berhasil diinisiasi.`, 'success');
   };
 
   const notifyCategoryStatusChange = (oldCat: AuditCategory, newCat: AuditCategory, audit: OpdAudit) => {
@@ -1254,7 +1254,7 @@ export default function App() {
                           onClick={(e) => { navigateToPengawasan('audit'); toggleDropdown('audit-nested', e); }}
                           className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
                         >
-                          <span className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> KKA</span>
+                          <span className="flex items-center gap-2"><FileCheck className="w-4 h-4" /> Audit</span>
                           <ChevronDown className="w-3 h-3 -rotate-90" />
                         </button>
                         {openDropdowns['audit-nested'] && (
