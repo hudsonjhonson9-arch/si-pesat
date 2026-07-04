@@ -592,7 +592,7 @@ export default function AuditWorkspaceView({
               <p>Ketua Tim: <span className="font-bold text-dark-gray">{activeCategory?.auditorName || 'Belum diatur'}</span></p>
               <p>Anggota: <span className="font-bold text-dark-gray">{activeCategory?.teamMembers?.length ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></p>
             </div>
-            {(STRUKTURAL_ROLES.includes(userRole) || currentUserName === activeCategory?.auditorName) && (
+            {(isAdmin || STRUKTURAL_ROLES.includes(userRole) || currentUserName === activeCategory?.auditorName) && (
               <button onClick={openEditCategoryTeam} className="p-1 text-dark-gray/40 hover:text-dark-gray/70 cursor-pointer"><Edit2 className="w-4 h-4" /></button>
             )}
           </div>
