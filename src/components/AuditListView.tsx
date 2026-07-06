@@ -154,7 +154,7 @@ export default function AuditListView({
       return matchSearch && matchType && matchYear && matchBidang;
     });
 
-    if (sortBy === 'name') {
+    if (sortBy === 'abjad') {
       result.sort((a, b) => a.opdName.localeCompare(b.opdName));
     } else if (sortBy === 'newest') {
       result.sort((a, b) => new Date(b.auditDate).getTime() - new Date(a.auditDate).getTime());
@@ -197,7 +197,7 @@ export default function AuditListView({
       {/* Title */}
       <div className="flex items-center gap-2">
         <div className="w-1 h-6 bg-peach-accent rounded-full" />
-        <h2 className="text-lg font-black text-dark-gray tracking-tight">Kertas Kerja Audit</h2>
+        <h2 className="text-lg font-black text-dark-gray tracking-tight">Daftar Kertas Kerja Audit</h2>
       </div>
 
       {/* Search and Filters panel */}
@@ -242,13 +242,13 @@ export default function AuditListView({
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider block mb-1">Tahun Anggaran</label>
+            <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider block mb-1">Tahun</label>
             <select
               value={yearFilter}
               onChange={e => setYearFilter(e.target.value)}
               className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded-md bg-white/70 text-dark-gray focus:bg-white focus:outline-hidden focus:border-peach-accent"
             >
-              <option value="all">Semua TA</option>
+              <option value="all">Semua</option>
               {availableYears.map(yr => (
                 <option key={yr} value={yr}>TA {yr}</option>
               ))}
@@ -259,10 +259,10 @@ export default function AuditListView({
             <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider block mb-1">Urutkan</label>
             <select
               value={sortBy}
-              onChange={e => setSortBy(e.target.value as 'name' | 'newest')}
+              onChange={e => setSortBy(e.target.value as 'abjad' | 'newest')}
               className="w-full text-xs font-bold border border-dark-gray/15 p-1.5 rounded-md bg-white/70 text-dark-gray focus:bg-white focus:outline-hidden focus:border-peach-accent"
             >
-              <option value="name">Nama</option>
+              <option value="abjad">Abjad</option>
               <option value="newest">Terbaru</option>
             </select>
           </div>
