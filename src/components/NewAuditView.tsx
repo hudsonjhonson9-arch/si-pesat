@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { KKATemplate, OpdAudit, UserProfile, TargetEntity, AuditMilestone } from '../types';
 import { toDisplay, fromDisplay } from '../lib/formatDate';
-import { getWorkingDays } from '../lib/workingDays';
+
 
 const byNipAge = (a: UserProfile, b: UserProfile) => {
   if (a.nip && b.nip) return a.nip.localeCompare(b.nip);
@@ -93,11 +93,6 @@ export default function NewAuditView({
 
   const updateMilestone = (id: string, field: keyof AuditMilestone, value: string) => {
     setSchedule(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
-  };
-
-  const getDayCount = (startDate: string | undefined, endDate: string) => {
-    if (!startDate) return null;
-    return getWorkingDays(startDate, endDate);
   };
 
   // For the add-category panel
@@ -492,7 +487,6 @@ export default function NewAuditView({
 
         <div className="space-y-3">
           {schedule.map((m, idx) => {
-            const dayCount = getDayCount(m.startDate, m.targetDate);
             return (
               <div key={m.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -500,15 +494,6 @@ export default function NewAuditView({
                     idx === 0 ? 'bg-blue-500' : idx === 1 ? 'bg-amber-500' : idx === 2 ? 'bg-purple-500' : 'bg-emerald-500'
                   }`}>{idx + 1}</div>
                   <p className="text-xs font-black text-slate-800">{m.name}</p>
-                  {dayCount !== null && (
-                    <span className={`ml-auto text-[10px] font-black px-2 py-0.5 rounded-full border ${
-                      dayCount === 0 ? 'bg-rose-50 text-rose-600 border-rose-200' :
-                      dayCount <= 7 ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                      'bg-blue-50 text-blue-700 border-blue-200'
-                    }`}>
-                      {dayCount} hari
-                    </span>
-                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -538,18 +523,6 @@ export default function NewAuditView({
           })}
         </div>
 
-        {/* Ringkasan total durasi */}
-        {(() => {
-          const first = schedule[0]?.startDate;
-          const last = schedule[schedule.length - 1]?.targetDate;
-          const total = getDayCount(first, last);
-          return first && last && total !== null ? (
-            <div className="flex items-center justify-between bg-peach-accent/10 border border-peach-accent/20 rounded-xl px-4 py-3">
-              <span className="text-xs font-bold text-dark-gray/70">Total durasi pemeriksaan</span>
-              <span className="text-sm font-black text-dark-gray">{total} hari</span>
-            </div>
-          ) : null;
-        })()}
       </div>
 
       {/* Submit */}
