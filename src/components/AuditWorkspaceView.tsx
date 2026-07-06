@@ -459,7 +459,8 @@ export default function AuditWorkspaceView({
     e.preventDefault();
     if (!activeCategory) return;
     const updatedCategories = audit.categories.map(cat => cat.id === activeCategory.id ? { ...cat, auditorName: editCatAuditorName, teamMembers: editCatTeamMembers, fiscalYear: editCatFiscalYear, status: editCatStatus } : cat);
-    onUpdates({ ...audit, categories: updatedCategories });
+    const recalcStatus = updatedCategories.every(c => c.status === 'Selesai') ? 'Selesai' : updatedCategories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
+    onUpdates({ ...audit, status: recalcStatus, categories: updatedCategories });
     setIsEditingCategoryTeam(false);
   };
 

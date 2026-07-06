@@ -890,6 +890,8 @@ export default function App() {
       updated_at: audit.updatedAt || new Date().toISOString()
     }).eq('id', audit.id).then(({ error }) => {
       if (error) console.error('Immediate sync failed:', error);
+    }).catch(err => {
+      console.error('Sync rejected:', err);
     });
   };
 
@@ -904,6 +906,12 @@ export default function App() {
           notifyCategoryStatusChange(oldCat, newCat, updatedAudit);
         }
       }
+    }
+
+    // ponytail: recalc audit status whenever categories change — catches Edit modal + existing wrong data
+    if (updatedAudit.categories.length > 0) {
+      const corrected = updatedAudit.categories.every(c => c.status === 'Selesai') ? 'Selesai' : updatedAudit.categories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
+      if (corrected !== updatedAudit.status) updatedAudit.status = corrected;
     }
 
     // Set updatedAt for merge comparison (DB is source of truth)

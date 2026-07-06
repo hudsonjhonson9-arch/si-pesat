@@ -146,7 +146,8 @@ export default function AuditListView({
   const filteredAudits = useMemo(() => {
     let result = audits.filter(audit => {
       const matchSearch = audit.opdName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        audit.auditorName.toLowerCase().includes(searchQuery.toLowerCase());
+        audit.auditorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (audit.teamMembers || []).some(m => m.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchType = typeFilter === 'all' || audit.opdType === typeFilter;
       const matchYear = yearFilter === 'all' || audit.fiscalYear === yearFilter;
       const matchBidang = (userRole === 'Inspektur' || userRole === 'Sekretaris') || !userBidangId || audit.bidang_id === userBidangId;
