@@ -268,8 +268,7 @@ export default function NewAuditView({
           {/* Fiscal Year */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wide block">
-              <Calendar className="w-3 h-3 inline mr-1" />Tahun Anggaran
-            </label>
+              <Calendar className="w-3 h-3 inline mr-1" />Tahun
             <select
               value={fiscalYear}
               onChange={e => setFiscalYear(e.target.value)}
