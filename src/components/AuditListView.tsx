@@ -210,7 +210,7 @@ export default function AuditListView({
             </span>
             <input
               type="text"
-              placeholder="Cari nama instansi, OPD, OPD, atau auditor..."
+              placeholder="Cari nama instansi atau auditor..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 border border-dark-gray/15 rounded-lg text-sm bg-white/70 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-peach-accent/30 focus:border-peach-accent outline-none transition text-dark-gray placeholder-dark-gray/50 font-medium"
