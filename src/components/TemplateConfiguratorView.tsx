@@ -244,20 +244,20 @@ export default function TemplateConfiguratorView({
   };
 
   return (
-    <div className="space-y-6 text-dark-gray" id="template-configurator-view">
+    <div className="space-y-3 text-dark-gray" id="template-configurator-view">
       {/* Configure Alert notice */}
-      <div className="bg-amber-100/45 border border-amber-200/50 text-dark-gray p-4 rounded-xl text-xs space-y-1.5 shadow-xs">
-        <div className="flex items-center gap-1.5 font-bold text-amber-900">
-          <AlertCircle className="w-4 h-4 text-amber-800 flex-shrink-0" />
-          <span className="font-extrabold text-dark-gray">Konfigurasi Jenis Audit Pemeriksaan Dinamis (A.2)</span>
+      <div className="bg-amber-100/40 border border-amber-200/40 text-dark-gray p-3 rounded-xl text-[11px] shadow-xs">
+        <div className="flex items-center gap-1.5 font-bold text-dark-gray/80">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
+          <span>Konfigurasi Jenis Audit Dinamis</span>
         </div>
-        <p className="leading-relaxed font-semibold text-dark-gray/90">
-          Kriteria dan Jenis Audit di halaman ini adalah <strong>master jenis audit default</strong>. Setiap kali Anda menekan tombol <strong>"Mulai Audit Baru"</strong> di beranda, struktur daftar periksa akan disalin langsung dari apa yang Anda atur di bawah ini. Audit yang sudah berjalan tidak akan terpengaruh.
+        <p className="mt-0.5 leading-relaxed font-medium text-dark-gray/70">
+          Master jenis audit default. Struktur daftar periksa akan disalin saat <strong>"Mulai Audit Baru"</strong>. Audit berjalan tidak terpengaruh.
         </p>
       </div>
 
       {/* Controller Actions Panel */}
-      <div className="flex items-center justify-end gap-4 flex-wrap bg-baby-blue p-3.5 border border-dark-gray/10 rounded-xl shadow-xs">
+      <div className="flex items-center justify-end bg-baby-blue p-2.5 border border-dark-gray/10 rounded-xl shadow-xs">
         <button
           onClick={() => {
             const confirmed = window.confirm('Apakah Anda yakin ingin menyetel ulang semua template ke standar Dana BOS Nasional Inspektorat? Semua kustomisasi Anda akan dihapus.');
@@ -265,32 +265,32 @@ export default function TemplateConfiguratorView({
               onResetTemplates();
             }
           }}
-          className="bg-white border border-dark-gray/15 hover:bg-white/85 text-dark-gray text-xs font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
+          className="bg-white border border-dark-gray/15 hover:bg-white/85 text-dark-gray text-[11px] font-bold px-2.5 py-1 rounded-lg inline-flex items-center gap-1 transition cursor-pointer"
         >
-          <RotateCcw className="w-3.5 h-3.5" /> Batal & Atur Ulang Standar
+          <RotateCcw className="w-3 h-3" /> Atur Ulang Standar
         </button>
       </div>
 
       {/* Main Dual Grid config layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
         {/* Category config column */}
-        <div className="lg:col-span-4 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-            <div className="flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-dark-gray/50" />
+        <div className="lg:col-span-4 bg-baby-blue p-3 border border-dark-gray/10 rounded-xl shadow-xs space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <Layers className="w-3 h-3 text-dark-gray/50" />
               <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Jenis Audit</span>
-              <span className="text-[10px] font-bold text-dark-gray/40 font-mono">({allCategories.length})</span>
+              <span className="text-[10px] font-bold text-dark-gray/40 font-mono">{allCategories.length}</span>
             </div>
             <button
               onClick={() => setIsAddingCategory(true)}
-              className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
+              className="text-[11px] text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
             >
-              <PlusCircle className="w-3.5 h-3.5" /> Tambah
+              <PlusCircle className="w-3 h-3" /> Tambah
             </button>
           </div>
 
-          <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
+          <div className="space-y-1 max-h-[420px] overflow-y-auto">
               {allCategories.map(cat => {
               const isActive = cat.id === selectedCatId;
               const isEditingThis = editingCatId === cat.id;
@@ -298,7 +298,7 @@ export default function TemplateConfiguratorView({
 
               if (isEditingThis) {
                 return (
-                  <div key={cat.id} className="bg-white p-2.5 rounded-lg border border-dark-gray/15 space-y-2 text-xs">
+                  <div key={cat.id} className="bg-white p-2 rounded-lg border border-dark-gray/15 space-y-1.5 text-[11px]">
                     <input
                       type="text"
                       value={editCatName}
@@ -313,16 +313,16 @@ export default function TemplateConfiguratorView({
                       rows={2}
                       placeholder="Deskripsi Seksi"
                     />
-                    <div className="flex justify-end gap-1.5 pt-1">
+                    <div className="flex justify-end gap-1.5">
                       <button
                         onClick={() => setEditingCatId(null)}
-                        className="p-1 px-2 bg-white text-dark-gray border border-dark-gray/15 rounded-lg cursor-pointer font-bold"
+                        className="px-2 py-1 bg-white text-dark-gray border border-dark-gray/15 rounded-lg cursor-pointer font-bold"
                       >
                         Batal
                       </button>
                       <button
                         onClick={saveCategoryEdit}
-                        className="p-1 px-3 bg-peach-accent text-dark-gray border border-dark-gray/10 rounded-lg font-black cursor-pointer shadow-xs"
+                        className="px-2.5 py-1 bg-peach-accent text-dark-gray border border-dark-gray/10 rounded-lg font-black cursor-pointer shadow-xs"
                       >
                         OK
                       </button>
@@ -335,17 +335,17 @@ export default function TemplateConfiguratorView({
                 <div
                   key={cat.id}
                   onClick={() => setSelectedCatId(cat.id)}
-                  className={`group relative flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition border ${isActive
+                  className={`group relative flex items-center justify-between text-[11px] p-2 rounded-lg cursor-pointer transition border ${isActive
                       ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold'
                       : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/60 font-semibold'
                     }`}
                 >
                   {isActive && (
-                    <div className="absolute left-0 top-1 bottom-1 w-0.5 bg-peach-accent rounded-full" />
+                    <div className="absolute left-0 top-0.5 bottom-0.5 w-0.5 bg-peach-accent rounded-full" />
                   )}
-                  <div className="flex items-center gap-1.5 truncate min-w-0 pr-14">
+                  <div className="flex items-center gap-1 truncate min-w-0 pr-12">
                     <span className="truncate">{cat.name}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
+                    <span className={`text-[9px] px-1 py-0.5 rounded-full font-bold shrink-0 ${
                       isActive ? 'bg-white/15 text-white' : 'bg-dark-gray/8 text-dark-gray/50'
                     }`}>
                       {itemCount}
@@ -353,7 +353,7 @@ export default function TemplateConfiguratorView({
                   </div>
 
                   {/* Actions buttons */}
-                  <div className={`absolute right-2 flex items-center gap-1.5 transition-opacity duration-150 ${
+                  <div className={`absolute right-1.5 flex items-center gap-1 transition-opacity duration-150 ${
                     isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                   }`}>
                     <button
@@ -361,20 +361,20 @@ export default function TemplateConfiguratorView({
                         e.stopPropagation();
                         startEditingCat(cat);
                       }}
-                      className={`p-1.5 rounded-lg transition-colors shadow-sm border cursor-pointer ${isActive ? 'bg-white/20 text-white border-white/30 hover:bg-white hover:text-dark-gray' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800'}`}
+                      className={`p-1 rounded-lg transition-colors shadow-sm border cursor-pointer ${isActive ? 'bg-white/20 text-white border-white/30 hover:bg-white hover:text-dark-gray' : 'bg-white/80 text-dark-gray/60 border-dark-gray/10 hover:bg-peach-accent/80'}`}
                       title="Ubah Seksi"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
+                      <Edit3 className="w-3 h-3" />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteCategory(cat.id);
                       }}
-                      className={`p-1.5 rounded-lg transition-colors shadow-sm border cursor-pointer ${isActive ? 'bg-rose-500/20 text-white border-rose-500/30 hover:bg-rose-500 hover:border-rose-500' : 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100 hover:text-rose-700'}`}
+                      className={`p-1 rounded-lg transition-colors shadow-sm border cursor-pointer ${isActive ? 'bg-rose-500/20 text-white border-rose-500/30 hover:bg-rose-500 hover:border-rose-500' : 'bg-white/80 text-rose-500/70 border-rose-100 hover:bg-rose-100 hover:text-rose-700'}`}
                       title="Hapus Seksi"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
@@ -384,39 +384,41 @@ export default function TemplateConfiguratorView({
         </div>
 
         {/* Right Side: Active Category Items List configurations */}
-        <div className="lg:col-span-8 space-y-4">
+        <div className="lg:col-span-8 space-y-3">
           {activeCategory ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Category Scope Title Bar */}
-              <div className="bg-dark-gray border border-white/5 shadow-md p-4 rounded-xl text-white">
-                <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded font-mono font-bold tracking-wide">
-                  Seksi Pengujian Aktif
+              <div className="bg-dark-gray shadow-md p-3 rounded-xl text-white">
+                <span className="text-[9px] bg-white/10 px-1.5 py-0.5 rounded font-mono font-bold tracking-wide">
+                  Seksi Aktif
                 </span>
-                <h4 className="text-sm font-extrabold text-white mt-2 leading-tight">{activeCategory.name}</h4>
-                <p className="text-xs text-white/80 leading-relaxed max-w-2xl mt-1 font-medium">{activeCategory.description}</p>
+                <h4 className="text-sm font-extrabold text-white mt-1.5 leading-tight">{activeCategory.name}</h4>
+                {activeCategory.description && (
+                  <p className="text-[11px] text-white/70 leading-relaxed max-w-2xl mt-0.5 font-medium">{activeCategory.description}</p>
+                )}
               </div>
 
               {/* Items config list wrapper */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-dark-gray/70 uppercase tracking-wider">
-                    Kriteria Default <span className="text-dark-gray/40 font-normal normal-case tracking-normal">({activeCategory.items.length})</span>
+                  <span className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider">
+                    Kriteria <span className="text-dark-gray/40 font-normal normal-case tracking-normal">({activeCategory.items.length})</span>
                   </span>
                   <button
                     onClick={() => setIsAddingItem(true)}
-                    className="bg-baby-blue hover:opacity-95 border border-dark-gray/10 text-xs font-bold text-dark-gray px-2.5 rounded-lg py-1.5 inline-flex items-center gap-1 cursor-pointer"
+                    className="bg-baby-blue hover:opacity-95 border border-dark-gray/10 text-[11px] font-bold text-dark-gray px-2 rounded-lg py-1 inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 font-bold" /> Tambah
+                    <Plus className="w-3 h-3 font-bold" /> Tambah
                   </button>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {activeCategory.items.map((item, idx) => {
                     const isEditingThisItem = editingItemId === item.id;
 
                     if (isEditingThisItem) {
                       return (
-                        <div key={item.id} className="bg-white border border-dark-gray/10 rounded-xl p-4 space-y-3 text-xs animate-slide-up">
+                        <div key={item.id} className="bg-white border border-dark-gray/10 rounded-xl p-3 space-y-2.5 text-xs animate-slide-up">
                           <label className="text-[10px] font-bold text-dark-gray/70 uppercase flex items-center gap-1">
                             <span className="w-5 h-5 rounded-full bg-peach-accent/20 text-dark-gray flex items-center justify-center text-[9px] font-black">{idx + 1}</span>
                             Dokumen Uji
@@ -426,29 +428,29 @@ export default function TemplateConfiguratorView({
                               type="text"
                               value={editItemTitle}
                               onChange={e => setEditItemTitle(e.target.value)}
-                              className="w-full text-xs font-bold p-2 border border-dark-gray/15 rounded-lg bg-white text-dark-gray outline-none focus:border-dark-gray/30"
+                              className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded-lg bg-white text-dark-gray outline-none focus:border-dark-gray/30"
                               placeholder="Judul Dokumen"
                             />
                             <textarea
                               value={editItemDesc}
                               onChange={e => setEditItemDesc(e.target.value)}
-                              className="w-full text-xs font-medium p-2 border border-dark-gray/15 rounded-lg bg-white resize-none text-dark-gray outline-none focus:border-dark-gray/30"
-                              rows={3}
+                              className="w-full text-xs font-medium p-1.5 border border-dark-gray/15 rounded-lg bg-white resize-none text-dark-gray outline-none focus:border-dark-gray/30"
+                              rows={2}
                               placeholder="Uraian detail dokumen pembuktian SPJ / administrasi..."
                             />
                           </div>
-                          <div className="flex justify-end gap-1.5 pt-1 border-t border-dark-gray/10">
+                          <div className="flex justify-end gap-1.5 pt-1.5 border-t border-dark-gray/10">
                             <button
                               type="button"
                               onClick={() => setEditingItemId(null)}
-                              className="p-1.5 px-2 bg-white border border-dark-gray/15 text-dark-gray rounded-lg font-bold cursor-pointer"
+                              className="px-2 py-1 bg-white border border-dark-gray/15 text-dark-gray rounded-lg font-bold text-xs cursor-pointer"
                             >
                               Batal
                             </button>
                             <button
                               type="button"
                               onClick={saveItemEdit}
-                              className="p-1.5 px-3.5 bg-peach-accent text-dark-gray border border-dark-gray/10 rounded-lg font-black cursor-pointer shadow-xs"
+                              className="px-3 py-1 bg-peach-accent text-dark-gray border border-dark-gray/10 rounded-lg font-black text-xs cursor-pointer shadow-xs"
                             >
                               Simpan
                             </button>
@@ -458,31 +460,31 @@ export default function TemplateConfiguratorView({
                     }
 
                     return (
-                      <div key={item.id} className="bg-baby-blue border border-dark-gray/10 p-4 rounded-xl flex items-start justify-between gap-4 hover:border-dark-gray/25 transition shadow-xs group text-dark-gray">
-                        <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                          <span className="w-6 h-6 rounded-lg bg-peach-accent/25 text-dark-gray flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
+                      <div key={item.id} className="bg-baby-blue border border-dark-gray/10 p-3 rounded-xl flex items-start justify-between gap-3 hover:border-dark-gray/25 transition shadow-xs group text-dark-gray">
+                        <div className="flex items-start gap-2 min-w-0 flex-1">
+                          <span className="w-5 h-5 rounded-lg bg-peach-accent/25 text-dark-gray flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">
                             {idx + 1}
                           </span>
-                          <div className="space-y-1 min-w-0">
+                          <div className="space-y-0.5 min-w-0">
                             <h5 className="text-xs font-bold text-dark-gray">{item.title}</h5>
-                            <p className="text-xs text-dark-gray/80 font-medium leading-relaxed pr-4">{item.description}</p>
+                            <p className="text-[11px] text-dark-gray/70 font-medium leading-relaxed pr-2">{item.description}</p>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                           <button
                             onClick={() => startEditingItem(item)}
-                            className="p-1.5 bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition shadow-sm cursor-pointer"
+                            className="p-1 bg-white/80 text-dark-gray/60 border border-dark-gray/10 hover:bg-peach-accent/80 rounded-lg transition shadow-sm cursor-pointer"
                             title="Ubah Dokumen"
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => handleDeleteItem(item.id)}
-                            className="p-1.5 bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition shadow-sm cursor-pointer"
+                            className="p-1 bg-white/80 text-rose-500/70 border border-rose-100 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition shadow-sm cursor-pointer"
                             title="Hapus Dokumen"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
@@ -492,8 +494,8 @@ export default function TemplateConfiguratorView({
               </div>
             </div>
           ) : (
-            <div className="text-center p-12 select-none bg-baby-blue/30 rounded-xl border border-dashed border-dark-gray/15 text-dark-gray">
-              <Layers className="w-8 h-8 mx-auto mb-2 text-dark-gray/30" />
+            <div className="text-center py-10 select-none bg-baby-blue/30 rounded-xl border border-dashed border-dark-gray/15 text-dark-gray">
+              <Layers className="w-6 h-6 mx-auto mb-1 text-dark-gray/30" />
               <span className="text-xs font-bold text-dark-gray/60">Pilih jenis audit di sebelah kiri</span>
             </div>
           )}

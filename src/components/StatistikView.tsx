@@ -226,6 +226,24 @@ export default function StatistikView({ audits }: StatistikViewProps) {
         ))}
       </div>
 
+      {/* Per-category completion */}
+      {(() => {
+        const totalCats = audits.reduce((s, a) => s + a.categories.length, 0);
+        const doneCats = audits.reduce((s, a) => s + a.categories.filter(c => c.status === 'Selesai').length, 0);
+        const catPct = totalCats > 0 ? Math.round((doneCats / totalCats) * 100) : 0;
+        return totalCats > totals.kka ? (
+          <div className="bg-white rounded-2xl p-4 border border-dark-gray/10 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold text-dark-gray/60 uppercase tracking-wider">Kategori Selesai</span>
+              <span className="text-xs font-black text-dark-gray font-mono">{doneCats}/{totalCats} ({catPct}%)</span>
+            </div>
+            <div className="w-full bg-baby-blue/40 rounded-full h-2 overflow-hidden">
+              <div className="h-2 rounded-full bg-pastel-green transition-all duration-700" style={{ width: `${catPct}%` }} />
+            </div>
+          </div>
+        ) : null;
+      })()}
+
       {/* Global Progress */}
       {totals.kka > 0 && (
         <div className="bg-white rounded-2xl p-5 border border-dark-gray/10 shadow-sm">
