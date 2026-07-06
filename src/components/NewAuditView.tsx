@@ -188,7 +188,7 @@ export default function NewAuditView({
             <Sparkles className="w-5 h-5 text-peach-accent" />
             Mulai Audit Baru
           </h1>
-          <p className="text-xs text-dark-gray/60 mt-0.5">Isi informasi dasar OPD dan tambahkan jenis audit yang akan dilakukan</p>
+          <p className="text-xs text-dark-gray/60 mt-0.5">Isi informasi dasar Auditi dan tambahkan jenis audit yang akan dilakukan</p>
         </div>
       </div>
 
