@@ -200,7 +200,7 @@ export default function NewAuditView({
       <div className="bg-white rounded-2xl border border-dark-gray/10 shadow-sm p-6 space-y-4">
         <h2 className="text-sm font-black text-dark-gray flex items-center gap-2">
           <Building className="w-4 h-4 text-peach-accent" />
-          Informasi Instansi Audit
+          Informasi Auditi
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
