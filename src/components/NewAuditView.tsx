@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { KKATemplate, OpdAudit, UserProfile, TargetEntity, AuditMilestone } from '../types';
 import { toDisplay, fromDisplay } from '../lib/formatDate';
 import { getWorkingDays } from '../lib/workingDays';
@@ -101,7 +101,6 @@ export default function NewAuditView({
   };
 
   // For the add-category panel
-  const [selTemplateId, setSelTemplateId] = useState(templates[0]?.id || '');
   const [selCategoryId, setSelCategoryId] = useState('');
   const [catAuditorName, setCatAuditorName] = useState('');
   const [catTeamMembers, setCatTeamMembers] = useState<string[]>([]);
@@ -110,24 +109,30 @@ export default function NewAuditView({
   const [isAuditorDropdownOpen, setIsAuditorDropdownOpen] = useState(false);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
 
-  const selectedTemplate = templates.find(t => t.id === selTemplateId) || templates[0];
-
   const existingAudit = audits.find(a => a.opdName.toLowerCase() === opdName.trim().toLowerCase() && a.fiscalYear === fiscalYear);
-  const existingCategoryIds = existingAudit ? existingAudit.categories.map(c => c.templateId + '|' + (c as any).categoryId) : [];
+  const existingCategoryIds = existingAudit ? existingAudit.categories.map(c => (c.templateId || '') + '|' + c.id) : [];
 
   const addedCategoryIds = [...categories.map(c => c.templateId + '|' + c.categoryId), ...existingCategoryIds];
 
-  const availableCategories = selectedTemplate?.categories.filter(
-    c => !addedCategoryIds.includes(selTemplateId + '|' + c.id)
-  ) || [];
+  const allFlatCategories = useMemo(() => {
+    return templates.flatMap(t =>
+      t.categories.map(c => ({ ...c, _templateId: t.id }))
+    );
+  }, [templates]);
+
+  const availableCategories = allFlatCategories.filter(
+    c => !addedCategoryIds.includes(c._templateId + '|' + c.id)
+  );
 
   const handleAddCategory = () => {
     if (!selCategoryId) return;
+    const found = allFlatCategories.find(c => c.id === selCategoryId);
+    if (!found) return;
     setCategories(prev => [
       ...prev,
       {
         id: `draft_${Date.now()}`,
-        templateId: selTemplateId,
+        templateId: found._templateId,
         categoryId: selCategoryId,
         auditorName: catAuditorName,
         teamMembers: catTeamMembers,
@@ -144,10 +149,6 @@ export default function NewAuditView({
   const getCategoryName = (draft: CategoryDraft) => {
     const tmpl = templates.find(t => t.id === draft.templateId);
     return tmpl?.categories.find(c => c.id === draft.categoryId)?.name || '—';
-  };
-
-  const getTemplateName = (draft: CategoryDraft) => {
-    return templates.find(t => t.id === draft.templateId)?.name || '—';
   };
 
   const handleSubmit = () => {
@@ -269,6 +270,7 @@ export default function NewAuditView({
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wide block">
               <Calendar className="w-3 h-3 inline mr-1" />Tahun
+             </label>
             <select
               value={fiscalYear}
               onChange={e => setFiscalYear(e.target.value)}
@@ -321,7 +323,7 @@ export default function NewAuditView({
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-black text-dark-gray truncate">{getCategoryName(draft)}</p>
                   <p className="text-[10px] text-dark-gray/50 font-medium">
-                    {getTemplateName(draft)} · Ketua: {draft.auditorName || '—'}
+                    Ketua: {draft.auditorName || '—'}
                     {draft.teamMembers.length > 0 && ` · ${draft.teamMembers.length} anggota`}
                   </p>
                 </div>
@@ -343,33 +345,19 @@ export default function NewAuditView({
               </button>
             </div>
 
-            {/* Template (Jenis Audit) selector */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Jenis Audit (Template)</label>
-                <select
-                  value={selTemplateId}
-                  onChange={e => { setSelTemplateId(e.target.value); setSelCategoryId(''); }}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray outline-none focus:border-peach-accent"
-                >
-                  {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-              </div>
-
-              {/* Category selector */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Kategori Audit</label>
-                <select
-                  value={selCategoryId}
-                  onChange={e => setSelCategoryId(e.target.value)}
-                  className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray outline-none focus:border-peach-accent"
-                >
-                  <option value="">-- Pilih Kategori --</option>
-                  {availableCategories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Jenis Audit selector */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Jenis Audit</label>
+              <select
+                value={selCategoryId}
+                onChange={e => setSelCategoryId(e.target.value)}
+                className="w-full text-xs font-bold border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray outline-none focus:border-peach-accent"
+              >
+                <option value="">-- Pilih Jenis --</option>
+                {availableCategories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Ketua Tim */}

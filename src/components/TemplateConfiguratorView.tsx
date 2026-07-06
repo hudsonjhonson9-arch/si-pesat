@@ -22,40 +22,33 @@ import {
 interface TemplateConfiguratorViewProps {
   templates: KKATemplate[];
   onUpdateTemplates: (updatedTemplates: KKATemplate[]) => void;
-  onDeleteTemplate: (id: string) => void;
   onResetTemplates: () => void;
 }
 
 export default function TemplateConfiguratorView({
   templates,
   onUpdateTemplates,
-  onDeleteTemplate,
   onResetTemplates
 }: TemplateConfiguratorViewProps) {
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
-    templates.length > 0 ? templates[0].id : ''
+  const allCategories = React.useMemo(() =>
+    templates.flatMap(t =>
+      t.categories.map(c => ({ ...c, _templateId: t.id }))
+    ),
+    [templates]
   );
 
-  const template = templates.find(t => t.id === selectedTemplateId) || templates[0];
+  const [selectedCatId, setSelectedCatId] = useState<string>('');
 
-  const onUpdateTemplate = (updatedTemplate: KKATemplate) => {
-    onUpdateTemplates(templates.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
-  };
-
-  const [selectedCatId, setSelectedCatId] = useState<string>(
-    template?.categories?.length > 0 ? template.categories[0].id : ''
-  );
-
-  // Update selectedCatId when template changes to avoid pointing to non-existent category
+  // Sync selectedCatId when categories change
   React.useEffect(() => {
-    if (template && template.categories.length > 0) {
-      const catExists = template.categories.find(c => c.id === selectedCatId);
-      if (!catExists) {
-        setSelectedCatId(template.categories[0].id);
+    if (allCategories.length > 0) {
+      const exists = allCategories.find(c => c.id === selectedCatId);
+      if (!exists) {
+        setSelectedCatId(allCategories[0].id);
       }
     }
-  }, [template, selectedCatId]);
+  }, [allCategories, selectedCatId]);
 
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCatName, setNewCatName] = useState('');
@@ -76,55 +69,14 @@ export default function TemplateConfiguratorView({
   const [editItemDesc, setEditItemDesc] = useState('');
 
   // Active Category helper
-  const activeCategory = template?.categories?.find(c => c.id === selectedCatId);
+  const activeCategory = allCategories.find(c => c.id === selectedCatId) || null;
 
-  // Add a new template
-  const handleAddTemplate = () => {
-    const newTemplateId = `template_${Date.now()}`;
-    const newTemplate: KKATemplate = {
-      id: newTemplateId,
-      name: 'Jenis Audit Baru',
-      isDefault: false,
-      categories: [
-        {
-          id: `cat_temp_${Date.now()}`,
-          name: 'Jenis Audit Default',
-          description: 'Deskripsi jenis audit',
-          items: []
-        }
-      ]
-    };
-    onUpdateTemplates([...templates, newTemplate]);
-    setSelectedTemplateId(newTemplateId);
-  };
-
-  // Delete a template
-  const handleDeleteTemplate = (id: string) => {
-    if (templates.length <= 1) {
-      alert('Harus ada setidaknya satu template.');
-      return;
-    }
-    const confirmed = window.confirm('Apakah Anda yakin ingin mengHapus Jenis Audit ini?');
-    if (confirmed) {
-      const newTemplates = templates.filter(t => t.id !== id);
-      onUpdateTemplates(newTemplates);
-      if (selectedTemplateId === id) {
-        setSelectedTemplateId(newTemplates[0].id);
-      }
-      onDeleteTemplate(id);
-    }
-  };
-
-  // Update Template name
-  const handleTemplateNameChange = (name: string) => {
-    onUpdateTemplate({ ...template, name });
-  };
-
-  // Add category to master template
+  // Add new Jenis Audit to the first template
   const handleAddCategory = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCatName) return;
+    if (!newCatName || templates.length === 0) return;
 
+    const targetTemplate = templates[0];
     const newCat: TemplateCategory = {
       id: `cat_temp_${Date.now()}`,
       name: newCatName,
@@ -139,11 +91,11 @@ export default function TemplateConfiguratorView({
     };
 
     const updatedTemplate = {
-      ...template,
-      categories: [...template.categories, newCat]
+      ...targetTemplate,
+      categories: [...targetTemplate.categories, newCat]
     };
 
-    onUpdateTemplate(updatedTemplate);
+    onUpdateTemplates(templates.map(t => t.id === targetTemplate.id ? updatedTemplate : t));
     setSelectedCatId(newCat.id);
     setNewCatName('');
     setNewCatDesc('');
@@ -152,21 +104,24 @@ export default function TemplateConfiguratorView({
 
   // Delete category from master template
   const handleDeleteCategory = (catId: string) => {
-    if (template.categories.length <= 1) {
-      alert('Template master harus memiliki minimal satu jenis audit pengawasan.');
+    const found = allCategories.find(c => c.id === catId);
+    if (!found) return;
+    const srcTemplate = templates.find(t => t.id === found._templateId);
+    if (!srcTemplate || srcTemplate.categories.length <= 1) {
+      alert('Harus menyisakan minimal satu jenis audit.');
       return;
     }
     const confirmed = window.confirm('Apakah Anda yakin ingin menghapus jenis audit ini? Semua kriteria default di dalamnya akan ikut dihapus.');
     if (!confirmed) return;
 
-    const updatedCategories = template.categories.filter(c => c.id !== catId);
-    onUpdateTemplate({
-      ...template,
-      categories: updatedCategories
-    });
+    const updatedTemplate = {
+      ...srcTemplate,
+      categories: srcTemplate.categories.filter(c => c.id !== catId)
+    };
+    onUpdateTemplates(templates.map(t => t.id === srcTemplate.id ? updatedTemplate : t));
 
     if (selectedCatId === catId) {
-      setSelectedCatId(updatedCategories[0].id);
+      setSelectedCatId(allCategories.filter(c => c.id !== catId)[0]?.id || '');
     }
   };
 
@@ -175,26 +130,26 @@ export default function TemplateConfiguratorView({
     e.preventDefault();
     if (!newItemTitle || !selectedCatId) return;
 
+    const found = allCategories.find(c => c.id === selectedCatId);
+    if (!found) return;
+    const srcTemplate = templates.find(t => t.id === found._templateId);
+    if (!srcTemplate) return;
+
     const newItem: TemplateItem = {
       id: `item_temp_user_${Date.now()}`,
       title: newItemTitle,
       description: newItemDesc
     };
 
-    const updatedCategories = template.categories.map(cat => {
-      if (cat.id === selectedCatId) {
-        return {
-          ...cat,
-          items: [...cat.items, newItem]
-        };
-      }
-      return cat;
-    });
-
-    onUpdateTemplate({
-      ...template,
-      categories: updatedCategories
-    });
+    const updatedTemplate = {
+      ...srcTemplate,
+      categories: srcTemplate.categories.map(cat =>
+        cat.id === selectedCatId
+          ? { ...cat, items: [...cat.items, newItem] }
+          : cat
+      )
+    };
+    onUpdateTemplates(templates.map(t => t.id === srcTemplate.id ? updatedTemplate : t));
 
     setNewItemTitle('');
     setNewItemDesc('');
@@ -208,23 +163,23 @@ export default function TemplateConfiguratorView({
       alert('Jenis Audit harus menyimpan minimal satu kriteria pemeriksaan.');
       return;
     }
+    const found = allCategories.find(c => c.id === selectedCatId);
+    if (!found) return;
+    const srcTemplate = templates.find(t => t.id === found._templateId);
+    if (!srcTemplate) return;
+
     const confirmed = window.confirm('Apakah Anda yakin ingin menghapus kriteria pemeriksaan default ini dari template master?');
     if (!confirmed) return;
 
-    const updatedCategories = template.categories.map(cat => {
-      if (cat.id === selectedCatId) {
-        return {
-          ...cat,
-          items: cat.items.filter(item => item.id !== itemId)
-        };
-      }
-      return cat;
-    });
-
-    onUpdateTemplate({
-      ...template,
-      categories: updatedCategories
-    });
+    const updatedTemplate = {
+      ...srcTemplate,
+      categories: srcTemplate.categories.map(cat =>
+        cat.id === selectedCatId
+          ? { ...cat, items: cat.items.filter(item => item.id !== itemId) }
+          : cat
+      )
+    };
+    onUpdateTemplates(templates.map(t => t.id === srcTemplate.id ? updatedTemplate : t));
   };
 
   // Start editing category
@@ -237,21 +192,20 @@ export default function TemplateConfiguratorView({
   // Save category edits
   const saveCategoryEdit = () => {
     if (!editCatName) return;
-    const updatedCategories = template.categories.map(cat => {
-      if (cat.id === editingCatId) {
-        return {
-          ...cat,
-          name: editCatName,
-          description: editCatDesc
-        };
-      }
-      return cat;
-    });
+    const found = allCategories.find(c => c.id === editingCatId);
+    if (!found) return;
+    const srcTemplate = templates.find(t => t.id === found._templateId);
+    if (!srcTemplate) return;
 
-    onUpdateTemplate({
-      ...template,
-      categories: updatedCategories
-    });
+    const updatedTemplate = {
+      ...srcTemplate,
+      categories: srcTemplate.categories.map(cat =>
+        cat.id === editingCatId
+          ? { ...cat, name: editCatName, description: editCatDesc }
+          : cat
+      )
+    };
+    onUpdateTemplates(templates.map(t => t.id === srcTemplate.id ? updatedTemplate : t));
     setEditingCatId(null);
   };
 
@@ -265,29 +219,27 @@ export default function TemplateConfiguratorView({
   // Save item edits
   const saveItemEdit = () => {
     if (!editItemTitle || !selectedCatId) return;
-    const updatedCategories = template.categories.map(cat => {
-      if (cat.id === selectedCatId) {
-        return {
-          ...cat,
-          items: cat.items.map(it => {
-            if (it.id === editingItemId) {
-              return {
-                ...it,
-                title: editItemTitle,
-                description: editItemDesc
-              };
-            }
-            return it;
-          })
-        };
-      }
-      return cat;
-    });
+    const found = allCategories.find(c => c.id === selectedCatId);
+    if (!found) return;
+    const srcTemplate = templates.find(t => t.id === found._templateId);
+    if (!srcTemplate) return;
 
-    onUpdateTemplate({
-      ...template,
-      categories: updatedCategories
-    });
+    const updatedTemplate = {
+      ...srcTemplate,
+      categories: srcTemplate.categories.map(cat =>
+        cat.id === selectedCatId
+          ? {
+              ...cat,
+              items: cat.items.map(it =>
+                it.id === editingItemId
+                  ? { ...it, title: editItemTitle, description: editItemDesc }
+                  : it
+              )
+            }
+          : cat
+      )
+    };
+    onUpdateTemplates(templates.map(t => t.id === srcTemplate.id ? updatedTemplate : t));
     setEditingItemId(null);
   };
 
@@ -305,14 +257,7 @@ export default function TemplateConfiguratorView({
       </div>
 
       {/* Controller Actions Panel */}
-      <div className="flex items-center justify-between gap-4 flex-wrap bg-baby-blue p-3.5 border border-dark-gray/10 rounded-xl shadow-xs">
-        <div>
-          <h3 className="font-extrabold text-dark-gray text-sm truncate max-w-[250px] md:max-w-md">
-            {template.name}
-          </h3>
-          <span className="text-[10px] text-dark-gray/70 font-semibold block mt-0.5">Template Konfigurasi Auditor</span>
-        </div>
-
+      <div className="flex items-center justify-end gap-4 flex-wrap bg-baby-blue p-3.5 border border-dark-gray/10 rounded-xl shadow-xs">
         <button
           onClick={() => {
             const confirmed = window.confirm('Apakah Anda yakin ingin menyetel ulang semua template ke standar Dana BOS Nasional Inspektorat? Semua kustomisasi Anda akan dihapus.');
@@ -329,74 +274,20 @@ export default function TemplateConfiguratorView({
       {/* Main Dual Grid config layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* Template Sidebar column */}
-        <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
-            <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Kelompok Audit</span>
-            <button
-              onClick={handleAddTemplate}
-              className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
-            >
-              <PlusCircle className="w-3.5 h-3.5" /> Tambah
-            </button>
-          </div>
-          <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
-            {templates.map(t => {
-              const isActive = t.id === selectedTemplateId;
-              return (
-                <div
-                  key={t.id}
-                  onClick={() => setSelectedTemplateId(t.id)}
-                  className={`group relative flex items-center justify-between text-xs p-2.5 rounded-lg cursor-pointer transition border ${isActive
-                      ? 'bg-dark-gray border-transparent text-white shadow-xs font-bold'
-                      : 'bg-white/40 border-dark-gray/5 text-dark-gray hover:bg-white/60 font-semibold'
-                    }`}
-                >
-                  <span className="truncate pr-8">{t.name}</span>
-                  {!t.isDefault && (
-                    <div className="absolute right-2 flex items-center gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteTemplate(t.id);
-                        }}
-                        className={`p-2 rounded-lg transition-colors shadow-sm border ${isActive ? 'bg-rose-500/20 text-white border-rose-500/30 hover:bg-rose-500 hover:border-rose-500' : 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100 hover:text-rose-700 cursor-pointer'}`}
-                        title="Hapus Jenis Audit"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Category config column */}
-        <div className="lg:col-span-3 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
+        <div className="lg:col-span-4 bg-baby-blue p-4 border border-dark-gray/10 rounded-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-dark-gray/10">
             <span className="text-[10px] uppercase font-bold text-dark-gray/70 tracking-wider">Daftar Jenis Audit</span>
             <button
               onClick={() => setIsAddingCategory(true)}
               className="text-xs text-dark-gray/90 hover:text-dark-gray font-black inline-flex items-center gap-0.5 cursor-pointer"
             >
-              <PlusCircle className="w-3.5 h-3.5" /> Tambah Seksi
+              <PlusCircle className="w-3.5 h-3.5" /> Tambah
             </button>
           </div>
 
-          <div className="space-y-2 mb-4">
-            <input
-              type="text"
-              value={template?.name || ''}
-              onChange={e => handleTemplateNameChange(e.target.value)}
-              className="w-full text-xs font-bold p-1.5 border border-dark-gray/15 rounded bg-white text-dark-gray outline-none focus:border-dark-gray/30"
-              placeholder="Nama Jenis Audit"
-            />
-          </div>
-
-          <div className="space-y-1.5 max-h-[350px] overflow-y-auto">
-            {template.categories.map(cat => {
+          <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
+            {allCategories.map(cat => {
               const isActive = cat.id === selectedCatId;
               const isEditingThis = editingCatId === cat.id;
 
@@ -476,7 +367,7 @@ export default function TemplateConfiguratorView({
         </div>
 
         {/* Right Side: Active Category Items List configurations */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className="lg:col-span-8 space-y-4">
           {activeCategory ? (
             <div className="space-y-4">
               {/* Category Scope Title Bar */}

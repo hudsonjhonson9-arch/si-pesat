@@ -1141,13 +1141,6 @@ export default function App() {
           <TemplateConfiguratorView
             templates={templates}
             onUpdateTemplates={setTemplates}
-            onDeleteTemplate={(id) => {
-              const tpl = templates.find(t => t.id === id);
-              if (tpl) logActivity('delete_template', 'template', tpl.name);
-              if (navigator.onLine) {
-                supabase.from('templates').delete().eq('id', id).then();
-              }
-            }}
             onResetTemplates={() => {
               setTemplates([EMPTY_KKA_TEMPLATE]);
               logActivity('reset_templates', 'template', 'all');
