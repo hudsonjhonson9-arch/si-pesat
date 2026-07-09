@@ -74,8 +74,6 @@ export default function AuditListView({
   const [sortBy, setSortBy] = useState<'name' | 'newest'>('name');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isTeamDropdownOpen, setIsTeamDropdownOpen] = useState(false);
-  const [deleteTargetGroup, setDeleteTargetGroup] = useState<{ opdName: string; audits: OpdAudit[] } | null>(null);
-  const [deleteSelectedCatIds, setDeleteSelectedCatIds] = useState<string[]>([]);
 
   // Form states for creating new audit
   const [newSchoolName, setNewSchoolName] = useState('');
@@ -312,20 +310,6 @@ export default function AuditListView({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {(isAdmin || STRUKTURAL_ROLES.includes(userRole)) && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteTargetGroup({ opdName: group.opdName, audits: group.audits });
-                        setDeleteSelectedCatIds([]);
-                      }}
-                      className="text-[10px] font-extrabold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-lg transition cursor-pointer inline-flex items-center gap-1"
-                      title="Hapus KKA"
-                    >
-                      <Trash2 className="w-3 h-3" /> Hapus
-                    </button>
-                  )}
                   <div className="bg-gray-100 px-3 py-1 rounded-full text-[10px] font-black text-dark-gray">
                     {group.audits.reduce((s, a) => s + (a.categories?.length || 0), 0)} KKA
                   </div>
@@ -585,100 +569,6 @@ export default function AuditListView({
           </div>
         </div>
       )}
-
-      {/* Modal hapus KKA — pilih Kategori (jenis audit) yang akan dihapus */}
-      {deleteTargetGroup && (() => {
-        // Flatten all categories across all audits in this group
-        const catEntries: { audit: OpdAudit; cat: AuditCategory }[] = [];
-        deleteTargetGroup.audits.forEach(a => {
-          (a.categories || []).forEach(c => catEntries.push({ audit: a, cat: c }));
-        });
-        const catCount = catEntries.length;
-
-        return (
-          <div className="fixed inset-0 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in" onClick={() => setDeleteTargetGroup(null)}>
-            <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-dark-gray/10 text-dark-gray overflow-hidden" onClick={e => e.stopPropagation()}>
-              <div className="bg-dark-gray text-white px-4 py-3 flex items-center justify-between">
-                <span className="font-extrabold text-xs tracking-wide">Pilih Jenis Audit — {deleteTargetGroup.opdName}</span>
-                <button onClick={() => setDeleteTargetGroup(null)} className="text-white/80 hover:text-white font-xs font-bold cursor-pointer">Tutup</button>
-              </div>
-              <div className="p-4 space-y-3">
-                <p className="text-[11px] font-bold text-dark-gray/70">{catCount} jenis audit tersedia:</p>
-                {catCount === 0 ? (
-                  <p className="text-xs text-dark-gray/50 italic">Tidak ada jenis audit.</p>
-                ) : (
-                  <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                    {catEntries.map(({ audit, cat }) => {
-                      const isLast = (audit.categories?.length || 0) === 1;
-                      const isChecked = deleteSelectedCatIds.includes(cat.id);
-                      return (
-                        <label
-                          key={cat.id}
-                          className={`flex items-center gap-3 p-3 rounded-lg border transition ${
-                            isLast ? 'bg-dark-gray/5 border-dark-gray/10 opacity-60' : isChecked ? 'bg-rose-50 border-rose-300 cursor-pointer' : 'bg-white border-dark-gray/15 cursor-pointer hover:bg-dark-gray/5'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            disabled={isLast}
-                            onChange={() => {
-                              setDeleteSelectedCatIds(prev =>
-                                isChecked ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
-                              );
-                            }}
-                            className="accent-rose-600"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold truncate">{cat.name}</p>
-                            <p className="text-[10px] text-dark-gray/50 font-medium truncate">{cat.auditorName || 'Belum Ditugaskan'} • {cat.status || 'Sedang Berjalan'}</p>
-                          </div>
-                          {isLast && (
-                            <span className="text-[9px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded shrink-0">min. 1</span>
-                          )}
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-                <div className="flex items-center gap-3 pt-2 border-t border-dark-gray/10">
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTargetGroup(null)}
-                    className="flex-1 bg-white hover:bg-white/80 text-dark-gray text-xs font-extrabold py-2 rounded-lg border border-dark-gray/10 transition cursor-pointer"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="button"
-                    disabled={deleteSelectedCatIds.length === 0}
-                    onClick={() => {
-                      if (deleteSelectedCatIds.length === 0) return;
-                      if (!window.confirm(`Hapus ${deleteSelectedCatIds.length} jenis audit yang dipilih untuk ${deleteTargetGroup.opdName}?`)) return;
-                      const catIdsToRemove = new Set(deleteSelectedCatIds);
-                      deleteTargetGroup.audits.forEach(a => {
-                        const remaining = (a.categories || []).filter(c => !catIdsToRemove.has(c.id));
-                        if (remaining.length !== (a.categories?.length || 0)) {
-                          onUpdateAudit({ ...a, categories: remaining });
-                        }
-                      });
-                      setDeleteTargetGroup(null);
-                      setDeleteSelectedCatIds([]);
-                    }}
-                    className={`flex-1 text-xs font-extrabold py-2 rounded-lg transition cursor-pointer ${
-                      deleteSelectedCatIds.length > 0
-                        ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-md'
-                        : 'bg-rose-200 text-rose-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {deleteSelectedCatIds.length > 0 ? `Hapus (${deleteSelectedCatIds.length})` : 'Hapus'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }

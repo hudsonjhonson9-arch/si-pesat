@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { UserProfile } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { logActivity } from '../lib/log';
 import { createClient } from '@supabase/supabase-js';
 import {
@@ -278,15 +278,21 @@ export default function UserManagementView({
           onShowToast?.('Email diperbarui — cek kotak masuk untuk konfirmasi.', 'info');
         }
       } else if (emailChanged && !isEditingSelf) {
-        const { error: fnError } = await supabase.functions.invoke('update-user-email', {
-          body: { userId, newEmail: editEmail.trim() }
-        });
-        if (fnError) {
-          console.error('Edge function error:', fnError);
-          onShowToast?.(`Email tersimpan sebagai pending — ${fnError.message}`, 'info');
-        } else {
+        try {
+          const res = await fetch(`${supabaseUrl}/functions/v1/update-user-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseAnonKey}` },
+            body: JSON.stringify({ userId, newEmail: editEmail.trim() })
+          });
+          if (!res.ok) {
+            const errBody = await res.text();
+            throw new Error(errBody);
+          }
           await supabase.from('profiles').update({ email: editEmail.trim(), email_pending: null }).eq('id', userId);
           onShowToast?.('Email berhasil diperbarui.', 'success');
+        } catch (err: any) {
+          console.error('Edge function error:', err);
+          onShowToast?.(`Email tersimpan sebagai pending — ${err.message}`, 'info');
         }
       } else {
         onShowToast?.('Profil pengguna berhasil diperbarui.', 'success');
