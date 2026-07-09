@@ -421,7 +421,13 @@ export default function AuditListView({
                       </div>
 
                       {/* Right side: Actions */}
-                      <div className="flex items-center md:flex-col justify-end md:justify-center gap-3 shrink-0 border-t md:border-t-0 md:border-l border-dark-gray/10 pt-3 md:pt-0 md:pl-6">
+                      <div className="flex items-center md:flex-col justify-end md:justify-center gap-2 shrink-0 border-t md:border-t-0 md:border-l border-dark-gray/10 pt-3 md:pt-0 md:pl-6">
+                        {(isAdmin || STRUKTURAL_ROLES.includes(userRole)) && (
+                          <button onClick={(e) => { e.stopPropagation(); if (window.confirm(`Hapus KKA ${audit.opdName} (${audit.auditType}) TA ${audit.fiscalYear}?`)) onDeleteAudit(audit.id); }}
+                            className="text-[9px] font-extrabold text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded transition cursor-pointer" title="Hapus KKA ini">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
                         <div className="w-8 h-8 rounded-full bg-dark-gray text-white flex items-center justify-center shadow-md shadow-dark-gray/20 group-hover:scale-110 group-hover:bg-peach-accent transition-all duration-300">
                           <ArrowRight className="w-4 h-4" />
                         </div>
