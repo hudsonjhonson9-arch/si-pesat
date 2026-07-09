@@ -663,17 +663,17 @@ export default function AuditWorkspaceView({
               <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-0.5">
                     <label className="text-[9px] font-bold text-amber-700/60 uppercase">Tanggal Mulai</label>
-                    <input type="date"
-                      value={m.startDate || ''}
-                      onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, startDate: e.target.value || '' }; handleUpdateSchedule(updated); }}
+                    <input type="text" placeholder="DD/MM/YYYY"
+                      value={toDisplay(m.startDate) || ''}
+                      onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, startDate: fromDisplay(e.target.value) || '' }; handleUpdateSchedule(updated); }}
                       className="w-full text-[10px] font-bold border border-amber-200/60 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-amber-400 outline-none text-dark-gray"
                     />
                   </div>
                   <div className="space-y-0.5">
                     <label className="text-[9px] font-bold text-amber-700/60 uppercase">Tanggal Selesai</label>
-                    <input type="date"
-                      value={m.targetDate || ''}
-                      onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, targetDate: e.target.value || '' }; handleUpdateSchedule(updated); }}
+                    <input type="text" placeholder="DD/MM/YYYY"
+                      value={toDisplay(m.targetDate) || ''}
+                      onChange={(e) => { const updated = [...milestones]; updated[index] = { ...m, targetDate: fromDisplay(e.target.value) || '' }; handleUpdateSchedule(updated); }}
                       className="w-full text-[10px] font-bold border border-amber-200/60 p-1.5 rounded-lg bg-white focus:ring-1 focus:ring-amber-400 outline-none text-dark-gray"
                     />
                   </div>

@@ -509,18 +509,20 @@ export default function NewAuditView({
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tanggal Mulai</label>
                     <input
-                      type="date"
-                      value={m.startDate || ''}
-                      onChange={e => updateMilestone(m.id, 'startDate', e.target.value)}
+                      type="text"
+                      placeholder="DD/MM/YYYY"
+                      value={toDisplay(m.startDate) || ''}
+                      onChange={e => updateMilestone(m.id, 'startDate', fromDisplay(e.target.value))}
                       className="w-full text-xs font-bold border border-slate-200 px-2.5 py-1.5 rounded-lg bg-white text-slate-800 outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20"
                     />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Tanggal Selesai</label>
                     <input
-                      type="date"
-                      value={m.targetDate || ''}
-                      onChange={e => updateMilestone(m.id, 'targetDate', e.target.value)}
+                      type="text"
+                      placeholder="DD/MM/YYYY"
+                      value={toDisplay(m.targetDate) || ''}
+                      onChange={e => updateMilestone(m.id, 'targetDate', fromDisplay(e.target.value))}
                       className="w-full text-xs font-bold border border-slate-200 px-2.5 py-1.5 rounded-lg bg-white text-slate-800 outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20"
                     />
                   </div>
