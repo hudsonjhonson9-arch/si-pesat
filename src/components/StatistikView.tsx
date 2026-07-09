@@ -20,7 +20,6 @@ interface StatistikViewProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  'Draft': '#94a3b8',
   'Sedang Berjalan': '#3b82f6',
   'Direview': '#f59e0b',
   'Selesai': '#10b981',
@@ -59,7 +58,7 @@ export default function StatistikView({ audits }: StatistikViewProps) {
 
   // --- Chart data ---
   const statusData = useMemo(() => {
-    const counts: Record<string, number> = { 'Draft': 0, 'Sedang Berjalan': 0, 'Direview': 0, 'Selesai': 0 };
+    const counts: Record<string, number> = { 'Sedang Berjalan': 0, 'Direview': 0, 'Selesai': 0 };
     audits.forEach(a => { counts[a.status] = (counts[a.status] || 0) + 1; });
     return Object.entries(counts)
       .filter(([, v]) => v > 0)

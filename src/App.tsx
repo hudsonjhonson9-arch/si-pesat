@@ -788,7 +788,7 @@ export default function App() {
         id: tempCat.id,
         name: tempCat.name,
         description: tempCat.description,
-        status: 'Draft',
+        status: 'Sedang Berjalan',
         auditorName: auditorName,
         teamMembers: teamMembers,
         fiscalYear: fiscalYear,
@@ -848,7 +848,7 @@ export default function App() {
       fiscalYear,
       auditorName,
       auditDate: new Date().toISOString().split('T')[0],
-      status: 'Draft',
+      status: 'Sedang Berjalan',
       progress: 0,
       categories: initialCategories,
       teamMembers,
@@ -863,7 +863,7 @@ export default function App() {
   };
 
   const notifyCategoryStatusChange = (oldCat: AuditCategory, newCat: AuditCategory, audit: OpdAudit) => {
-    if ((!oldCat.status || oldCat.status === 'Draft' || oldCat.status === 'Sedang Berjalan') && newCat.status === 'Direview') {
+    if ((!oldCat.status || oldCat.status === 'Sedang Berjalan') && newCat.status === 'Direview') {
       showToast(`"${newCat.name}" diajukan untuk review`, 'info');
     } else if (oldCat.status === 'Direview' && newCat.status === 'Selesai') {
       showToast(`"${newCat.name}" telah disetujui`, 'success');

@@ -397,7 +397,7 @@ export default function AuditListView({
                                     cat.status === 'Sedang Berjalan' ? 'bg-blue-100 text-blue-800 border-blue-200' :
                                     'bg-slate-100 text-slate-500 border-slate-200'
                                   }`}>
-                                    {cat.status || 'Draft'}
+                                    {cat.status || 'Sedang Berjalan'}
                                   </span>
                                   <div className="flex-1 h-1.5 bg-dark-gray/10 rounded-full overflow-hidden">
                                     <div
@@ -625,7 +625,7 @@ export default function AuditListView({
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold truncate">{cat.name}</p>
-                            <p className="text-[10px] text-dark-gray/50 font-medium truncate">{cat.auditorName || 'Belum Ditugaskan'} • {cat.status || 'Draft'}</p>
+                            <p className="text-[10px] text-dark-gray/50 font-medium truncate">{cat.auditorName || 'Belum Ditugaskan'} • {cat.status || 'Sedang Berjalan'}</p>
                           </div>
                           {isLast && (
                             <span className="text-[9px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded shrink-0">min. 1</span>

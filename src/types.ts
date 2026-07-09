@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type AuditStatus = 'Draft' | 'Sedang Berjalan' | 'Direview' | 'Selesai';
+export type AuditStatus = 'Sedang Berjalan' | 'Direview' | 'Selesai';
 export type AuditType = string;
 
 export type FindingStatus = 'Sesuai' | 'Temuan' | 'N/A';

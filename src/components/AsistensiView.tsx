@@ -9,7 +9,7 @@ interface AsistensiViewProps {
 
 export default function AsistensiView({ audits, onSelectAudit }: AsistensiViewProps) {
   const asistensiItems = useMemo(() => {
-    return audits.filter(a => a.status === 'Draft' || a.auditType.toLowerCase().includes('asistensi'));
+    return audits.filter(a => a.auditType.toLowerCase().includes('asistensi'));
   }, [audits]);
 
   if (asistensiItems.length === 0) {

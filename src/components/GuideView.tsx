@@ -36,7 +36,7 @@ Fitur:
         content: `Pusat pengelolaan Kertas Kerja Audit per OPD / instansi.
 
 Fitur utama:
-• Daftar KKA — kartu grup per OPD dengan stat (Jenis, Selesai, Berjalan, Draft, Temuan)
+• Daftar KKA — kartu grup per OPD dengan stat (Jenis, Selesai, Berjalan, Temuan)
 • Cari — filter nama OPD, auditor
 • Filter Tipe Objek — SD, SMP, Dinas, Kecamatan, dll
 • Filter Tahun Anggaran
@@ -85,7 +85,7 @@ Cara pakai:
     content: `Visualisasi data pengawasan dalam bentuk grafik dan chart.
 
 Fitur:
-• Pie chart — sebaran status KKA (Draft, Berjalan, Direview, Selesai)
+• Pie chart — sebaran status KKA (Berjalan, Direview, Selesai)
 • Bar chart — jumlah KKA per OPD
 • Bar chart — total temuan per OPD
 • Bar chart — jumlah KKA per tahun anggaran

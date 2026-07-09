@@ -110,7 +110,7 @@ export default function AuditWorkspaceView({
   const [editCatAuditorName, setEditCatAuditorName] = useState('');
   const [editCatTeamMembers, setEditCatTeamMembers] = useState<string[]>([]);
   const [editCatFiscalYear, setEditCatFiscalYear] = useState('');
-  const [editCatStatus, setEditCatStatus] = useState<AuditStatus>('Draft');
+  const [editCatStatus, setEditCatStatus] = useState<AuditStatus>('Sedang Berjalan');
   const [isEditCatAuditorDropdownOpen, setIsEditCatAuditorDropdownOpen] = useState(false);
   const [editCatAuditorSearchQuery, setEditCatAuditorSearchQuery] = useState('');
   const [isEditCatTeamDropdownOpen, setIsEditCatTeamDropdownOpen] = useState(false);
@@ -438,7 +438,7 @@ export default function AuditWorkspaceView({
     if (!masterCat) return;
     const newCategory: AuditCategory = {
       id: `cat_custom_${Date.now()}`, name: masterCat.name, description: masterCat.description,
-      auditorName: newCatAuditorName, teamMembers: newCatTeamMembers, fiscalYear: audit.fiscalYear, status: 'Draft',
+      auditorName: newCatAuditorName, teamMembers: newCatTeamMembers, fiscalYear: audit.fiscalYear, status: 'Sedang Berjalan',
       items: masterCat.items.map(item => ({ ...item, id: `item_custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, status: 'N/A', nilaiTemuan: 0, uraianTemuan: '', rekomendasi: '' }))
     };
     onUpdates({ ...audit, categories: [...audit.categories, newCategory] });
@@ -451,7 +451,7 @@ export default function AuditWorkspaceView({
     setEditCatAuditorName(activeCategory.auditorName || audit.auditorName || '');
     setEditCatTeamMembers(activeCategory.teamMembers || []);
     setEditCatFiscalYear(activeCategory.fiscalYear || audit.fiscalYear);
-    setEditCatStatus(activeCategory.status || 'Draft');
+    setEditCatStatus(activeCategory.status || 'Sedang Berjalan');
     setIsEditingCategoryTeam(true);
   };
 
@@ -601,7 +601,7 @@ export default function AuditWorkspaceView({
           {/* Review Workflow */}
           {activeCategory && (
             <div className="flex items-center gap-2">
-              {currentUserName === activeCategory.auditorName && (!activeCategory.status || activeCategory.status === 'Draft' || activeCategory.status === 'Sedang Berjalan') && (
+              {currentUserName === activeCategory.auditorName && (!activeCategory.status || activeCategory.status === 'Sedang Berjalan') && (
                 <button onClick={() => {
                   if (!window.confirm('Ajukan untuk direview pimpinan?')) return;
                   const newCategories = audit.categories.map(c => c.id === activeCategory.id ? { ...c, status: 'Direview' as any } : c);
@@ -960,7 +960,6 @@ export default function AuditWorkspaceView({
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Status</label>
                 <select value={editCatStatus} onChange={e => setEditCatStatus(e.target.value as AuditStatus)} className="w-full border border-dark-gray/15 p-2 rounded-lg bg-white text-dark-gray font-bold outline-none">
-                  <option value="Draft">Draft</option>
                   <option value="Sedang Berjalan">Sedang Berjalan</option>
                   <option value="Direview">Direview</option>
                   <option value="Selesai">Selesai</option>
