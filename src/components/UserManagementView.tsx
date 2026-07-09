@@ -286,7 +286,8 @@ export default function UserManagementView({
           body: { userId, newEmail: editEmail.trim() }
         });
         if (fnError) {
-          onShowToast?.('Email baru tersimpan sebagai pending — gagal update di Auth. Pengguna perlu konfirmasi saat login ulang.', 'info');
+          console.error('Edge function error:', fnError);
+          onShowToast?.(`Email tersimpan sebagai pending — ${fnError.message}`, 'info');
         } else {
           await supabase.from('profiles').update({ email: editEmail.trim(), email_pending: null }).eq('id', userId);
           onShowToast?.('Email berhasil diperbarui.', 'success');
