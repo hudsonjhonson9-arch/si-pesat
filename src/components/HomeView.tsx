@@ -65,22 +65,22 @@ export default function HomeView() {
         <div className="absolute left-1/4 bottom-0 -mb-10 w-40 h-40 bg-pastel-lavender/30 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10">
-          <span className="bg-pastel-peach/40 border border-pastel-peach/30 text-[10px] px-3 py-1 rounded-full font-bold inline-flex items-center gap-1.5 uppercase tracking-wider mb-3">
-            <Building className="w-3.5 h-3.5 text-pastel-peach" /> Inspektorat Kabupaten Sumba Barat
+          <span className="bg-pastel-peach/40 border border-pastel-peach/30 text-xs px-4 py-1.5 rounded-full font-bold inline-flex items-center gap-1.5 uppercase tracking-wider mb-4">
+            <Building className="w-4 h-4 text-pastel-peach" /> Inspektorat Kabupaten Sumba Barat
           </span>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-[var(--ink-soft)] mb-2">
+          <h1 className="text-xl md:text-3xl font-black tracking-tight text-[var(--ink-soft)] mb-3">
             SI-PESAT Inspektorat Kabupaten Sumba Barat
           </h1>
-          <p className="text-[var(--text-secondary)] text-sm max-w-2xl leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-2xl leading-relaxed">
             Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi Inspektur Pembantu Wilayah IV
           </p>
           <button
             onClick={() => setShowGuide(!showGuide)}
-            className="mt-3 flex items-center gap-2 text-[11px] font-bold text-[var(--text-secondary)] hover:text-[var(--ink-soft)] transition-colors"
+            className="mt-4 flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--ink-soft)] transition-colors"
           >
             <BookOpen className="w-4 h-4 text-pastel-peach" />
             {showGuide ? 'Tutup Panduan' : 'Buka Panduan Aplikasi'}
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showGuide ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showGuide ? 'rotate-180' : ''}`} />
           </button>
         </div>
       </div>
@@ -90,15 +90,15 @@ export default function HomeView() {
         <div className="absolute -right-16 -top-16 w-64 h-64 bg-pastel-peach/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-10 bottom-0 w-40 h-40 bg-pastel-blue/20 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1.1fr_1px_1fr] gap-8 lg:gap-10">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1.1fr_1px_1fr] gap-6 lg:gap-10">
           {/* Visi */}
           <div>
-            <span className="text-pastel-peach text-[10px] font-bold uppercase tracking-[0.2em] mb-4 inline-block">
+            <span className="text-pastel-peach text-xs md:text-[11px] font-bold uppercase tracking-[0.2em] mb-4 inline-block">
               Visi Pemerintah Daerah Kabupaten Sumba Barat
             </span>
-            <Quote className="w-6 h-6 text-pastel-pink/50 mb-2" />
+            <Quote className="w-7 h-7 text-pastel-pink/50 mb-2" />
             <p
-              className="text-[var(--ink-soft)] text-xl md:text-[26px] leading-snug"
+              className="text-[var(--ink-soft)] text-lg md:text-[26px] leading-snug"
               style={{ fontFamily: 'var(--font-serif-display)' }}
             >
               Terwujudnya Kehidupan Rakyat Sumba Barat yang Maju, Berdaya Saing dan Berkeadilan.
@@ -110,16 +110,16 @@ export default function HomeView() {
 
           {/* Misi */}
           <div>
-            <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-[0.2em] mb-4 inline-block">
+            <span className="text-[var(--text-secondary)] text-xs md:text-[11px] font-bold uppercase tracking-[0.2em] mb-4 inline-block">
               Misi
             </span>
-            <ol className="space-y-3.5">
+            <ol className="space-y-4">
               {misi.map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-pastel-peach/30 border border-pastel-peach/40 text-[var(--ink-soft)] text-[10px] font-bold flex items-center justify-center">
+                  <span className="shrink-0 mt-0.5 w-6 h-6 rounded-full bg-pastel-peach/30 border border-pastel-peach/40 text-[var(--ink-soft)] text-xs font-bold flex items-center justify-center">
                     {i + 1}
                   </span>
-                  <span className="text-[var(--text-secondary)] text-[12.5px] leading-relaxed">{item}</span>
+                  <span className="text-[var(--text-secondary)] text-sm leading-relaxed">{item}</span>
                 </li>
               ))}
             </ol>
@@ -134,10 +134,10 @@ export default function HomeView() {
             <ScrollText className="w-4.5 h-4.5" />
           </span>
           <div>
-            <h2 className="font-black text-[var(--ink-soft)] text-sm md:text-base tracking-tight">
+            <h2 className="font-black text-[var(--ink-soft)] text-base md:text-lg tracking-tight">
               Tugas dan Fungsi Unit Kerja
             </h2>
-            <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+            <p className="text-xs md:text-sm text-[var(--text-secondary)] mt-0.5">
               Berdasarkan Peraturan Bupati Sumba Barat Nomor 30 Tahun 2021, Tugas Pokok dan Fungsi
               Inspektorat Kabupaten Sumba Barat yaitu:
             </p>
@@ -146,10 +146,10 @@ export default function HomeView() {
 
         {/* Tugas */}
         <div className="pl-12 mb-6">
-          <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-[0.15em]">
+          <span className="text-[var(--text-secondary)] text-xs md:text-[11px] font-bold uppercase tracking-[0.15em]">
             1. Tugas Inspektorat Kabupaten Sumba Barat
           </span>
-          <p className="text-[12.5px] text-[var(--text-primary)] leading-relaxed mt-2 border-l-2 border-pastel-pink/40 pl-4">
+          <p className="text-sm text-[var(--text-primary)] leading-relaxed mt-2 border-l-2 border-pastel-pink/40 pl-4">
             Membantu Bupati membina dan mengawasi pelaksanaan urusan pemerintahan yang menjadi
             kewenangan daerah dan tugas pembantuan yang diberikan kepada Pemerintah Daerah.
           </p>
@@ -157,16 +157,16 @@ export default function HomeView() {
 
         {/* Fungsi */}
         <div className="pl-12">
-          <span className="text-[var(--text-secondary)] text-[10px] font-bold uppercase tracking-[0.15em]">
+          <span className="text-[var(--text-secondary)] text-xs md:text-[11px] font-bold uppercase tracking-[0.15em]">
             2. Fungsi Inspektorat Kabupaten Sumba Barat
           </span>
-          <ol className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 mt-3">
+          <ol className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-4">
             {fungsi.map((item, i) => (
               <li key={i} className="flex items-start gap-2.5">
-                <span className="shrink-0 mt-0.5 text-pastel-peach font-black text-[11px] tabular-nums">
+                <span className="shrink-0 mt-0.5 text-pastel-peach font-black text-xs md:text-sm tabular-nums">
                   {String.fromCharCode(97 + i)})
                 </span>
-                <span className="text-[12px] text-[var(--text-primary)] leading-relaxed">{item}</span>
+                <span className="text-sm text-[var(--text-primary)] leading-relaxed">{item}</span>
               </li>
             ))}
           </ol>
@@ -182,7 +182,8 @@ export default function HomeView() {
 
         {/* Kanvas bagan: garis dibuat presisi via SVG (koordinat 0 0 1200 800),
            kotak jabatan diposisikan absolute dengan persentase yang sama agar selalu align dengan garis */}
-        <div className="relative w-full" style={{ aspectRatio: '1200 / 800' }}>
+        <div className="overflow-x-auto pb-2 -mx-2 px-2 md:overflow-visible md:pb-0 md:mx-0 md:px-0">
+          <div className="relative w-[900px] md:w-full" style={{ aspectRatio: '1200 / 800' }}>
           {/* Garis penghubung */}
           <svg
             viewBox="0 0 1200 800"
@@ -218,40 +219,40 @@ export default function HomeView() {
           {/* INSPEKTUR */}
           <div className="absolute" style={{ left: '40.83%', top: '2.5%', width: '18.33%', height: '11.25%' }}>
 <div className="bg-pastel-cream/50 border border-dark-gray/15 rounded-xl px-3 py-2.5 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-pastel-peach/70 mb-1">INSPEKTUR</p>
-              <p className="text-[11px] font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.inspektur.nama}</p>
-              <p className="text-[8px] text-dark-gray/60 mt-1 leading-snug">{orgData.inspektur.pangkat}</p>
-              <p className="text-[7px] text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
+              <p className="text-[10px] md:text-[9px] lg:text-[11px] font-bold uppercase tracking-wider text-pastel-peach/70 mb-1">INSPEKTUR</p>
+              <p className="text-[12px] md:text-[11px] lg:text-[13px] font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.inspektur.nama}</p>
+              <p className="text-[9px] md:text-[8px] lg:text-[10px] text-dark-gray/60 mt-1 leading-snug">{orgData.inspektur.pangkat}</p>
+              <p className="text-[8px] md:text-[7px] lg:text-[9px] text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
             </div>
           </div>
 
           {/* SEKRETARIS */}
           <div className="absolute" style={{ left: '69.17%', top: '24%', width: '19.17%', height: '11.25%' }}>
 <div className="bg-pastel-blue/20 rounded-xl px-3 py-2.5 border border-dark-gray/15 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
-              <p className="text-[11px] font-black text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.sekretaris.nama}</p>
-              <p className="text-[8px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
-              <p className="text-[7px] text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
+              <p className="text-[10px] md:text-[9px] lg:text-[11px] font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
+              <p className="text-[12px] md:text-[11px] lg:text-[13px] font-black text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.sekretaris.nama}</p>
+              <p className="text-[9px] md:text-[8px] lg:text-[10px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
+              <p className="text-[8px] md:text-[7px] lg:text-[9px] text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
             </div>
           </div>
 
           {/* ANALIS PERENCANA */}
           <div className="absolute" style={{ left: '56.67%', top: '44%', width: '18.33%', height: '12.5%' }}>
 <div className="bg-pastel-lavender/20 rounded-xl px-3 py-2.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
-              <p className="text-[10px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.analis.nama}</p>
-              <p className="text-[7px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.analis.pangkat}</p>
-              <p className="text-[6.5px] text-dark-gray/40 font-mono leading-tight">{orgData.analis.nip}</p>
+              <p className="text-[9px] md:text-[8px] lg:text-[10px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
+              <p className="text-[11px] md:text-[10px] lg:text-[12px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.analis.nama}</p>
+              <p className="text-[8px] md:text-[7px] lg:text-[9px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.analis.pangkat}</p>
+              <p className="text-[7.5px] md:text-[6.5px] lg:text-[8px] text-dark-gray/40 font-mono leading-tight">{orgData.analis.nip}</p>
             </div>
           </div>
 
           {/* KASUBAG TATA USAHA */}
           <div className="absolute" style={{ left: '78.33%', top: '44%', width: '19.17%', height: '12.5%' }}>
 <div className="bg-pastel-green/20 rounded-xl px-3 py-2.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
-              <p className="text-[10px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.kasubag.nama}</p>
-              <p className="text-[7px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.kasubag.pangkat}</p>
-              <p className="text-[6.5px] text-dark-gray/40 font-mono leading-tight">{orgData.kasubag.nip}</p>
+              <p className="text-[9px] md:text-[8px] lg:text-[10px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
+              <p className="text-[11px] md:text-[10px] lg:text-[12px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.kasubag.nama}</p>
+              <p className="text-[8px] md:text-[7px] lg:text-[9px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.kasubag.pangkat}</p>
+              <p className="text-[7.5px] md:text-[6.5px] lg:text-[8px] text-dark-gray/40 font-mono leading-tight">{orgData.kasubag.nip}</p>
             </div>
           </div>
 
@@ -261,10 +262,10 @@ export default function HomeView() {
             return (
               <div key={i} className="absolute" style={{ left: lefts[i], top: '70.25%', width: '15.83%', height: '15%' }}>
 <div className="rounded-xl px-2.5 py-2 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center" style={{ backgroundColor: ['#FFF0F0', '#FFF5E0', '#F0FFF0', '#F0F5FF', '#F5F0FF'][i] }}>
-                  <p className="text-[7.5px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1 leading-tight">{irban.wilayah}</p>
-                  <p className="text-[9px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
-                  <p className="text-[6.5px] text-dark-gray/60 mt-1 font-medium leading-snug">{irban.pangkat}</p>
-                  <p className="text-[6px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
+                  <p className="text-[8.5px] md:text-[7.5px] lg:text-[9.5px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1 leading-tight">{irban.wilayah}</p>
+                  <p className="text-[10px] md:text-[9px] lg:text-[11px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
+                  <p className="text-[7.5px] md:text-[6.5px] lg:text-[8.5px] text-dark-gray/60 mt-1 font-medium leading-snug">{irban.pangkat}</p>
+                  <p className="text-[7px] md:text-[6px] lg:text-[8px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
                 </div>
               </div>
             );
@@ -273,9 +274,10 @@ export default function HomeView() {
           {/* KELOMPOK JABATAN FUNGSIONAL */}
           <div className="absolute" style={{ left: '40.42%', top: '91.5%', width: '19.17%', height: '8.75%' }}>
 <div className="bg-pastel-pink/20 rounded-xl px-4 py-2 border-2 border-dashed border-dark-gray/20 shadow-xs text-center h-full flex items-center justify-center">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-dark-gray/50 leading-tight">KELOMPOK JABATAN FUNGSIONAL</p>
+              <p className="text-[10px] md:text-[9px] lg:text-[11px] font-bold uppercase tracking-widest text-dark-gray/50 leading-tight">KELOMPOK JABATAN FUNGSIONAL</p>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
