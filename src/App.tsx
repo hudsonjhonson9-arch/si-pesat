@@ -702,6 +702,8 @@ export default function App() {
         setCustomAuditorName(profileData.full_name || data.user.email || 'Auditor');
       }
 
+      fetchTemplates();
+
       setIsSessionActive(true);
       logActivity('login');
       showToast(`Berhasil masuk sebagai ${data.user.email}`, 'success');
