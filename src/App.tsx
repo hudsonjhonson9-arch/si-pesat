@@ -1309,7 +1309,7 @@ export default function App() {
                   </>
                 )}
               </div>
-              {(isAdmin || permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
+              {(isAdmin || userRole === 'Inspektur Pembantu' || permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
                 <div data-dropdown="pengaturan" className="relative" onPointerEnter={() => handleDropdownEnter('pengaturan')} onPointerLeave={() => handleDropdownLeave('pengaturan')}>
                   <button
                     onClick={(e) => toggleDropdown('pengaturan', e)}
@@ -1325,7 +1325,7 @@ export default function App() {
                     <>
                       <div className="absolute top-full left-0 right-0 h-2 z-50" onPointerEnter={() => handleDropdownEnter('pengaturan')} />
                       <div className="absolute top-[calc(100%+8px)] left-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] z-50" onPointerEnter={() => handleDropdownEnter('pengaturan')} onPointerLeave={() => handleDropdownLeave('pengaturan')}>
-                        {(isAdmin || permissionChecker.can('user.manage')) && (
+                        {(isAdmin || userRole === 'Inspektur Pembantu' || permissionChecker.can('user.manage')) && (
                           <button
                             onClick={() => navigateTo('pengguna')}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
@@ -1464,8 +1464,8 @@ export default function App() {
                   </button>
                 )}
 
-                {/* Pengguna — hanya admin/Inspektur */}
-                {permissionChecker.can('user.manage') && (
+                {/* Pengguna — hanya admin/Inspektur/Irban */}
+                {(userRole === 'Inspektur Pembantu' || permissionChecker.can('user.manage')) && (
                   <button
                     onClick={() => { navigateTo('pengguna'); setIsMobileMoreOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
