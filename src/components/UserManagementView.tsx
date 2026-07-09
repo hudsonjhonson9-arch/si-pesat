@@ -255,6 +255,7 @@ export default function UserManagementView({
           jenis_asn: editJenisAsn || null,
           bidang_id: editBidangId || null,
           ...(emailChanged && !isEditingSelf ? { email_pending: editEmail.trim() } : {}),
+          ...(emailChanged && isEditingSelf ? { email: editEmail.trim() } : {}),
         })
         .eq('id', userId);
 
