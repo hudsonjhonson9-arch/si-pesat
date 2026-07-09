@@ -212,8 +212,8 @@ export default function HomeView() {
           {/* INSPEKTUR */}
           <div className="absolute" style={{ left: '40.83%', top: '2.5%', width: '18.33%', height: '11.25%' }}>
 <div className="bg-pastel-cream/50 border border-dark-gray/15 rounded-xl px-3 py-2 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-[10px] md:text-sm font-bold uppercase tracking-wider text-pastel-peach/70 mb-0.5">INSPEKTUR</p>
-              <p className="text-[12px] md:text-base font-black text-dark-gray underline underline-offset-2 decoration-dark-gray/20 leading-tight break-words">{orgData.inspektur.nama}</p>
+              <p className="text-[9px] md:text-sm font-bold uppercase tracking-wider text-pastel-peach/70 mb-0.5">INSPEKTUR</p>
+              <p className="text-[11px] md:text-base font-black text-dark-gray underline underline-offset-2 decoration-dark-gray/20 leading-tight break-words">{orgData.inspektur.nama}</p>
               <p className="text-[8px] md:text-sm text-dark-gray/60 mt-0.5 leading-snug">{orgData.inspektur.pangkat}</p>
               <p className="text-[7px] md:text-xs text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
             </div>
@@ -222,8 +222,8 @@ export default function HomeView() {
           {/* SEKRETARIS */}
           <div className="absolute" style={{ left: '69.17%', top: '24%', width: '19.17%', height: '11.25%' }}>
 <div className="bg-pastel-blue/20 rounded-xl px-3 py-2 border border-dark-gray/15 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-dark-gray/50 mb-0.5">SEKRETARIS</p>
-              <p className="text-[12px] md:text-base font-black text-dark underline underline-offset-2 decoration-dark-gray/20 leading-tight break-words">{orgData.sekretaris.nama}</p>
+              <p className="text-[9px] md:text-sm font-bold uppercase tracking-widest text-dark-gray/50 mb-0.5">SEKRETARIS</p>
+              <p className="text-[11px] md:text-base font-black text-dark underline underline-offset-2 decoration-dark-gray/20 leading-tight break-words">{orgData.sekretaris.nama}</p>
               <p className="text-[8px] md:text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
               <p className="text-[7px] md:text-xs text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
             </div>
