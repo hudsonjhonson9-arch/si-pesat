@@ -782,7 +782,10 @@ export default function App() {
     // Copy checklist structures from active configured template (Requirement A.2)
     const selectedTemplate = templates.find(t => t.id === templateId) || templates[0];
     const auditType = selectedTemplate.name;
-    const catsToCopy = initialCategoryId ? selectedTemplate.categories.filter(c => c.id === initialCategoryId) : [];
+    const existingAudit = audits.find(a => a.opdName.toLowerCase() === opdName.trim().toLowerCase() && a.fiscalYear === fiscalYear);
+    const catsToCopy = existingAudit
+      ? (initialCategoryId ? selectedTemplate.categories.filter(c => c.id === initialCategoryId) : [])
+      : (initialCategoryId ? selectedTemplate.categories.filter(c => c.id === initialCategoryId) : selectedTemplate.categories);
     const initialCategories: AuditCategory[] = catsToCopy.map(tempCat => {
       return {
         id: tempCat.id,
@@ -808,7 +811,6 @@ export default function App() {
       };
     });
 
-    const existingAudit = audits.find(a => a.opdName.toLowerCase() === opdName.trim().toLowerCase() && a.fiscalYear === fiscalYear);
     if (existingAudit) {
       const updatedAudit = { ...existingAudit, categories: [...existingAudit.categories, ...initialCategories], updatedAt: new Date().toISOString() };
       setAudits(prev => prev.map(a => a.id === existingAudit.id ? updatedAudit : a));
