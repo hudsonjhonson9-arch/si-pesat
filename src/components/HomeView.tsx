@@ -212,40 +212,40 @@ export default function HomeView() {
           {/* INSPEKTUR */}
           <div className="absolute" style={{ left: '40.83%', top: '2.5%', width: '18.33%', height: '11.25%' }}>
 <div className="bg-pastel-cream/50 border border-dark-gray/15 rounded-xl px-3 py-2 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-sm font-bold uppercase tracking-wider text-pastel-peach/70 mb-1">INSPEKTUR</p>
-              <p className="text-base font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.inspektur.nama}</p>
-              <p className="text-sm text-dark-gray/60 mt-0.5 leading-snug">{orgData.inspektur.pangkat}</p>
-              <p className="text-xs text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
+              <p className="text-[11px] md:text-sm font-bold uppercase tracking-wider text-pastel-peach/70 mb-1">INSPEKTUR</p>
+              <p className="text-[13px] md:text-base font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.inspektur.nama}</p>
+              <p className="text-[10px] md:text-sm text-dark-gray/60 mt-0.5 leading-snug">{orgData.inspektur.pangkat}</p>
+              <p className="text-[9px] md:text-xs text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
             </div>
           </div>
 
           {/* SEKRETARIS */}
           <div className="absolute" style={{ left: '69.17%', top: '24%', width: '19.17%', height: '11.25%' }}>
 <div className="bg-pastel-blue/20 rounded-xl px-3 py-2 border border-dark-gray/15 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-sm font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
-              <p className="text-base font-black text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.sekretaris.nama}</p>
-              <p className="text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
-              <p className="text-xs text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
+              <p className="text-[11px] md:text-sm font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
+              <p className="text-[13px] md:text-base font-black text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.sekretaris.nama}</p>
+              <p className="text-[10px] md:text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
+              <p className="text-[9px] md:text-xs text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
             </div>
           </div>
 
           {/* ANALIS PERENCANA */}
           <div className="absolute" style={{ left: '56.67%', top: '44%', width: '18.33%', height: '12.5%' }}>
 <div className="bg-pastel-lavender/20 rounded-xl px-3 py-2 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
-              <p className="text-sm md:text-base font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.analis.nama}</p>
-              <p className="text-xs md:text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.analis.pangkat}</p>
-              <p className="text-[11px] md:text-xs text-dark-gray/40 font-mono leading-tight">{orgData.analis.nip}</p>
+              <p className="text-[10px] md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
+              <p className="text-[12px] md:text-base font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.analis.nama}</p>
+              <p className="text-[9px] md:text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.analis.pangkat}</p>
+              <p className="text-[8px] md:text-xs text-dark-gray/40 font-mono leading-tight">{orgData.analis.nip}</p>
             </div>
           </div>
 
           {/* KASUBAG TATA USAHA */}
           <div className="absolute" style={{ left: '78.33%', top: '44%', width: '19.17%', height: '12.5%' }}>
 <div className="bg-pastel-green/20 rounded-xl px-3 py-2 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
-              <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
-              <p className="text-sm md:text-base font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.kasubag.nama}</p>
-              <p className="text-xs md:text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.kasubag.pangkat}</p>
-              <p className="text-[11px] md:text-xs text-dark-gray/40 font-mono leading-tight">{orgData.kasubag.nip}</p>
+              <p className="text-[10px] md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
+              <p className="text-[12px] md:text-base font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.kasubag.nama}</p>
+              <p className="text-[9px] md:text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.kasubag.pangkat}</p>
+              <p className="text-[8px] md:text-xs text-dark-gray/40 font-mono leading-tight">{orgData.kasubag.nip}</p>
             </div>
           </div>
 
@@ -255,10 +255,10 @@ export default function HomeView() {
             return (
               <div key={i} className="absolute" style={{ left: lefts[i], top: '70.25%', width: '15.83%', height: '15%' }}>
 <div className="rounded-xl px-2.5 py-1.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center" style={{ backgroundColor: ['#FFF0F0', '#FFF5E0', '#F0FFF0', '#F0F5FF', '#F5F0FF'][i] }}>
-                  <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1 leading-tight">{irban.wilayah}</p>
-                  <p className="text-sm font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
-                  <p className="text-xs text-dark-gray/60 mt-0.5 font-medium leading-snug">{irban.pangkat}</p>
-                  <p className="text-[11px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
+                  <p className="text-[9px] md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-0.5 leading-tight">{irban.wilayah}</p>
+                  <p className="text-[10px] md:text-sm font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
+                  <p className="text-[8px] md:text-xs text-dark-gray/60 mt-0.5 font-medium leading-snug">{irban.pangkat}</p>
+                  <p className="text-[7px] md:text-[11px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
                 </div>
               </div>
             );
@@ -267,7 +267,7 @@ export default function HomeView() {
           {/* KELOMPOK JABATAN FUNGSIONAL */}
           <div className="absolute" style={{ left: '40.42%', top: '91.5%', width: '19.17%', height: '8.75%' }}>
 <div className="bg-pastel-pink/20 rounded-xl px-4 py-1.5 border-2 border-dashed border-dark-gray/20 shadow-xs text-center h-full flex items-center justify-center">
-              <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-dark-gray/50 leading-tight">KELOMPOK JABATAN FUNGSIONAL</p>
+              <p className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-dark-gray/50 leading-tight">KELOMPOK JABATAN FUNGSIONAL</p>
             </div>
           </div>
         </div>
