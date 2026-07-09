@@ -180,91 +180,100 @@ export default function HomeView() {
           <h3 className="font-black text-[var(--ink-soft)] text-sm">Struktur Organisasi</h3>
         </div>
 
-        <div className="flex flex-col items-center">
-          {/* Puncak: Inspektur */}
-          <div className="text-center max-w-[260px] w-full">
-            <div className="bg-white border border-dark-gray/15 rounded-xl px-4 py-3 shadow-xs">
+        {/* Kanvas bagan: garis dibuat presisi via SVG (koordinat 0 0 1200 800),
+           kotak jabatan diposisikan absolute dengan persentase yang sama agar selalu align dengan garis */}
+        <div className="relative w-full" style={{ aspectRatio: '1200 / 800' }}>
+          {/* Garis penghubung */}
+          <svg
+            viewBox="0 0 1200 800"
+            className="absolute inset-0 w-full h-full"
+            preserveAspectRatio="none"
+          >
+            <g stroke="#B8AFA4" strokeWidth="2.5" fill="none">
+              {/* Inspektur -> trunk utama */}
+              <line x1="600" y1="112" x2="600" y2="160" />
+              {/* Trunk utama turun ke level Irban (di belakang kotak Irwil III) */}
+              <line x1="600" y1="160" x2="600" y2="540" />
+              {/* Cabang ke Sekretaris */}
+              <line x1="600" y1="160" x2="945" y2="160" />
+              <line x1="945" y1="160" x2="945" y2="192" />
+              {/* Sekretaris -> Analis Perencana & Kasubag TU */}
+              <line x1="945" y1="282" x2="945" y2="320" />
+              <line x1="790" y1="320" x2="1055" y2="320" />
+              <line x1="790" y1="320" x2="790" y2="352" />
+              <line x1="1055" y1="320" x2="1055" y2="352" />
+              {/* Trunk turun ke Fungsional (di belakang kotak Irwil III) */}
+              <line x1="600" y1="540" x2="600" y2="732" />
+              {/* Trunk horizontal Irban */}
+              <line x1="150" y1="540" x2="1050" y2="540" />
+              {/* Cabang turun ke tiap kotak Irwil */}
+              <line x1="150" y1="540" x2="150" y2="562" />
+              <line x1="375" y1="540" x2="375" y2="562" />
+              <line x1="600" y1="540" x2="600" y2="562" />
+              <line x1="825" y1="540" x2="825" y2="562" />
+              <line x1="1050" y1="540" x2="1050" y2="562" />
+            </g>
+          </svg>
+
+          {/* INSPEKTUR */}
+          <div className="absolute" style={{ left: '40.83%', top: '2.5%', width: '18.33%', height: '11.25%' }}>
+            <div className="bg-white border border-dark-gray/15 rounded-xl px-3 py-2.5 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-[9px] font-bold uppercase tracking-wider text-pastel-peach/70 mb-1">INSPEKTUR</p>
-              <p className="text-xs font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20">{orgData.inspektur.nama}</p>
-              <p className="text-[9px] text-dark-gray/60 mt-1.5 leading-snug">{orgData.inspektur.pangkat}</p>
-              <p className="text-[8px] text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
+              <p className="text-[11px] font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.inspektur.nama}</p>
+              <p className="text-[8px] text-dark-gray/60 mt-1 leading-snug">{orgData.inspektur.pangkat}</p>
+              <p className="text-[7px] text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
             </div>
-            <div className="w-px h-6 bg-dark-gray/20 mx-auto" />
           </div>
 
-          {/* Tingkat 2: Sekretaris + turunannya */}
-          <div className="flex flex-col items-center w-full max-w-4xl">
-            <div className="w-full flex justify-center">
-              <div className="max-w-[260px] w-full">
-                <div className="bg-white rounded-xl px-4 py-3 border border-dark-gray/15 shadow-xs text-center">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
-                  <p className="text-xs font-black text-dark underline underline-offset-4 decoration-dark-gray/20">{orgData.sekretaris.nama}</p>
-                  <p className="text-[9px] text-dark-gray/60 mt-1.5 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
-                  <p className="text-[8px] text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
+          {/* SEKRETARIS */}
+          <div className="absolute" style={{ left: '69.17%', top: '24%', width: '19.17%', height: '11.25%' }}>
+            <div className="bg-white rounded-xl px-3 py-2.5 border border-dark-gray/15 shadow-xs text-center h-full flex flex-col justify-center">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
+              <p className="text-[11px] font-black text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.sekretaris.nama}</p>
+              <p className="text-[8px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
+              <p className="text-[7px] text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
+            </div>
+          </div>
+
+          {/* ANALIS PERENCANA */}
+          <div className="absolute" style={{ left: '56.67%', top: '44%', width: '18.33%', height: '12.5%' }}>
+            <div className="bg-white rounded-xl px-3 py-2.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
+              <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
+              <p className="text-[10px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.analis.nama}</p>
+              <p className="text-[7px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.analis.pangkat}</p>
+              <p className="text-[6.5px] text-dark-gray/40 font-mono leading-tight">{orgData.analis.nip}</p>
+            </div>
+          </div>
+
+          {/* KASUBAG TATA USAHA */}
+          <div className="absolute" style={{ left: '78.33%', top: '44%', width: '19.17%', height: '12.5%' }}>
+            <div className="bg-white rounded-xl px-3 py-2.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
+              <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
+              <p className="text-[10px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.kasubag.nama}</p>
+              <p className="text-[7px] text-dark-gray/60 mt-1 font-medium leading-snug">{orgData.kasubag.pangkat}</p>
+              <p className="text-[6.5px] text-dark-gray/40 font-mono leading-tight">{orgData.kasubag.nip}</p>
+            </div>
+          </div>
+
+          {/* 5 IRBAN WILAYAH */}
+          {orgData.irbans.map((irban, i) => {
+            const lefts = ['4.58%', '23.33%', '42.08%', '60.83%', '79.58%'];
+            return (
+              <div key={i} className="absolute" style={{ left: lefts[i], top: '70.25%', width: '15.83%', height: '15%' }}>
+                <div className="bg-white rounded-xl px-2.5 py-2 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
+                  <p className="text-[7.5px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1 leading-tight">{irban.wilayah}</p>
+                  <p className="text-[9px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
+                  <p className="text-[6.5px] text-dark-gray/60 mt-1 font-medium leading-snug">{irban.pangkat}</p>
+                  <p className="text-[6px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
                 </div>
               </div>
-            </div>
-            <div className="w-0.5 h-8 bg-dark-gray/20" />
-            {/* Garis horizontal di bawah Sekretaris */}
-            <div className="w-full h-px bg-dark-gray/20 mb-0" />
-            <div className="w-full flex justify-center gap-3 relative">
-              <div className="w-0.5 h-6 bg-dark-gray/20 absolute top-0" />
-            </div>
-            <div className="flex gap-6 w-full justify-center">
-              <div className="flex-1 max-w-[220px]">
-                <div className="bg-white rounded-xl px-3 py-2.5 border border-dark-gray/12 shadow-xs text-center">
-                  <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
-                  <p className="text-[11px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20">{orgData.analis.nama}</p>
-                  <p className="text-[8px] text-dark-gray/60 mt-1 font-medium">{orgData.analis.pangkat}</p>
-                  <p className="text-[7px] text-dark-gray/40 font-mono">{orgData.analis.nip}</p>
-                </div>
-              </div>
-              <div className="flex-1 max-w-[220px]">
-                <div className="bg-white rounded-xl px-4 py-2.5 border border-dark-gray/12 shadow-xs text-center">
-                  <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
-                  <p className="text-[11px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20">{orgData.kasubag.nama}</p>
-                  <p className="text-[8px] text-dark-gray/60 mt-1 font-medium">{orgData.kasubag.pangkat}</p>
-                  <p className="text-[7px] text-dark-gray/40 font-mono">{orgData.kasubag.nip}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+            );
+          })}
 
-          {/* Garis turun dari Sekretaris ke Irban */}
-          <div className="w-0.5 h-10 bg-dark-gray/20" />
-
-          {/* Tingkat 3: Inspektur Pembantu Wilayah — garis horizontal */}
-          <div className="w-full max-w-5xl">
-            {/* Garis horizontal */}
-            <div className="relative flex items-center justify-center mb-10">
-              <div className="absolute left-0 right-0 h-px bg-dark-gray/20" />
-              {/* Ini node pusat sebagai turunan Inspektur langsung */}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 relative">
-              {orgData.irbans.map((irban, i) => (
-                <div key={i} className="relative">
-                  {/* Garis vertikal ke masing-masing kotak */}
-                  <div className="flex justify-center mb-2">
-                    <div className="w-0.5 h-6 bg-dark-gray/20" />
-                  </div>
-                  <div className="bg-white rounded-xl px-3 py-2.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">{irban.wilayah}</p>
-                    <p className="text-[10px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
-                    <p className="text-[7px] text-dark-gray/60 mt-1 font-medium leading-snug">{irban.pangkat}</p>
-                    <p className="text-[6px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Tingkat 4: Fungsional */}
-          <div className="flex justify-center mt-2">
-            <div className="w-0.5 h-8 bg-dark-gray/20" />
-          </div>
-          <div className="max-w-[260px] w-full">
-            <div className="bg-white rounded-xl px-5 py-3 border-2 border-dashed border-dark-gray/20 shadow-xs text-center">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-dark-gray/50">KELOMPOK JABATAN FUNGSIONAL</p>
+          {/* KELOMPOK JABATAN FUNGSIONAL */}
+          <div className="absolute" style={{ left: '40.42%', top: '91.5%', width: '19.17%', height: '8.75%' }}>
+            <div className="bg-white rounded-xl px-4 py-2 border-2 border-dashed border-dark-gray/20 shadow-xs text-center h-full flex items-center justify-center">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-dark-gray/50 leading-tight">KELOMPOK JABATAN FUNGSIONAL</p>
             </div>
           </div>
         </div>
