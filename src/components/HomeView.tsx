@@ -174,7 +174,7 @@ export default function HomeView() {
       </div>
 
       {/* Struktur Organisasi — Bagan Hierarki */}
-      <div className="rounded-3xl p-6 md:p-8" style={{ background: "linear-gradient(135deg, #F8F4F0 0%, #F0F4F8 100%)" }}>
+      <div className="rounded-3xl p-6 md:p-8" style={{ background: "linear-gradient(135deg, #FFE8D6 0%, #D6E8FF 100%)" }}>
         <div className="flex items-center gap-2.5 mb-6">
           <span className="text-pastel-peach"><Users2 className="w-5 h-5" /></span>
           <h3 className="font-black text-[var(--ink-soft)] text-sm">Struktur Organisasi</h3>
