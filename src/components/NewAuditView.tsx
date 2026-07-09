@@ -343,6 +343,15 @@ export default function NewAuditView({
             {/* Jenis Audit selector */}
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-dark-gray/70 uppercase">Jenis Audit</label>
+              {allFlatCategories.length === 0 ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-[11px] text-amber-800 font-medium">
+                  Belum ada jenis audit yang tersedia. Admin perlu mengatur template terlebih dahulu di menu <strong>Pengaturan → Jenis Audit</strong>.
+                </div>
+              ) : availableCategories.length === 0 ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-[11px] text-blue-800 font-medium">
+                  Semua jenis audit sudah ditambahkan.
+                </div>
+              ) : (
               <select
                 value={selCategoryId}
                 onChange={e => setSelCategoryId(e.target.value)}
@@ -353,6 +362,7 @@ export default function NewAuditView({
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
+              )}
             </div>
 
             {/* Ketua Tim */}
