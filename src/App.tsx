@@ -272,6 +272,30 @@ export default function App() {
     });
   };
 
+  const mergeTemplatesFromSupabase = ({ data, error }: { data: any; error: any }) => {
+    if (!error && data) {
+      const fetchedTemplates = data.map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        isDefault: d.is_default,
+        categories: d.categories || [],
+        lastSyncedAt: d.updated_at || new Date().toISOString()
+      }));
+
+      setTemplates(prevLocalTemplates => {
+        const offlineCreatedTemplates = prevLocalTemplates.filter(
+          local => !fetchedTemplates.find((m: any) => m.id === local.id) && !(local as any).lastSyncedAt && !local.isDefault
+        );
+        const merged = [...fetchedTemplates, ...offlineCreatedTemplates];
+        return merged.length > 0 ? merged : [EMPTY_KKA_TEMPLATE];
+      });
+    }
+  };
+
+  const fetchTemplates = () => {
+    supabase.from('templates').select('*').then(mergeTemplatesFromSupabase);
+  };
+
   // 1. Load data from localStorage on component mount
   useEffect(() => {
     const cachedAudits = localStorage.getItem('si_pesat_audits');
@@ -338,26 +362,7 @@ export default function App() {
         })
         .subscribe();
 
-      supabase.from('templates').select('*').then(({ data, error }) => {
-        if (!error && data) {
-          const fetchedTemplates = data.map(d => ({
-            id: d.id,
-            name: d.name,
-            isDefault: d.is_default,
-            categories: d.categories || [],
-            lastSyncedAt: d.updated_at || new Date().toISOString()
-          }));
-          
-          setTemplates(prevLocalTemplates => {
-            // Keep local templates that are NOT in DB but have NO lastSyncedAt
-            const offlineCreatedTemplates = prevLocalTemplates.filter(
-              local => !fetchedTemplates.find(m => m.id === local.id) && !(local as any).lastSyncedAt && !local.isDefault
-            );
-            const merged = [...fetchedTemplates, ...offlineCreatedTemplates];
-            return merged.length > 0 ? merged : [EMPTY_KKA_TEMPLATE];
-          });
-        }
-      });
+      supabase.from('templates').select('*').then(mergeTemplatesFromSupabase);
     }
 
     return () => {
@@ -548,12 +553,14 @@ export default function App() {
         });
 
         supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
-          .then(({ data }) => {
-             if (data) {
-               if (data.role) setUserRole(data.role as any);
-               setIsAdmin(data.is_admin || false);
-             }
-          });
+            .then(({ data }) => {
+               if (data) {
+                 if (data.role) setUserRole(data.role as any);
+                 setIsAdmin(data.is_admin || false);
+               }
+            });
+
+        fetchTemplates();
       }
     });
 
@@ -582,6 +589,8 @@ export default function App() {
                    setIsAdmin(data.is_admin || false);
                  }
               });
+
+          fetchTemplates();
 
           supabase.from('profiles').select('role, bidang_id, is_admin').eq('id', session.user.id).single().then(({ data }) => {
             if (!data) return;
