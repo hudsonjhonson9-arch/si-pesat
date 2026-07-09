@@ -129,7 +129,16 @@ export default function App() {
 
   // Core Applet States
   const [audits, setAudits] = useState<OpdAudit[]>([]);
-  const [templates, setTemplates] = useState<KKATemplate[]>([EMPTY_KKA_TEMPLATE]);
+  const [templates, setTemplates] = useState<KKATemplate[]>(() => {
+    try {
+      const cached = localStorage.getItem('si_pesat_template');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      }
+    } catch {}
+    return [EMPTY_KKA_TEMPLATE];
+  });
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
 
   const [userRole, setUserRole] = useState<string>('Auditor Pelaksana');
@@ -266,7 +275,6 @@ export default function App() {
   // 1. Load data from localStorage on component mount
   useEffect(() => {
     const cachedAudits = localStorage.getItem('si_pesat_audits');
-    const cachedTemplate = localStorage.getItem('si_pesat_template');
     const cachedLogs = localStorage.getItem('si_pesat_logs');
 
     if (cachedAudits) {
@@ -301,22 +309,6 @@ export default function App() {
       }
     } else {
       setAudits([]);
-    }
-
-    if (cachedTemplate) {
-      try {
-        const parsed = JSON.parse(cachedTemplate);
-        if (Array.isArray(parsed)) {
-          setTemplates(parsed);
-        } else {
-          setTemplates([parsed]);
-        }
-      } catch (e) {
-        console.error('Error parsing cached KKA templates:', e);
-        setTemplates([EMPTY_KKA_TEMPLATE]);
-      }
-    } else {
-      setTemplates([EMPTY_KKA_TEMPLATE]);
     }
 
     if (cachedLogs) {
