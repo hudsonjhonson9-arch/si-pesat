@@ -282,7 +282,15 @@ export default function UserManagementView({
           onShowToast?.('Email diperbarui — cek kotak masuk untuk konfirmasi.', 'info');
         }
       } else if (emailChanged && !isEditingSelf) {
-        onShowToast?.('Profil disimpan. Email baru tersimpan sebagai pending — pengguna perlu konfirmasi saat login ulang.', 'info');
+        const { error: fnError } = await supabase.functions.invoke('update-user-email', {
+          body: { userId, newEmail: editEmail.trim() }
+        });
+        if (fnError) {
+          onShowToast?.('Email baru tersimpan sebagai pending — gagal update di Auth. Pengguna perlu konfirmasi saat login ulang.', 'info');
+        } else {
+          await supabase.from('profiles').update({ email: editEmail.trim(), email_pending: null }).eq('id', userId);
+          onShowToast?.('Email berhasil diperbarui.', 'success');
+        }
       } else {
         onShowToast?.('Profil pengguna berhasil diperbarui.', 'success');
       }
