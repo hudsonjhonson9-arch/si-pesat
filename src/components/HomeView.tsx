@@ -214,8 +214,8 @@ export default function HomeView() {
 <div className="bg-pastel-cream/50 border border-dark-gray/15 rounded-xl px-3 py-2 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-sm font-bold uppercase tracking-wider text-pastel-peach/70 mb-1">INSPEKTUR</p>
               <p className="text-base font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.inspektur.nama}</p>
-              <p className="text-xs text-dark-gray/60 mt-0.5 leading-snug">{orgData.inspektur.pangkat}</p>
-              <p className="text-[11px] text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
+              <p className="text-sm text-dark-gray/60 mt-0.5 leading-snug">{orgData.inspektur.pangkat}</p>
+              <p className="text-xs text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
             </div>
           </div>
 
@@ -224,8 +224,8 @@ export default function HomeView() {
 <div className="bg-pastel-blue/20 rounded-xl px-3 py-2 border border-dark-gray/15 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-sm font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
               <p className="text-base font-black text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.sekretaris.nama}</p>
-              <p className="text-xs text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
-              <p className="text-[11px] text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
+              <p className="text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
+              <p className="text-xs text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
             </div>
           </div>
 
@@ -234,8 +234,8 @@ export default function HomeView() {
 <div className="bg-pastel-lavender/20 rounded-xl px-3 py-2 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
               <p className="text-sm md:text-base font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.analis.nama}</p>
-              <p className="text-[11px] md:text-xs text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.analis.pangkat}</p>
-              <p className="text-[10px] md:text-[11px] text-dark-gray/40 font-mono leading-tight">{orgData.analis.nip}</p>
+              <p className="text-xs md:text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.analis.pangkat}</p>
+              <p className="text-[11px] md:text-xs text-dark-gray/40 font-mono leading-tight">{orgData.analis.nip}</p>
             </div>
           </div>
 
@@ -244,8 +244,8 @@ export default function HomeView() {
 <div className="bg-pastel-green/20 rounded-xl px-3 py-2 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
               <p className="text-sm md:text-base font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.kasubag.nama}</p>
-              <p className="text-[11px] md:text-xs text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.kasubag.pangkat}</p>
-              <p className="text-[10px] md:text-[11px] text-dark-gray/40 font-mono leading-tight">{orgData.kasubag.nip}</p>
+              <p className="text-xs md:text-sm text-dark-gray/60 mt-0.5 font-medium leading-snug">{orgData.kasubag.pangkat}</p>
+              <p className="text-[11px] md:text-xs text-dark-gray/40 font-mono leading-tight">{orgData.kasubag.nip}</p>
             </div>
           </div>
 
@@ -257,8 +257,8 @@ export default function HomeView() {
 <div className="rounded-xl px-2.5 py-1.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center" style={{ backgroundColor: ['#FFF0F0', '#FFF5E0', '#F0FFF0', '#F0F5FF', '#F5F0FF'][i] }}>
                   <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1 leading-tight">{irban.wilayah}</p>
                   <p className="text-sm font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
-                  <p className="text-[11px] text-dark-gray/60 mt-0.5 font-medium leading-snug">{irban.pangkat}</p>
-                  <p className="text-[10px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
+                  <p className="text-xs text-dark-gray/60 mt-0.5 font-medium leading-snug">{irban.pangkat}</p>
+                  <p className="text-[11px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
                 </div>
               </div>
             );
