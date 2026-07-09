@@ -273,9 +273,15 @@ export default function EvidencePanel({
             })}
           </div>
           {isAuditor && !isReadOnly && (
-            <button onClick={onClear} className="text-[9px] font-bold text-rose-600 hover:text-rose-800 cursor-pointer">
-              Hapus Semua Dokumen
-            </button>
+            <>
+              <button onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1.5 text-[10px] font-extrabold text-violet-600 hover:text-violet-800 hover:bg-violet-50 px-2.5 py-1.5 rounded-lg border border-dashed border-violet-300 w-full justify-center transition-all cursor-pointer">
+                <Upload className="w-3.5 h-3.5" /> Tambah Dokumen Lain
+              </button>
+              <button onClick={onClear} className="text-[9px] font-bold text-rose-600 hover:text-rose-800 cursor-pointer">
+                Hapus Semua Dokumen
+              </button>
+            </>
           )}
         </div>
       ) : singleFile ? (
