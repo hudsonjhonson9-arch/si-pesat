@@ -274,7 +274,7 @@ export default function EvidencePanel({
           </div>
           {isAuditor && !isReadOnly && (
             <>
-              <input type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar"
+              <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar"
                 onChange={(e) => {
                   const files = e.target.files;
                   if (!files || files.length === 0) return;
