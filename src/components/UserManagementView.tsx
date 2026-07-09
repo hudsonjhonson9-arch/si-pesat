@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { supabase } from '../lib/supabase';
 import { logActivity } from '../lib/log';
@@ -110,6 +110,16 @@ export default function UserManagementView({
   const [showPassword, setShowPassword] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+
+  const getAutoAdmin = (role: string) => role === 'Inspektur' || role === 'Sekretaris';
+
+  useEffect(() => {
+    setAddIsAdmin(getAutoAdmin(addRole));
+  }, [addRole]);
+
+  useEffect(() => {
+    setEditIsAdmin(getAutoAdmin(editRole));
+  }, [editRole]);
 
   const resetAddForm = () => {
     setAddEmail(''); setAddPassword(''); setAddFullName('');
