@@ -117,10 +117,6 @@ export default function UserManagementView({
     setAddIsAdmin(getAutoAdmin(addRole));
   }, [addRole]);
 
-  useEffect(() => {
-    setEditIsAdmin(getAutoAdmin(editRole));
-  }, [editRole]);
-
   const resetAddForm = () => {
     setAddEmail(''); setAddPassword(''); setAddFullName('');
     setAddRole('Auditor Pelaksana'); setAddNip('');
