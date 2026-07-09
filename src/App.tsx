@@ -889,9 +889,9 @@ export default function App() {
       bidang_id: audit.bidang_id || null,
       updated_at: audit.updatedAt || new Date().toISOString()
     }).eq('id', audit.id).then(({ error }) => {
-      if (error) console.error('Immediate sync failed:', error);
+      if (error) { console.error('Immediate sync failed:', error); showToast(`Gagal sinkron: ${error.message}`, 'error'); }
     }).catch(err => {
-      console.error('Sync rejected:', err);
+      console.error('Sync rejected:', err); showToast(`Gagal sinkron: ${err.message}`, 'error');
     });
   };
 
