@@ -28,11 +28,11 @@ const orgData = {
   analis: { nama: 'Margaretha Maghu', pangkat: 'Penata Tingkat I – III/d', nip: 'NIP. 19690527 199203 2 009' },
   kasubag: { nama: 'Marden Ratte, SE', pangkat: 'Penata Tingkat I – III/d', nip: 'NIP. 19770323 201001 2 018' },
   irbans: [
-    { nama: 'Yuliana Tineke Evi Malo, ST', wilayah: 'Wilayah I', pangkat: 'Pembina Tingkat I – IV/b', nip: 'NIP. 19771109 200312 2 011' },
-    { nama: 'Betseba L. Mude, S.Sos', wilayah: 'Wilayah II', pangkat: 'Pembina Tingkat I – IV/b', nip: 'NIP. 19740712 200112 2' },
-    { nama: 'drh. Maimun I. Hamzah, S.KH', wilayah: 'Wilayah III', pangkat: 'Pembina – IV/a', nip: 'NIP. 19811004 200904 2 011' },
-    { nama: 'Abdullah Daud, SE', wilayah: 'Wilayah IV', pangkat: 'Pembina – IV/a', nip: 'NIP. 19800606 200501 1 009' },
-    { nama: 'Yunias Baga W. Male, SP., CFrA', wilayah: 'Wilayah V', pangkat: 'Pembina – IV/a', nip: 'NIP. 19760606 201001 1 002' },
+    { nama: 'Yuliana Tineke Evi Malo, ST', wilayah: 'Inspektur Pembantu Wilayah I', pangkat: 'Pembina Tingkat I – IV/b', nip: 'NIP. 19771109 200312 2 011' },
+    { nama: 'Betseba L. Mude, S.Sos', wilayah: 'Inspektur Pembantu Wilayah II', pangkat: 'Pembina Tingkat I – IV/b', nip: 'NIP. 19740712 200112 2' },
+    { nama: 'drh. Maimun I. Hamzah, S.KH', wilayah: 'Inspektur Pembantu Wilayah III', pangkat: 'Pembina – IV/a', nip: 'NIP. 19811004 200904 2 011' },
+    { nama: 'Abdullah Daud, SE', wilayah: 'Inspektur Pembantu Wilayah IV', pangkat: 'Pembina – IV/a', nip: 'NIP. 19800606 200501 1 009' },
+    { nama: 'Yunias Baga W. Male, SP., CFrA', wilayah: 'Inspektur Pembantu Wilayah V', pangkat: 'Pembina – IV/a', nip: 'NIP. 19760606 201001 1 002' },
   ],
 };
 
@@ -183,34 +183,34 @@ export default function HomeView() {
         {/* Kanvas bagan: garis dibuat presisi via SVG (koordinat 0 0 1200 800),
            kotak jabatan diposisikan absolute dengan persentase yang sama agar selalu align dengan garis */}
         <div className="overflow-x-auto pb-2 -mx-2 px-2 md:overflow-visible md:pb-0 md:mx-0 md:px-0">
-          <div className="relative w-[1000px] md:w-full" style={{ aspectRatio: '1200 / 1000' }}>
+          <div className="relative w-[900px] md:w-full" style={{ aspectRatio: '1200 / 800' }}>
           {/* Garis penghubung */}
           <svg
-            viewBox="0 0 1200 1000"
+            viewBox="0 0 1200 800"
             className="absolute inset-0 w-full h-full"
             preserveAspectRatio="none"
           >
-            <g stroke="#B8AFA4" strokeWidth="3" fill="none">
-              <line x1="600" y1="140" x2="600" y2="200" />
-              <line x1="600" y1="200" x2="600" y2="675" />
-              <line x1="600" y1="200" x2="945" y2="200" />
-              <line x1="945" y1="200" x2="945" y2="240" />
-              <line x1="945" y1="352" x2="945" y2="400" />
-              <line x1="790" y1="400" x2="1055" y2="400" />
-              <line x1="790" y1="400" x2="790" y2="440" />
-              <line x1="1055" y1="400" x2="1055" y2="440" />
-              <line x1="600" y1="675" x2="600" y2="915" />
-              <line x1="150" y1="675" x2="1050" y2="675" />
-              <line x1="150" y1="675" x2="150" y2="702" />
-              <line x1="375" y1="675" x2="375" y2="702" />
-              <line x1="600" y1="675" x2="600" y2="702" />
-              <line x1="825" y1="675" x2="825" y2="702" />
-              <line x1="1050" y1="675" x2="1050" y2="702" />
+            <g stroke="#B8AFA4" strokeWidth="2.5" fill="none">
+              <line x1="600" y1="112" x2="600" y2="160" />
+              <line x1="600" y1="160" x2="600" y2="540" />
+              <line x1="600" y1="160" x2="945" y2="160" />
+              <line x1="945" y1="160" x2="945" y2="192" />
+              <line x1="945" y1="282" x2="945" y2="320" />
+              <line x1="790" y1="320" x2="1055" y2="320" />
+              <line x1="790" y1="320" x2="790" y2="352" />
+              <line x1="1055" y1="320" x2="1055" y2="352" />
+              <line x1="600" y1="540" x2="600" y2="732" />
+              <line x1="150" y1="540" x2="1050" y2="540" />
+              <line x1="150" y1="540" x2="150" y2="562" />
+              <line x1="375" y1="540" x2="375" y2="562" />
+              <line x1="600" y1="540" x2="600" y2="562" />
+              <line x1="825" y1="540" x2="825" y2="562" />
+              <line x1="1050" y1="540" x2="1050" y2="562" />
             </g>
           </svg>
 
           {/* INSPEKTUR */}
-          <div className="absolute" style={{ left: '40.83%', top: '1.5%', width: '18.33%', height: '12.5%' }}>
+          <div className="absolute" style={{ left: '40.83%', top: '2.5%', width: '18.33%', height: '11.25%' }}>
 <div className="bg-pastel-cream/50 border border-dark-gray/15 rounded-xl px-3 py-2 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-sm font-bold uppercase tracking-wider text-pastel-peach/70 mb-1">INSPEKTUR</p>
               <p className="text-base font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.inspektur.nama}</p>
@@ -220,7 +220,7 @@ export default function HomeView() {
           </div>
 
           {/* SEKRETARIS */}
-          <div className="absolute" style={{ left: '69.17%', top: '23%', width: '19.17%', height: '12.5%' }}>
+          <div className="absolute" style={{ left: '69.17%', top: '24%', width: '19.17%', height: '11.25%' }}>
 <div className="bg-pastel-blue/20 rounded-xl px-3 py-2 border border-dark-gray/15 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-sm font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
               <p className="text-base font-black text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.sekretaris.nama}</p>
@@ -230,7 +230,7 @@ export default function HomeView() {
           </div>
 
           {/* ANALIS PERENCANA */}
-          <div className="absolute" style={{ left: '56.67%', top: '42%', width: '18.33%', height: '13%' }}>
+          <div className="absolute" style={{ left: '56.67%', top: '44%', width: '18.33%', height: '12.5%' }}>
 <div className="bg-pastel-lavender/20 rounded-xl px-3 py-2 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
               <p className="text-sm md:text-base font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.analis.nama}</p>
@@ -240,7 +240,7 @@ export default function HomeView() {
           </div>
 
           {/* KASUBAG TATA USAHA */}
-          <div className="absolute" style={{ left: '78.33%', top: '42%', width: '19.17%', height: '13%' }}>
+          <div className="absolute" style={{ left: '78.33%', top: '44%', width: '19.17%', height: '12.5%' }}>
 <div className="bg-pastel-green/20 rounded-xl px-3 py-2 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
               <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
               <p className="text-sm md:text-base font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{orgData.kasubag.nama}</p>
@@ -253,7 +253,7 @@ export default function HomeView() {
           {orgData.irbans.map((irban, i) => {
             const lefts = ['4.58%', '23.33%', '42.08%', '60.83%', '79.58%'];
             return (
-              <div key={i} className="absolute" style={{ left: lefts[i], top: '67%', width: '15.83%', height: '17%' }}>
+              <div key={i} className="absolute" style={{ left: lefts[i], top: '70.25%', width: '15.83%', height: '15%' }}>
 <div className="rounded-xl px-2.5 py-1.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center" style={{ backgroundColor: ['#FFF0F0', '#FFF5E0', '#F0FFF0', '#F0F5FF', '#F5F0FF'][i] }}>
                   <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-dark-gray/50 mb-1 leading-tight">{irban.wilayah}</p>
                   <p className="text-sm font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
@@ -265,7 +265,7 @@ export default function HomeView() {
           })}
 
           {/* KELOMPOK JABATAN FUNGSIONAL */}
-          <div className="absolute" style={{ left: '40.42%', top: '90%', width: '19.17%', height: '9%' }}>
+          <div className="absolute" style={{ left: '40.42%', top: '91.5%', width: '19.17%', height: '8.75%' }}>
 <div className="bg-pastel-pink/20 rounded-xl px-4 py-1.5 border-2 border-dashed border-dark-gray/20 shadow-xs text-center h-full flex items-center justify-center">
               <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-dark-gray/50 leading-tight">KELOMPOK JABATAN FUNGSIONAL</p>
             </div>
