@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Building, Users, BookOpen, ChevronDown, ScrollText, Quote } from 'lucide-react';
+import { Building, Users2, BookOpen, ChevronDown, ScrollText, Quote, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import GuideView from './GuideView';
 
@@ -22,13 +22,19 @@ const fungsi = [
   'Pelaksanaan fungsi lain yang diberikan oleh Bupati terkait dengan tugas dan fungsinya',
 ];
 
-const struktur = [
-  { role: 'Sekretariat', unit: 'Bagian Tata Usaha' },
-  { role: 'Inspektur Pembantu Wilayah I', unit: 'Kecamatan Kota, Laboya Barat' },
-  { role: 'Inspektur Pembantu Wilayah II', unit: 'Kecamatan Tana Righu' },
-  { role: 'Inspektur Pembantu Wilayah III', unit: 'Kecamatan Lamboya, Wanokaka' },
-  { role: 'Inspektur Pembantu Wilayah IV', unit: 'Kecamatan Loli' },
-];
+const orgData = {
+  inspektur: { nama: 'Weru Raddi Kaka Ora, SP', pangkat: 'Pembina Tingkat I – IV/b', nip: 'NIP. 19791118 200312 2 012' },
+  sekretaris: { nama: 'Simon Malo Kii, S.Pd., M.Si', pangkat: 'Pembina Tingkat I – IV/b', nip: 'NIP. 19691022 200501 1 005' },
+  analis: { nama: 'Margaretha Maghu', pangkat: 'Penata Tingkat I – III/d', nip: 'NIP. 19690527 199203 2 009' },
+  kasubag: { nama: 'Marden Ratte, SE', pangkat: 'Penata Tingkat I – III/d', nip: 'NIP. 19770323 201001 2 018' },
+  irbans: [
+    { nama: 'Yuliana Tineke Evi Malo, ST', wilayah: 'Wilayah I', pangkat: 'Pembina Tingkat I – IV/b', nip: 'NIP. 19771109 200312 2 011' },
+    { nama: 'Betseba L. Mude, S.Sos', wilayah: 'Wilayah II', pangkat: 'Pembina Tingkat I – IV/b', nip: 'NIP. 19740712 200112 2' },
+    { nama: 'drh. Maimun I. Hamzah, S.KH', wilayah: 'Wilayah III', pangkat: 'Pembina – IV/a', nip: 'NIP. 19811004 200904 2 011' },
+    { nama: 'Abdullah Daud, SE', wilayah: 'Wilayah IV', pangkat: 'Pembina – IV/a', nip: 'NIP. 19800606 200501 1 009' },
+    { nama: 'Yunias Baga W. Male, SP., CFrA', wilayah: 'Wilayah V', pangkat: 'Pembina – IV/a', nip: 'NIP. 19760606 201001 1 002' },
+  ],
+};
 
 export default function HomeView() {
   const [showGuide, setShowGuide] = useState(false);
@@ -167,23 +173,100 @@ export default function HomeView() {
         </div>
       </div>
 
-      {/* Struktur Organisasi */}
-      <div className="rounded-3xl p-6" style={{ background: "linear-gradient(135deg, #F8F4F0 0%, #F0F4F8 100%)" }}>
-        <div className="flex items-center gap-2.5 mb-4">
-          <span className="text-pastel-peach"><Users className="w-5 h-5" /></span>
+      {/* Struktur Organisasi — Bagan Hierarki */}
+      <div className="rounded-3xl p-6 md:p-8" style={{ background: "linear-gradient(135deg, #F8F4F0 0%, #F0F4F8 100%)" }}>
+        <div className="flex items-center gap-2.5 mb-6">
+          <span className="text-pastel-peach"><Users2 className="w-5 h-5" /></span>
           <h3 className="font-black text-[var(--ink-soft)] text-sm">Struktur Organisasi</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div className="rounded-2xl bg-pastel-cream/30 p-3.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-0.5">Inspektur</p>
-            <p className="text-[12px] font-bold text-[var(--ink-soft)]">{inspekturName || '—'}</p>
-          </div>
-          {struktur.map((item, i) => (
-            <div key={i} className="rounded-2xl bg-pastel-baby-blue/10 p-3.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-0.5">{item.role}</p>
-              <p className="text-[12px] font-bold text-[var(--ink-soft)]">{item.unit}</p>
+
+        <div className="flex flex-col items-center">
+          {/* Puncak: Inspektur */}
+          <div className="text-center max-w-[260px] w-full">
+            <div className="bg-white border border-dark-gray/15 rounded-xl px-4 py-3 shadow-xs">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-pastel-peach/70 mb-1">INSPEKTUR</p>
+              <p className="text-xs font-black text-dark-gray underline underline-offset-4 decoration-dark-gray/20">{orgData.inspektur.nama}</p>
+              <p className="text-[9px] text-dark-gray/60 mt-1.5 leading-snug">{orgData.inspektur.pangkat}</p>
+              <p className="text-[8px] text-dark-gray/40 font-mono">{orgData.inspektur.nip}</p>
             </div>
-          ))}
+            <div className="w-px h-6 bg-dark-gray/20 mx-auto" />
+          </div>
+
+          {/* Tingkat 2: Sekretaris + turunannya */}
+          <div className="flex flex-col items-center w-full max-w-4xl">
+            <div className="w-full flex justify-center">
+              <div className="max-w-[260px] w-full">
+                <div className="bg-white rounded-xl px-4 py-3 border border-dark-gray/15 shadow-xs text-center">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-dark-gray/50 mb-1">SEKRETARIS</p>
+                  <p className="text-xs font-black text-dark underline underline-offset-4 decoration-dark-gray/20">{orgData.sekretaris.nama}</p>
+                  <p className="text-[9px] text-dark-gray/60 mt-1.5 font-medium leading-snug">{orgData.sekretaris.pangkat}</p>
+                  <p className="text-[8px] text-dark-gray/40 font-mono">{orgData.sekretaris.nip}</p>
+                </div>
+              </div>
+            </div>
+            <div className="w-0.5 h-8 bg-dark-gray/20" />
+            {/* Garis horizontal di bawah Sekretaris */}
+            <div className="w-full h-px bg-dark-gray/20 mb-0" />
+            <div className="w-full flex justify-center gap-3 relative">
+              <div className="w-0.5 h-6 bg-dark-gray/20 absolute top-0" />
+            </div>
+            <div className="flex gap-6 w-full justify-center">
+              <div className="flex-1 max-w-[220px]">
+                <div className="bg-white rounded-xl px-3 py-2.5 border border-dark-gray/12 shadow-xs text-center">
+                  <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">ANALIS PERENCANA</p>
+                  <p className="text-[11px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20">{orgData.analis.nama}</p>
+                  <p className="text-[8px] text-dark-gray/60 mt-1 font-medium">{orgData.analis.pangkat}</p>
+                  <p className="text-[7px] text-dark-gray/40 font-mono">{orgData.analis.nip}</p>
+                </div>
+              </div>
+              <div className="flex-1 max-w-[220px]">
+                <div className="bg-white rounded-xl px-4 py-2.5 border border-dark-gray/12 shadow-xs text-center">
+                  <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">KASUBAG TATA USAHA</p>
+                  <p className="text-[11px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20">{orgData.kasubag.nama}</p>
+                  <p className="text-[8px] text-dark-gray/60 mt-1 font-medium">{orgData.kasubag.pangkat}</p>
+                  <p className="text-[7px] text-dark-gray/40 font-mono">{orgData.kasubag.nip}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Garis turun dari Sekretaris ke Irban */}
+          <div className="w-0.5 h-10 bg-dark-gray/20" />
+
+          {/* Tingkat 3: Inspektur Pembantu Wilayah — garis horizontal */}
+          <div className="w-full max-w-5xl">
+            {/* Garis horizontal */}
+            <div className="relative flex items-center justify-center mb-10">
+              <div className="absolute left-0 right-0 h-px bg-dark-gray/20" />
+              {/* Ini node pusat sebagai turunan Inspektur langsung */}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 relative">
+              {orgData.irbans.map((irban, i) => (
+                <div key={i} className="relative">
+                  {/* Garis vertikal ke masing-masing kotak */}
+                  <div className="flex justify-center mb-2">
+                    <div className="w-0.5 h-6 bg-dark-gray/20" />
+                  </div>
+                  <div className="bg-white rounded-xl px-3 py-2.5 border border-dark-gray/12 shadow-xs text-center h-full flex flex-col justify-center">
+                    <p className="text-[8px] font-bold uppercase tracking-wider text-dark-gray/50 mb-1">{irban.wilayah}</p>
+                    <p className="text-[10px] font-bold text-dark underline underline-offset-4 decoration-dark-gray/20 leading-tight">{irban.nama}</p>
+                    <p className="text-[7px] text-dark-gray/60 mt-1 font-medium leading-snug">{irban.pangkat}</p>
+                    <p className="text-[6px] text-dark-gray/40 font-mono leading-tight">{irban.nip}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tingkat 4: Fungsional */}
+          <div className="flex justify-center mt-2">
+            <div className="w-0.5 h-8 bg-dark-gray/20" />
+          </div>
+          <div className="max-w-[260px] w-full">
+            <div className="bg-white rounded-xl px-5 py-3 border-2 border-dashed border-dark-gray/20 shadow-xs text-center">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-dark-gray/50">KELOMPOK JABATAN FUNGSIONAL</p>
+            </div>
+          </div>
         </div>
       </div>
 
