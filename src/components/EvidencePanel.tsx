@@ -197,6 +197,19 @@ export default function EvidencePanel({
         <Link2 className="w-3 h-3" /> Bukti Dokumen
       </span>
 
+      <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar"
+        onChange={(e) => {
+          const files = e.target.files;
+          if (!files || files.length === 0) return;
+          const validFiles = Array.from(files).filter(f => f.size > 0 && f.size <= 15 * 1024 * 1024);
+          const oversized = Array.from(files).filter(f => f.size > 15 * 1024 * 1024);
+          if (oversized.length > 0) onShowToast?.(`${oversized.length} file melebihi 15 MB dan dilewati.`, 'error');
+          if (validFiles.length === 1) { initiateUpload(validFiles[0]); }
+          else if (validFiles.length > 1) { setPendingFiles(validFiles); }
+          e.target.value = '';
+        }}
+        className="hidden" />
+
       {evidenceFiles && evidenceFiles.length > 1 ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -274,18 +287,6 @@ export default function EvidencePanel({
           </div>
           {isAuditor && !isReadOnly && (
             <>
-              <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar"
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (!files || files.length === 0) return;
-                  const validFiles = Array.from(files).filter(f => f.size > 0 && f.size <= 15 * 1024 * 1024);
-                  const oversized = Array.from(files).filter(f => f.size > 15 * 1024 * 1024);
-                  if (oversized.length > 0) onShowToast?.(`${oversized.length} file melebihi 15 MB dan dilewati.`, 'error');
-                  if (validFiles.length === 1) { initiateUpload(validFiles[0]); }
-                  else if (validFiles.length > 1) { setPendingFiles(validFiles); }
-                  e.target.value = '';
-                }}
-                className="hidden" />
               <button onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-1.5 text-[10px] font-extrabold text-violet-600 hover:text-violet-800 hover:bg-violet-50 px-2.5 py-1.5 rounded-lg border border-dashed border-violet-300 w-full justify-center transition-all cursor-pointer">
                 <Upload className="w-3.5 h-3.5" /> Tambah Dokumen Lain
@@ -350,6 +351,12 @@ export default function EvidencePanel({
               </button>
             )}
           </div>
+          {isAuditor && !isReadOnly && (
+            <button onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 text-[10px] font-extrabold text-violet-600 hover:text-violet-800 hover:bg-violet-50 px-2.5 py-1.5 rounded-lg border border-dashed border-violet-300 w-full justify-center transition-all cursor-pointer mt-2">
+              <Upload className="w-3.5 h-3.5" /> Tambah Dokumen Lain
+            </button>
+          )}
         </>
       ) : isAuditor && !isReadOnly ? (
         <div className="space-y-2">

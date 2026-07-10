@@ -249,7 +249,7 @@ export default function App() {
           fiscalYear: d.fiscal_year,
           auditorName: d.auditor_name,
           auditDate: d.audit_date,
-          status: d.status,
+          status: d.status === 'Draft' ? 'Sedang Berjalan' : d.status,
           progress: d.progress,
           teamMembers: d.team_members || [],
           categories: d.categories || [],
@@ -260,7 +260,8 @@ export default function App() {
         }));
         const migrated = mapped.map(a => ({
           ...a,
-          categories: migrateAuditItems(a.categories || [], a.auditorName || 'Unknown')
+          categories: migrateAuditItems(a.categories || [], a.auditorName || 'Unknown'),
+          status: a.status === 'Draft' ? 'Sedang Berjalan' : a.status
         }));
         setAudits(prevLocalAudits => {
           const offlineCreatedAudits = prevLocalAudits.filter(
@@ -323,7 +324,8 @@ export default function App() {
 
         parsed = parsed.map((a: any) => ({
           ...a,
-          categories: migrateAuditItems(a.categories || [], a.auditorName || 'Unknown')
+          categories: migrateAuditItems(a.categories || [], a.auditorName || 'Unknown'),
+          status: a.status === 'Draft' ? 'Sedang Berjalan' : a.status
         }));
 
         setAudits(parsed);
@@ -784,11 +786,11 @@ export default function App() {
   ) => {
     // Copy checklist structures from active configured template (Requirement A.2)
     const selectedTemplate = templates.find(t => t.id === templateId) || templates[0];
-    const auditType = selectedTemplate.name;
     const existingAudit = audits.find(a => a.opdName.toLowerCase() === opdName.trim().toLowerCase() && a.fiscalYear === fiscalYear);
     const catsToCopy = existingAudit
       ? (initialCategoryId ? selectedTemplate.categories.filter(c => c.id === initialCategoryId) : [])
       : (initialCategoryId ? selectedTemplate.categories.filter(c => c.id === initialCategoryId) : selectedTemplate.categories);
+    const auditType = catsToCopy[0]?.name || selectedTemplate.name;
     const initialCategories: AuditCategory[] = catsToCopy.map(tempCat => {
       return {
         id: tempCat.id,
@@ -914,6 +916,7 @@ export default function App() {
     }
 
     // ponytail: recalc audit status whenever categories change — catches Edit modal + existing wrong data
+    if ((updatedAudit.status as string) === 'Draft') updatedAudit.status = 'Sedang Berjalan';
     if (updatedAudit.categories.length > 0) {
       const corrected = updatedAudit.categories.every(c => c.status === 'Selesai') ? 'Selesai' : updatedAudit.categories.some(c => c.status === 'Direview') ? 'Direview' : 'Sedang Berjalan';
       if (corrected !== updatedAudit.status) updatedAudit.status = corrected;
