@@ -551,16 +551,17 @@ export default function App() {
         const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
         setCustomAuditorName(name);
         
-        supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, is_admin, jenis_asn').then(({ data, error }) => {
+        supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id, is_admin, jenis_asn').then(({ data, error }) => {
           if (!error && data) setUserProfiles(data as UserProfile[]);
         });
 
-        supabase.from('profiles').select('role, is_admin, superadmin').eq('id', session.user.id).single()
+        supabase.from('profiles').select('role, bidang_id, is_admin, superadmin').eq('id', session.user.id).single()
             .then(({ data }) => {
                if (data) {
                  if (data.role) setUserRole(data.role as any);
                  setIsAdmin(data.is_admin || false);
                  setIsSuperadmin(data.superadmin || false);
+                 if (data.bidang_id) setUserBidangId(data.bidang_id);
                }
             });
 
