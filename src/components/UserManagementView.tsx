@@ -10,7 +10,7 @@ import { logActivity } from '../lib/log';
 import {
   Users, Search, ShieldCheck, Shield, User as UserIcon,
   Mail, Hash, Edit2, Save, X, AlertTriangle, RefreshCw,
-  Crown, Star, Smartphone, KeyRound, UserPlus, Eye, EyeOff, Lock, ChevronDown,
+  Crown, Star, Smartphone, KeyRound, UserPlus, Eye, EyeOff, Lock, ChevronDown, Check,
 } from 'lucide-react';
 
 interface UserManagementViewProps {
@@ -78,6 +78,7 @@ export default function UserManagementView({
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('Semua');
   const [bidangFilter, setBidangFilter] = useState<number | ''>('');
+  const [isBidangDropdownOpen, setIsBidangDropdownOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState<RoleType>('Auditor Pelaksana');
   const [editNip, setEditNip] = useState('');
@@ -437,13 +438,28 @@ export default function UserManagementView({
           })}
         </div>
         {isSuperadmin && bidangList.length > 0 && (
-          <div className="flex items-center gap-2 pt-1">
-            <label className="text-[10px] font-bold text-dark-gray/50 uppercase tracking-wider shrink-0">Filter Irban</label>
-            <select value={bidangFilter} onChange={e => setBidangFilter(e.target.value === '' ? '' : Number(e.target.value))}
-              className="text-xs font-bold border border-dark-gray/15 p-1.5 rounded-lg bg-white text-dark-gray outline-none">
-              <option value="">Semua Irban</option>
-              {bidangList.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-            </select>
+          <div className="relative pt-1">
+            <button onClick={() => setIsBidangDropdownOpen(!isBidangDropdownOpen)}
+              className="inline-flex items-center gap-2 text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all cursor-pointer bg-white text-dark-gray/60 border-dark-gray/15 hover:border-dark-gray/30 hover:text-dark-gray">
+              {bidangFilter ? bidangList.find(b => b.id === bidangFilter)?.name : 'Semua Irban'}
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {isBidangDropdownOpen && (
+              <div className="absolute z-50 mt-1 bg-white border border-dark-gray/15 rounded-xl shadow-lg overflow-hidden min-w-[160px]">
+                <button onClick={() => { setBidangFilter(''); setIsBidangDropdownOpen(false); }}
+                  className={`w-full text-left px-3 py-2 text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-2 ${!bidangFilter ? 'bg-dark-gray text-white' : 'text-dark-gray hover:bg-slate-50'}`}>
+                  {!bidangFilter && <Check className="w-3 h-3" />}
+                  Semua Irban
+                </button>
+                {bidangList.map(b => (
+                  <button key={b.id} onClick={() => { setBidangFilter(b.id); setIsBidangDropdownOpen(false); }}
+                    className={`w-full text-left px-3 py-2 text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-2 ${bidangFilter === b.id ? 'bg-dark-gray text-white' : 'text-dark-gray hover:bg-slate-50'}`}>
+                    {bidangFilter === b.id && <Check className="w-3 h-3" />}
+                    {b.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
