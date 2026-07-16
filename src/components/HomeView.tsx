@@ -36,9 +36,18 @@ const orgData = {
   ],
 };
 
-export default function HomeView() {
+export default function HomeView({ userRole, userBidangId, bidangList }: { userRole?: string; userBidangId?: number | null; bidangList?: { id: number; name: string }[] }) {
   const [showGuide, setShowGuide] = useState(false);
   const [inspekturName, setInspekturName] = useState('');
+
+  const irbanSubtitle = (() => {
+    if (userRole === 'Inspektur' || userRole === 'Sekretaris') {
+      return 'Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi Inspektorat Kab. Sumba Barat';
+    }
+    const bidang = bidangList?.find(b => b.id === userBidangId);
+    const wilayah = bidang?.name || '';
+    return `Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi Inspektur Pembantu ${wilayah}`;
+  })();
   const guideRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -72,7 +81,7 @@ export default function HomeView() {
             SI-PESAT Inspektorat Kabupaten Sumba Barat
           </h1>
           <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-2xl leading-relaxed">
-            Sistem Informasi Penatausahaan Kertas Kerja Audit Terintegrasi Inspektur Pembantu Wilayah IV
+            {irbanSubtitle}
           </p>
           <button
             onClick={() => setShowGuide(!showGuide)}
