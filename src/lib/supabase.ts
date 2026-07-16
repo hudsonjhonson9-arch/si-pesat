@@ -12,5 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials are not fully configured in environment variables.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { persistSession: false }
+});
 export { supabaseAnonKey };
