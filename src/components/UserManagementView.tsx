@@ -196,14 +196,14 @@ export default function UserManagementView({
   const canEditRole = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
   const canToggleMfa = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
 
-  const bidangFilteredProfiles = (() => {
+  const bidangFilteredProfiles = useMemo(() => {
     if (isSuperadmin) {
       if (!bidangFilter) return userProfiles;
       return userProfiles.filter(p => p.bidang_id === bidangFilter);
     }
     if (!userBidangId) return userProfiles;
     return userProfiles.filter(p => p.bidang_id === userBidangId);
-  })();
+  }, [userProfiles, userBidangId, isSuperadmin, bidangFilter]);
 
   const filteredProfiles = useMemo(() => {
     return bidangFilteredProfiles
@@ -224,7 +224,7 @@ export default function UserManagementView({
 
         return (a.full_name || a.email || '').localeCompare(b.full_name || b.email || '');
       });
-  }, [userProfiles, searchQuery, roleFilter]);
+  }, [bidangFilteredProfiles, searchQuery, roleFilter]);
 
   const FUNGSIONAL_COUNT = bidangFilteredProfiles.filter(p => 
     ['Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
