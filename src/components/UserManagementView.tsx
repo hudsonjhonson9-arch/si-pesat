@@ -196,14 +196,14 @@ export default function UserManagementView({
   const canEditRole = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
   const canToggleMfa = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
 
-  const bidangFilteredProfiles = useMemo(() => {
+  const bidangFilteredProfiles = (() => {
     if (isSuperadmin) {
       if (!bidangFilter) return userProfiles;
       return userProfiles.filter(p => p.bidang_id === bidangFilter);
     }
     if (!userBidangId) return userProfiles;
     return userProfiles.filter(p => p.bidang_id === userBidangId);
-  }, [userProfiles, userBidangId, isSuperadmin, bidangFilter]);
+  })();
 
   const filteredProfiles = useMemo(() => {
     return bidangFilteredProfiles
