@@ -7,10 +7,11 @@ export async function logActivity(
   details?: Record<string, unknown>,
   userOverride?: { id: string; name: string }
 ) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user && !userOverride) return;
-  const uid = userOverride?.id || user!.id;
-  const uname = userOverride?.name || user?.user_metadata?.full_name || user?.email || '';
+  let authUser;
+  try { const { data } = await supabase.auth.getUser(); authUser = data?.user; } catch {}
+  if (!authUser && !userOverride) return;
+  const uid = userOverride?.id || authUser!.id;
+  const uname = userOverride?.name || authUser?.user_metadata?.full_name || authUser?.email || '';
 
   await supabase.from('activity_logs').insert({
     user_id: uid,
