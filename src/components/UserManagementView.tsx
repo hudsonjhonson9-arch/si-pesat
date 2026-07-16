@@ -360,28 +360,6 @@ export default function UserManagementView({
     }
   };
 
-  const handleLoadFromDb = async (profile: UserProfile) => {
-    try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', profile.id).single();
-      if (error) throw error;
-      if (data) {
-        setEditRole((data.role as RoleType) || 'Auditor Pelaksana');
-        setEditNip(data.nip || '');
-        setEditGolongan(data.golongan || '');
-        setEditPangkat(data.pangkat || '');
-        setEditFullName(data.full_name || '');
-        setEditEmail(data.email || '');
-        setEditMfaRequired((data as any).mfa_required || false);
-        setEditIsAdmin((data as any).is_admin || false);
-        setEditJenisAsn((data as any).jenis_asn || '');
-        setEditBidangId(data.bidang_id ?? '');
-      }
-      onShowToast?.('Data dari database berhasil dimuat.', 'info');
-    } catch (err: any) {
-      onShowToast?.(`Gagal memuat data: ${err.message}`, 'error');
-    }
-  };
-
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try { onRefreshProfiles?.(); onShowToast?.('Data pengguna diperbarui.', 'info'); }
@@ -432,11 +410,13 @@ export default function UserManagementView({
       <div className="bg-baby-blue rounded-xl border border-dark-gray/10 p-4 shadow-xs space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-gray/40 pointer-events-none" />
-          <input type="text" placeholder="Cari nama, email, atau NIP..." value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            autoComplete="off"
-            name="search_users"
-            className="w-full pl-9 pr-4 py-2 border border-dark-gray/15 rounded-lg text-sm bg-white/70 focus:bg-white outline-none text-dark-gray font-medium placeholder-dark-gray/50" />
+          <form autoComplete="off" onSubmit={e => e.preventDefault()}>
+            <input type="text" placeholder="Cari nama, email, atau NIP..." value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              autoComplete="off"
+              name="search_dummy_169"
+              className="w-full pl-9 pr-4 py-2 border border-dark-gray/15 rounded-lg text-sm bg-white/70 focus:bg-white outline-none text-dark-gray font-medium placeholder-dark-gray/50" />
+          </form>
         </div>
         <div className="flex flex-wrap gap-2">
           {['Semua', ...ROLE_OPTIONS].map(role => {
@@ -687,10 +667,6 @@ export default function UserManagementView({
 
                       <div className="flex gap-2 pt-2 border-t border-blue-100">
                         <button onClick={cancelEdit} className="flex-1 text-xs py-2 rounded-lg font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                        <button onClick={() => handleLoadFromDb(profile)}
-                          className="flex-1 text-xs py-2 rounded-lg font-bold border border-slate-200 bg-white text-dark-gray hover:bg-baby-blue transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                          <RefreshCw className="w-3.5 h-3.5" /> Muat dari DB
-                        </button>
                         <button onClick={() => saveEdit(profile)} disabled={isSaving}
                           className="flex-1 text-xs py-2 rounded-lg font-bold bg-blue-600 text-white hover:bg-blue-700 transition cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5 shadow-sm">
                           {isSaving ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : <><Save className="w-3.5 h-3.5" /> Simpan Perubahan</>}
