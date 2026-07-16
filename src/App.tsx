@@ -550,7 +550,7 @@ export default function App() {
         const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
         setCustomAuditorName(name);
         
-        supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat').then(({ data, error }) => {
+        supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, is_admin, jenis_asn').then(({ data, error }) => {
           if (!error && data) setUserProfiles(data as UserProfile[]);
         });
 
@@ -574,7 +574,7 @@ export default function App() {
          const name = session.user.user_metadata?.full_name || session.user.email || 'Auditor';
          setCustomAuditorName(name);
          
-          supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id').then(({ data, error }) => {
+          supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id, is_admin, jenis_asn').then(({ data, error }) => {
            if (!error && data) setUserProfiles(data as UserProfile[]);
          });
 
@@ -1084,7 +1084,7 @@ export default function App() {
             bidangList={bidangList}
             onShowToast={showToast}
             onRefreshProfiles={() => {
-              supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id').then(({ data, error }) => {
+              supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id, is_admin, jenis_asn').then(({ data, error }) => {
                 if (!error && data) setUserProfiles(data as UserProfile[]);
               });
             }}
