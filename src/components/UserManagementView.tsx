@@ -7,19 +7,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { logActivity } from '../lib/log';
-import { createClient } from '@supabase/supabase-js';
 import {
   Users, Search, ShieldCheck, Shield, User as UserIcon,
   Mail, Hash, Edit2, Save, X, AlertTriangle, RefreshCw,
   Crown, Star, Smartphone, KeyRound, UserPlus, Eye, EyeOff, Lock, ChevronDown,
 } from 'lucide-react';
-
-// Instance terpisah agar signup pengguna baru tidak mematikan sesi admin
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder_key';
-const secondarySupabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { storageKey: 'si_pesat_secondary_auth', autoRefreshToken: false, persistSession: false }
-});
 
 interface UserManagementViewProps {
   userProfiles: UserProfile[];
@@ -151,18 +143,20 @@ export default function UserManagementView({
     setIsAdding(true);
     setAddError(null);
     try {
-      // Daftarkan via instance terpisah agar sesi admin tidak terputus
-      const { data, error: signUpError } = await secondarySupabase.auth.signUp({
-        email: addEmail.trim(),
-        password: addPassword,
-        options: { data: { full_name: addFullName.trim() } },
+      // Daftarkan via edge function (Admin API) — tidak kirim email konfirmasi, hindari rate limit
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseAnonKey}` },
+        body: JSON.stringify({ email: addEmail.trim(), password: addPassword, fullName: addFullName.trim() }),
       });
-      if (signUpError) throw signUpError;
-      if (!data.user) throw new Error('Gagal membuat akun — coba lagi.');
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Gagal membuat akun');
+      const userId = result.user?.id;
+      if (!userId) throw new Error('Gagal membuat akun — coba lagi.');
 
       // Upsert profil langsung ke tabel profiles
       const { error: profileError } = await supabase.from('profiles').upsert({
-        id: data.user.id,
+        id: userId,
         email: addEmail.trim(),
         full_name: addFullName.trim(),
         role: addRole,
@@ -174,9 +168,6 @@ export default function UserManagementView({
         bidang_id: addBidangId || null,
       }, { onConflict: 'id' });
       if (profileError) throw profileError;
-
-      // Sign out instance terpisah agar bersih
-      await secondarySupabase.auth.signOut();
 
       logActivity('create_user', 'user', addFullName.trim(), { email: addEmail.trim(), role: addRole });
       onShowToast?.(`Pengguna ${addFullName.trim()} berhasil ditambahkan.`, 'success');
