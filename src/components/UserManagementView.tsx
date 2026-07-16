@@ -77,6 +77,7 @@ export default function UserManagementView({
 }: UserManagementViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('Semua');
+  const [bidangFilter, setBidangFilter] = useState<number | ''>('');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState<RoleType>('Auditor Pelaksana');
   const [editNip, setEditNip] = useState('');
@@ -195,9 +196,13 @@ export default function UserManagementView({
   const canToggleMfa = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
 
   const bidangFilteredProfiles = useMemo(() => {
-    if (isSuperadmin || !userBidangId) return userProfiles;
+    if (isSuperadmin) {
+      if (!bidangFilter) return userProfiles;
+      return userProfiles.filter(p => p.bidang_id === bidangFilter);
+    }
+    if (!userBidangId) return userProfiles;
     return userProfiles.filter(p => p.bidang_id === userBidangId);
-  }, [userProfiles, userBidangId, isSuperadmin]);
+  }, [userProfiles, userBidangId, isSuperadmin, bidangFilter]);
 
   const filteredProfiles = useMemo(() => {
     return bidangFilteredProfiles
@@ -392,7 +397,7 @@ export default function UserManagementView({
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
-          { label: 'Total Pengguna', value: userProfiles.length, icon: <Users className="w-5 h-5 text-slate-600" />, bg: 'bg-slate-100' },
+          { label: 'Total Pengguna', value: bidangFilteredProfiles.length, icon: <Users className="w-5 h-5 text-slate-600" />, bg: 'bg-slate-100' },
           { label: 'Auditor Fungsional', value: FUNGSIONAL_COUNT, icon: <UserIcon className="w-5 h-5 text-blue-600" />, bg: 'bg-blue-100' },
           { label: 'Inspektur Pembantu', value: roleCounts['Inspektur Pembantu'] || 0, icon: <Star className="w-5 h-5 text-amber-600" />, bg: 'bg-amber-100' },
           { label: 'Inspektur', value: roleCounts['Inspektur'] || 0, icon: <Crown className="w-5 h-5 text-purple-600" />, bg: 'bg-purple-100' },
@@ -431,6 +436,16 @@ export default function UserManagementView({
             );
           })}
         </div>
+        {isSuperadmin && bidangList.length > 0 && (
+          <div className="flex items-center gap-2 pt-1">
+            <label className="text-[10px] font-bold text-dark-gray/50 uppercase tracking-wider shrink-0">Filter Irban</label>
+            <select value={bidangFilter} onChange={e => setBidangFilter(e.target.value === '' ? '' : Number(e.target.value))}
+              className="text-xs font-bold border border-dark-gray/15 p-1.5 rounded-lg bg-white text-dark-gray outline-none">
+              <option value="">Semua Irban</option>
+              {bidangList.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          </div>
+        )}
       </div>
 
       {!canEdit && (
