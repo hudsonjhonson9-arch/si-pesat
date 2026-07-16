@@ -1003,36 +1003,7 @@ export default function App() {
               >
                 <FileCheck className="w-4 h-4" /> Audit
               </button>
-              <button
-                onClick={() => navigateToPengawasan('reviu')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${
-                  pengawasanSubTab === 'reviu'
-                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5'
-                    : 'text-dark-gray/60 hover:text-dark-gray hover:bg-slate-50'
-                }`}
-              >
-                <FolderSync className="w-4 h-4" /> Reviu
-              </button>
-              <button
-                onClick={() => navigateToPengawasan('evaluasi')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${
-                  pengawasanSubTab === 'evaluasi'
-                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5'
-                    : 'text-dark-gray/60 hover:text-dark-gray hover:bg-slate-50'
-                }`}
-              >
-                <TrendingDown className="w-4 h-4" /> Evaluasi
-              </button>
-              <button
-                onClick={() => navigateToPengawasan('asistensi')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-bold text-xs whitespace-nowrap ${
-                  pengawasanSubTab === 'asistensi'
-                    ? 'bg-peach-accent text-dark-gray shadow-sm border border-dark-gray/5'
-                    : 'text-dark-gray/60 hover:text-dark-gray hover:bg-slate-50'
-                }`}
-              >
-                <Cloud className="w-4 h-4" /> Asistensi
-              </button>
+
             </div>
 
             {/* Sub-tab content */}
@@ -1292,27 +1263,6 @@ export default function App() {
                           </>
                         )}
                       </div>
-                      <hr className="border-dark-gray/5 my-1" />
-                      <button
-                        onClick={() => navigateToPengawasan('reviu')}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                      >
-                        <FolderSync className="w-4 h-4" /> Reviu
-                      </button>
-                      <hr className="border-dark-gray/5 my-1" />
-                      <button
-                        onClick={() => navigateToPengawasan('evaluasi')}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                      >
-                        <TrendingDown className="w-4 h-4" /> Evaluasi
-                      </button>
-                      <hr className="border-dark-gray/5 my-1" />
-                      <button
-                        onClick={() => navigateToPengawasan('asistensi')}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
-                      >
-                        <Cloud className="w-4 h-4" /> Asistensi
-                      </button>
                     </div>
                   </>
                 )}

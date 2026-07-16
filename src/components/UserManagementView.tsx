@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
   Users, Search, ShieldCheck, Shield, User as UserIcon,
   Mail, Hash, Edit2, Save, X, AlertTriangle, RefreshCw,
-  Crown, Star, Smartphone, KeyRound, UserPlus, Eye, EyeOff, Lock,
+  Crown, Star, Smartphone, KeyRound, UserPlus, Eye, EyeOff, Lock, ChevronDown,
 } from 'lucide-react';
 
 // Instance terpisah agar signup pengguna baru tidak mematikan sesi admin
@@ -110,6 +110,13 @@ export default function UserManagementView({
   const [showPassword, setShowPassword] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+
+  // ── Ganti Password ──
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [editPassword, setEditPassword] = useState('');
+  const [editConfirmPassword, setEditConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const getAutoAdmin = (role: string) => role === 'Inspektur' || role === 'Sekretaris';
 
@@ -305,6 +312,72 @@ export default function UserManagementView({
       onShowToast?.(`Gagal memperbarui profil: ${err.message}`, 'error');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (profile: UserProfile) => {
+    const pwdErrors: string[] = [];
+    if (editPassword.length < 8) pwdErrors.push('minimal 8 karakter');
+    if (!/[A-Z]/.test(editPassword)) pwdErrors.push('huruf besar');
+    if (!/[a-z]/.test(editPassword)) pwdErrors.push('huruf kecil');
+    if (!/[0-9]/.test(editPassword)) pwdErrors.push('angka');
+    if (!/[!@#$%^&*(),.?":{}|<>_\-]/.test(editPassword)) pwdErrors.push('karakter khusus');
+    if (pwdErrors.length > 0) {
+      setPasswordError('Password harus mengandung: ' + pwdErrors.join(', ') + '.');
+      return;
+    }
+    if (editPassword !== editConfirmPassword) {
+      setPasswordError('Konfirmasi password tidak cocok.');
+      return;
+    }
+    setIsChangingPassword(true);
+    setPasswordError(null);
+    try {
+      const isEditingSelf = profile.id === currentUserId;
+      if (isEditingSelf) {
+        const { error } = await supabase.auth.updateUser({ password: editPassword });
+        if (error) throw error;
+      } else {
+        const res = await fetch(`${supabaseUrl}/functions/v1/update-user-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseAnonKey}` },
+          body: JSON.stringify({ userId: profile.id, newPassword: editPassword }),
+        });
+        if (!res.ok) {
+          const errBody = await res.text();
+          throw new Error(errBody);
+        }
+      }
+      onShowToast?.('Password berhasil diperbarui.', 'success');
+      setShowPasswordChange(false);
+      setEditPassword('');
+      setEditConfirmPassword('');
+    } catch (err: any) {
+      setPasswordError(`Gagal: ${err.message}`);
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handleLoadFromDb = async (profile: UserProfile) => {
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', profile.id).single();
+      if (error) throw error;
+      if (data) {
+        setEditRole((data.role as RoleType) || 'Auditor Pelaksana');
+        setEditNip(data.nip || '');
+        setEditGolongan(data.golongan || '');
+        setEditPangkat(data.pangkat || '');
+        setEditFullName(data.full_name || '');
+        setEditEmail(data.email || '');
+        setEditMfaRequired((data as any).mfa_required || false);
+        setEditIsAdmin((data as any).is_admin || false);
+        setEditJenisAsn((data as any).jenis_asn || '');
+        setEditBidangId(data.bidang_id ?? '');
+      }
+      onShowToast?.('Data dari database berhasil dimuat.', 'info');
+    } catch (err: any) {
+      onShowToast?.(`Gagal memuat data: ${err.message}`, 'error');
     }
   };
 
@@ -557,8 +630,60 @@ export default function UserManagementView({
                         )}
                       </div>
 
+                      {/* ── Ganti Password ── */}
+                      <div className="md:col-span-2">
+                        <button type="button" onClick={() => { setShowPasswordChange(v => !v); setPasswordError(null); setEditPassword(''); setEditConfirmPassword(''); }}
+                          className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition cursor-pointer">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                              <Lock className="w-4 h-4 text-slate-500" />
+                            </div>
+                            <div className="text-left">
+                              <p className="text-xs font-bold text-slate-700">Ganti Password</p>
+                              <p className="text-[10px] text-slate-500">{showPasswordChange ? 'Klik untuk tutup' : 'Setel ulang kata sandi pengguna'}</p>
+                            </div>
+                          </div>
+                          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showPasswordChange ? 'rotate-180' : ''}`} />
+                        </button>
+                        {showPasswordChange && (
+                          <div className="mt-2 p-3 rounded-xl border border-blue-200 bg-blue-50/50 space-y-3">
+                            {passwordError && (
+                              <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start gap-2">
+                                <AlertTriangle className="w-3.5 h-3.5 text-red-600 mt-0.5 shrink-0" />
+                                <p className="text-[11px] font-semibold text-red-700">{passwordError}</p>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Password Baru</label>
+                                <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)}
+                                  placeholder="Min. 8 karakter"
+                                  className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400" />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Konfirmasi Password</label>
+                                <input type="password" value={editConfirmPassword} onChange={e => setEditConfirmPassword(e.target.value)}
+                                  placeholder="Ulangi password baru"
+                                  className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400" />
+                              </div>
+                            </div>
+                            <button onClick={() => handleChangePassword(profile)} disabled={isChangingPassword || !editPassword || !editConfirmPassword}
+                              className="w-full text-xs py-2 rounded-lg font-bold bg-dark-gray text-white hover:bg-dark-gray/85 transition cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5 shadow-sm">
+                              {isChangingPassword
+                                ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Mengubah...</>
+                                : <><Lock className="w-3.5 h-3.5" /> Simpan Password Baru</>
+                              }
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
                       <div className="flex gap-2 pt-2 border-t border-blue-100">
                         <button onClick={cancelEdit} className="flex-1 text-xs py-2 rounded-lg font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer">Batal</button>
+                        <button onClick={() => handleLoadFromDb(profile)}
+                          className="flex-1 text-xs py-2 rounded-lg font-bold border border-slate-200 bg-white text-dark-gray hover:bg-baby-blue transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
+                          <RefreshCw className="w-3.5 h-3.5" /> Muat dari DB
+                        </button>
                         <button onClick={() => saveEdit(profile)} disabled={isSaving}
                           className="flex-1 text-xs py-2 rounded-lg font-bold bg-blue-600 text-white hover:bg-blue-700 transition cursor-pointer disabled:opacity-60 flex items-center justify-center gap-1.5 shadow-sm">
                           {isSaving ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</> : <><Save className="w-3.5 h-3.5" /> Simpan Perubahan</>}
