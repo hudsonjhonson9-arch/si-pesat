@@ -148,7 +148,7 @@ export default function AuditListView({
         (audit.teamMembers || []).some(m => m.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchType = typeFilter === 'all' || audit.opdType === typeFilter;
       const matchYear = yearFilter === 'all' || audit.fiscalYear === yearFilter;
-      const matchBidang = (userRole === 'Inspektur' || userRole === 'Sekretaris') || !userBidangId || audit.bidang_id === userBidangId;
+      const matchBidang = isAdmin || (userRole === 'Inspektur' || userRole === 'Sekretaris') || !userBidangId || audit.bidang_id === userBidangId;
 
       return matchSearch && matchType && matchYear && matchBidang;
     });
