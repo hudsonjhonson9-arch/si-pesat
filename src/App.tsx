@@ -945,6 +945,7 @@ export default function App() {
       }
     }
     setAudits(prev => prev.filter(a => a.id !== auditId));
+    auditsRef.current = auditsRef.current.filter(a => a.id !== auditId);
     if (selectedAuditId === auditId) {
       setSelectedAuditId(null);
     }
