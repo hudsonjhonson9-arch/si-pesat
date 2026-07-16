@@ -983,6 +983,8 @@ export default function App() {
           userRole={userRole}
           isAdmin={isAdmin}
           userProfiles={userProfiles}
+          userBidangId={userBidangId}
+          isSuperadmin={isSuperadmin}
           onShowToast={showToast}
           currentUserName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
           initialCategoryId={selectedCategoryId}
@@ -1060,6 +1062,8 @@ export default function App() {
             userProfiles={userProfiles}
             targetEntities={targetEntities}
             defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
+            userBidangId={userBidangId}
+            isSuperadmin={isSuperadmin}
             onBack={() => navigateTo('pengawasan')}
             onCreateAudit={(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId, schedule) => {
               handleCreateAudit(opdName, opdType, legacy, fiscalYear, auditorName, teamMembers, templateId, catId, schedule);

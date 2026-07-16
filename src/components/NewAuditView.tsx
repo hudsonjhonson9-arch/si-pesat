@@ -34,6 +34,8 @@ interface NewAuditViewProps {
   targetEntities?: TargetEntity[];
   defaultAuditorName?: string;
   isAdmin?: boolean;
+  userBidangId?: number | null;
+  isSuperadmin?: boolean;
   onBack: () => void;
   onCreateAudit: (
     opdName: string,
@@ -70,6 +72,8 @@ export default function NewAuditView({
   targetEntities = [],
   defaultAuditorName = '',
   isAdmin = false,
+  userBidangId,
+  isSuperadmin,
   onBack,
   onCreateAudit,
 }: NewAuditViewProps) {
@@ -106,8 +110,6 @@ export default function NewAuditView({
 
   const existingAudit = audits.find(a => a.opdName.toLowerCase() === opdName.trim().toLowerCase() && a.fiscalYear === fiscalYear);
   const existingCategoryIds = existingAudit ? existingAudit.categories.map(c => (c.templateId || '') + '|' + c.id) : [];
-  const selectedEntity = targetEntities.find(t => t.name.toLowerCase() === opdName.trim().toLowerCase());
-  const entityBidangId = selectedEntity?.bidang_id;
 
   const addedCategoryIds = [...categories.map(c => c.templateId + '|' + c.categoryId), ...existingCategoryIds];
 
@@ -399,7 +401,7 @@ export default function NewAuditView({
                       {/* Semua profil */}
                       {userProfiles
                         .filter(p => KETUA_TIM_ROLES.includes(p.role))
-                        .filter(p => !entityBidangId || p.bidang_id === entityBidangId)
+                        .filter(p => isSuperadmin || !userBidangId || p.bidang_id === userBidangId)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => {
@@ -453,7 +455,7 @@ export default function NewAuditView({
                     <div className="overflow-y-auto p-1 space-y-0.5">
                       {userProfiles
                         .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
-                        .filter(p => !entityBidangId || p.bidang_id === entityBidangId)
+                        .filter(p => isSuperadmin || !userBidangId || p.bidang_id === userBidangId)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => {
