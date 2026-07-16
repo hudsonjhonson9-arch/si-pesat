@@ -611,7 +611,7 @@ export default function App() {
             if (bidangId) setUserBidangId(bidangId);
           });
 
-          supabase.from('bidang').select('*').then(({ data }) => {
+          supabase.from('bidang').select('*').order('id').then(({ data }) => {
             if (data) setBidangList(data);
           });
           supabase.from('roles').select('*').then(({ data }) => {
