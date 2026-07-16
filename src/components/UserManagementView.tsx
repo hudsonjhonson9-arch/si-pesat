@@ -19,6 +19,8 @@ interface UserManagementViewProps {
   isAdmin?: boolean;
   currentUserId?: string;
   bidangList?: { id: number; name: string }[];
+  userBidangId?: number | null;
+  isSuperadmin?: boolean;
   onShowToast?: (message: string, type: 'success' | 'info' | 'error') => void;
   onRefreshProfiles?: () => void;
 }
@@ -69,7 +71,7 @@ const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; bg: st
 };
 
 export default function UserManagementView({
-  userProfiles, currentUserRole, isAdmin = false, currentUserId, bidangList = [], onShowToast, onRefreshProfiles,
+  userProfiles, currentUserRole, isAdmin = false, currentUserId, bidangList = [], userBidangId, isSuperadmin, onShowToast, onRefreshProfiles,
 }: UserManagementViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('Semua');
@@ -197,7 +199,8 @@ export default function UserManagementView({
           (p.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
           (p.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
           (p.nip || '').toLowerCase().includes(searchQuery.toLowerCase());
-        return matchSearch && (roleFilter === 'Semua' || p.role === roleFilter);
+        const matchBidang = isSuperadmin || !userBidangId || p.bidang_id === userBidangId;
+        return matchSearch && (roleFilter === 'Semua' || p.role === roleFilter) && matchBidang;
       })
       .sort((a, b) => {
         const roleDiff = (ROLE_ORDER[a.role] ?? 99) - (ROLE_ORDER[b.role] ?? 99);

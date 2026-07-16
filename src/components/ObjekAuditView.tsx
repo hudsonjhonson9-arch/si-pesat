@@ -9,9 +9,11 @@ interface ObjekAuditViewProps {
   targetEntities: TargetEntity[];
   bidangList: Bidang[];
   onRefresh: () => void;
+  userBidangId?: number | null;
+  isSuperadmin?: boolean;
 }
 
-export default function ObjekAuditView({ targetEntities, bidangList, onRefresh }: ObjekAuditViewProps) {
+export default function ObjekAuditView({ targetEntities, bidangList, onRefresh, userBidangId, isSuperadmin }: ObjekAuditViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('Semua');
   const [showForm, setShowForm] = useState(false);
@@ -21,7 +23,8 @@ export default function ObjekAuditView({ targetEntities, bidangList, onRefresh }
   const filtered = targetEntities.filter(e => {
     const matchSearch = !searchQuery || e.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchType = typeFilter === 'Semua' || e.type === typeFilter;
-    return matchSearch && matchType;
+    const matchBidang = isSuperadmin || !userBidangId || e.bidang_id === userBidangId;
+    return matchSearch && matchType && matchBidang;
   });
 
   const resetForm = () => {

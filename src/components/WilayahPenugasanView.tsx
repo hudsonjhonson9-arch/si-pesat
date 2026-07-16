@@ -24,9 +24,10 @@ interface WilayahPenugasanViewProps {
   isAdmin?: boolean;
   userBidangId?: number | null;
   bidangList?: Bidang[];
+  isSuperadmin?: boolean;
 }
 
-export default function WilayahPenugasanView({ targetEntities, audits = [], onSelectAudit, userRole, isAdmin = false, userBidangId, bidangList = [] }: WilayahPenugasanViewProps) {
+export default function WilayahPenugasanView({ targetEntities, audits = [], onSelectAudit, userRole, isAdmin = false, userBidangId, bidangList = [], isSuperadmin }: WilayahPenugasanViewProps) {
   const [typeFilter, setTypeFilter] = useState<string>('Semua');
   const [yearFilter, setYearFilter] = useState<string>('Semua');
   const [expandedEntityId, setExpandedEntityId] = useState<string | null>(null);
@@ -45,9 +46,9 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
   }, [userBidangWilayah, userBidangName]);
 
   const bidangFilteredEntities = useMemo(() => {
-    if ((userRole === 'Inspektur' || userRole === 'Sekretaris') || !userBidangId) return targetEntities;
+    if (isSuperadmin || (userRole === 'Inspektur' || userRole === 'Sekretaris') || !userBidangId) return targetEntities;
     return targetEntities.filter(e => e.bidang_id === userBidangId);
-  }, [targetEntities, userBidangId, isAdmin]);
+  }, [targetEntities, userBidangId, isAdmin, isSuperadmin]);
 
   const availableYears = useMemo(() => {
     const years = Array.from(new Set(audits.map(a => a.fiscalYear))).sort().reverse();

@@ -143,6 +143,7 @@ export default function App() {
 
   const [userRole, setUserRole] = useState<string>('Auditor Pelaksana');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
   const isIrbanOrInspektur = userRole === 'Inspektur Pembantu' || userRole === 'Inspektur';
   const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
   const [customAuditorName, setCustomAuditorName] = useState<string>('');
@@ -554,11 +555,12 @@ export default function App() {
           if (!error && data) setUserProfiles(data as UserProfile[]);
         });
 
-        supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
+        supabase.from('profiles').select('role, is_admin, superadmin').eq('id', session.user.id).single()
             .then(({ data }) => {
                if (data) {
                  if (data.role) setUserRole(data.role as any);
                  setIsAdmin(data.is_admin || false);
+                 setIsSuperadmin(data.superadmin || false);
                }
             });
 
@@ -584,17 +586,18 @@ export default function App() {
            if (!error && data) setTargetEntities(data as TargetEntity[]);
          });
 
-          supabase.from('profiles').select('role, is_admin').eq('id', session.user.id).single()
+          supabase.from('profiles').select('role, is_admin, superadmin').eq('id', session.user.id).single()
               .then(({ data }) => {
                  if (data) {
                    if (data.role) setUserRole(data.role as any);
                    setIsAdmin(data.is_admin || false);
+                   setIsSuperadmin(data.superadmin || false);
                  }
               });
 
           fetchTemplates();
 
-          supabase.from('profiles').select('role, bidang_id, is_admin').eq('id', session.user.id).single().then(({ data }) => {
+          supabase.from('profiles').select('role, bidang_id, is_admin, superadmin').eq('id', session.user.id).single().then(({ data }) => {
             if (!data) return;
             const bidangId = data.bidang_id ?? null;
             if (data.is_admin) {
@@ -694,13 +697,14 @@ export default function App() {
       // Tunggu profil & role selesai dimuat sebelum menampilkan dashboard
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('role, is_admin, full_name')
+        .select('role, is_admin, full_name, superadmin')
         .eq('id', data.user.id)
         .single();
 
       if (profileData) {
         if (profileData.role) setUserRole(profileData.role as any);
         setIsAdmin(profileData.is_admin || false);
+        setIsSuperadmin(profileData.superadmin || false);
         setCustomAuditorName(profileData.full_name || data.user.email || 'Auditor');
       }
 
@@ -987,7 +991,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <HomeView targetEntities={targetEntities} audits={audits} onSelectAudit={(aud, catId) => navigateTo(catId ? `workspace/${aud.id}/${catId}` : `workspace/${aud.id}`)} userRole={userRole} isAdmin={isAdmin} userBidangId={userBidangId} bidangList={bidangList} />;
+        return <HomeView userRole={userRole} userBidangId={userBidangId} bidangList={bidangList} />;
       case 'pengawasan':
         return (
           <div className="space-y-4">
@@ -1072,6 +1076,7 @@ export default function App() {
             isAdmin={isAdmin}
             userBidangId={userBidangId}
             bidangList={bidangList}
+            isSuperadmin={isSuperadmin}
           />
         );
       case 'statistik':
@@ -1084,6 +1089,8 @@ export default function App() {
             isAdmin={isAdmin}
             currentUserId={user?.id}
             bidangList={bidangList}
+            userBidangId={userBidangId}
+            isSuperadmin={isSuperadmin}
             onShowToast={showToast}
             onRefreshProfiles={() => {
               supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id, is_admin, jenis_asn').then(({ data, error }) => {
@@ -1118,6 +1125,8 @@ export default function App() {
           <ObjekAuditView
             targetEntities={targetEntities}
             bidangList={bidangList}
+            userBidangId={userBidangId}
+            isSuperadmin={isSuperadmin}
             onRefresh={() => {
               supabase.from('target_entities').select('*').order('type').then(({ data, error }) => {
                 if (!error && data) setTargetEntities(data as TargetEntity[]);
