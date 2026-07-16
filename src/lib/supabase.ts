@@ -12,6 +12,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials are not fully configured in environment variables.');
 }
 
+// ponytail: window.name bertahan pas refresh, ilang pas tab ditutup — pake ini buat deteksi tab baru
+if (typeof window !== 'undefined' && window.name !== 'si_pesat_session') {
+  window.sessionStorage.removeItem('si_pesat_session');
+}
+if (typeof window !== 'undefined') window.name = 'si_pesat_session';
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
