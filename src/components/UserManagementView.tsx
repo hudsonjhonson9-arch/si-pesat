@@ -108,6 +108,7 @@ export default function UserManagementView({
   const [addBidangId, setAddBidangId] = useState<number | ''>('');
   const [editBidangId, setEditBidangId] = useState<number | ''>('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
@@ -656,13 +657,19 @@ export default function UserManagementView({
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Password Baru</label>
-                                <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)}
-                                  placeholder="Min. 8 karakter"
-                                  className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400" />
+                                <div className="relative">
+                                  <input type={showEditPassword ? 'text' : 'password'} value={editPassword} onChange={e => setEditPassword(e.target.value)}
+                                    placeholder="Min. 8 karakter"
+                                    className="w-full text-xs font-bold border border-slate-200 p-2 pr-9 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400" />
+                                  <button type="button" onClick={() => setShowEditPassword(v => !v)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                    {showEditPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                  </button>
+                                </div>
                               </div>
                               <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Konfirmasi Password</label>
-                                <input type="password" value={editConfirmPassword} onChange={e => setEditConfirmPassword(e.target.value)}
+                                <input type={showEditPassword ? 'text' : 'password'} value={editConfirmPassword} onChange={e => setEditConfirmPassword(e.target.value)}
                                   placeholder="Ulangi password baru"
                                   className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400" />
                               </div>
