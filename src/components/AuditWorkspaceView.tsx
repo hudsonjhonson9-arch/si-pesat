@@ -848,6 +848,7 @@ export default function AuditWorkspaceView({
                     <div className="overflow-y-auto p-1">
                       {userProfiles
                         .filter(p => KETUA_TIM_ROLES.includes(p.role))
+                        .filter(p => !audit.bidang_id || p.bidang_id === audit.bidang_id)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => (
@@ -875,6 +876,7 @@ export default function AuditWorkspaceView({
                     <div className="overflow-y-auto p-1">
                       {userProfiles
                         .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
+                        .filter(p => !audit.bidang_id || p.bidang_id === audit.bidang_id)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => {
@@ -918,6 +920,7 @@ export default function AuditWorkspaceView({
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatAuditorSearchQuery} onChange={e => setEditCatAuditorSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">{userProfiles
                         .filter(p => KETUA_TIM_ROLES.includes(p.role))
+                        .filter(p => !audit.bidang_id || p.bidang_id === audit.bidang_id)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatAuditorSearchQuery.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => (
@@ -942,6 +945,7 @@ export default function AuditWorkspaceView({
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatTeamSearchQuery} onChange={e => setEditCatTeamSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">{userProfiles
                         .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
+                        .filter(p => !audit.bidang_id || p.bidang_id === audit.bidang_id)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => {

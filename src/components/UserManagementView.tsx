@@ -33,7 +33,7 @@ const ROLE_OPTIONS_FULL = [
   'PPPK'
 ] as const;
 
-const ROLE_OPTIONS = ['Inspektur', 'Sekretaris', 'Auditor Ahli Pertama', 'Auditor Ahli Madya'] as const;
+const ROLE_OPTIONS = ['Inspektur', 'Sekretaris', 'Auditor Ahli Pertama', 'Auditor Ahli Muda', 'Auditor Ahli Madya'] as const;
 type RoleType = typeof ROLE_OPTIONS_FULL[number];
 
 const ROLE_ORDER: Record<string, number> = {
