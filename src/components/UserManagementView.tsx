@@ -25,14 +25,16 @@ interface UserManagementViewProps {
   onRefreshProfiles?: () => void;
 }
 
-const ROLE_OPTIONS = [
+const ROLE_OPTIONS_FULL = [
   'Inspektur', 'Sekretaris', 'Inspektur Pembantu',
   'Auditor Ahli Utama', 'Auditor Ahli Madya', 'Auditor Ahli Muda', 'Auditor Ahli Pertama',
   'Auditor Penyelia', 'Auditor Pelaksana Lanjutan', 'Auditor Pelaksana',
   'PPUPD Ahli Utama', 'PPUPD Ahli Madya', 'PPUPD Ahli Muda', 'PPUPD Ahli Pertama',
   'PPPK'
 ] as const;
-type RoleType = typeof ROLE_OPTIONS[number];
+
+const ROLE_OPTIONS = ['Inspektur', 'Sekretaris', 'Auditor Ahli Pertama', 'Auditor Ahli Madya'] as const;
+type RoleType = typeof ROLE_OPTIONS_FULL[number];
 
 const ROLE_ORDER: Record<string, number> = {
   'Inspektur': 0, 'Sekretaris': 1, 'Inspektur Pembantu': 2,
@@ -192,15 +194,19 @@ export default function UserManagementView({
   const canEditRole = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
   const canToggleMfa = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
 
+  const bidangFilteredProfiles = useMemo(() => {
+    if (isSuperadmin || !userBidangId) return userProfiles;
+    return userProfiles.filter(p => p.bidang_id === userBidangId);
+  }, [userProfiles, userBidangId, isSuperadmin]);
+
   const filteredProfiles = useMemo(() => {
-    return userProfiles
+    return bidangFilteredProfiles
       .filter(p => {
         const matchSearch =
           (p.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
           (p.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
           (p.nip || '').toLowerCase().includes(searchQuery.toLowerCase());
-        const matchBidang = isSuperadmin || !userBidangId || p.bidang_id === userBidangId;
-        return matchSearch && (roleFilter === 'Semua' || p.role === roleFilter) && matchBidang;
+        return matchSearch && (roleFilter === 'Semua' || p.role === roleFilter);
       })
       .sort((a, b) => {
         const roleDiff = (ROLE_ORDER[a.role] ?? 99) - (ROLE_ORDER[b.role] ?? 99);
@@ -214,7 +220,7 @@ export default function UserManagementView({
       });
   }, [userProfiles, searchQuery, roleFilter]);
 
-  const FUNGSIONAL_COUNT = userProfiles.filter(p => 
+  const FUNGSIONAL_COUNT = bidangFilteredProfiles.filter(p => 
     ['Auditor Pelaksana', 'Auditor Pelaksana Lanjutan', 'Auditor Penyelia',
      'Auditor Ahli Pertama', 'Auditor Ahli Muda', 'Auditor Ahli Madya', 'Auditor Ahli Utama',
      'PPUPD Ahli Pertama', 'PPUPD Ahli Muda', 'PPUPD Ahli Madya', 'PPUPD Ahli Utama',
@@ -222,10 +228,10 @@ export default function UserManagementView({
   ).length;
 
   const roleCounts = useMemo(() => {
-    const counts: Record<string, number> = { Semua: userProfiles.length };
-    ROLE_OPTIONS.forEach(r => { counts[r] = userProfiles.filter(p => p.role === r).length; });
+    const counts: Record<string, number> = { Semua: bidangFilteredProfiles.length };
+    ROLE_OPTIONS.forEach(r => { counts[r] = bidangFilteredProfiles.filter(p => p.role === r).length; });
     return counts;
-  }, [userProfiles]);
+  }, [bidangFilteredProfiles]);
 
   const startEdit = (profile: UserProfile) => {
     setEditingUserId(profile.id);
@@ -502,7 +508,7 @@ export default function UserManagementView({
                           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peran / Role</label>
                           <select value={editRole} onChange={e => setEditRole(e.target.value as RoleType)} disabled={!canEditRole}
                             className="w-full text-xs font-bold border border-slate-200 p-2 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400 disabled:opacity-60">
-                            {ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                            {ROLE_OPTIONS_FULL.map(r => <option key={r} value={r}>{r}</option>)}
                           </select>
                           {!canEditRole && <p className="text-[9px] text-amber-600 font-semibold">Hanya Inspektur yang dapat mengubah peran.</p>}
                         </div>
