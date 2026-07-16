@@ -13,6 +13,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: false }
+  auth: {
+    storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
+    storageKey: 'si_pesat_session',
+    persistSession: true,
+  }
 });
 export { supabaseAnonKey };
