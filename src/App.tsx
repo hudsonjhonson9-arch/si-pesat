@@ -365,6 +365,20 @@ export default function App() {
         })
         .subscribe();
 
+      const templatesChannel = supabase.channel('templates_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'templates' }, () => {
+          fetchTemplates();
+        })
+        .subscribe();
+
+      const profilesChannel = supabase.channel('profiles_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+          supabase.from('profiles').select('id, email, full_name, role, nip, golongan, pangkat, bidang_id, is_admin, jenis_asn').then(({ data, error }) => {
+            if (!error && data) setUserProfiles(data as UserProfile[]);
+          });
+        })
+        .subscribe();
+
       supabase.from('templates').select('*').then(mergeTemplatesFromSupabase);
     }
 
@@ -375,9 +389,7 @@ export default function App() {
 
   // 2. Persist state changes in localStorage
   useEffect(() => {
-    if (audits.length > 0) {
-      localStorage.setItem('si_pesat_audits', JSON.stringify(audits));
-    }
+    localStorage.setItem('si_pesat_audits', JSON.stringify(audits));
   }, [audits, templates]);
 
   useEffect(() => {
@@ -1144,10 +1156,14 @@ export default function App() {
         return (
           <TemplateConfiguratorView
             templates={templates}
-            onUpdateTemplates={setTemplates}
+            onUpdateTemplates={(newTemplates) => {
+              setTemplates(newTemplates);
+              forceSyncNow();
+            }}
             onResetTemplates={() => {
               setTemplates([EMPTY_KKA_TEMPLATE]);
               logActivity('reset_templates', 'template', 'all');
+              forceSyncNow();
               showToast('Template master diatur ulang ke standar juknis.', 'info');
             }}
           />
