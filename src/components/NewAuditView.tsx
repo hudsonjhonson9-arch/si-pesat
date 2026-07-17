@@ -401,7 +401,7 @@ export default function NewAuditView({
                       {/* Semua profil */}
 {userProfiles
                          .filter(p => KETUA_TIM_ROLES.includes(p.role))
-                         .filter(p => !userBidangId || p.bidang_id === userBidangId)
+                         .filter(p => userBidangId ? p.bidang_id === userBidangId : false)
                          .filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase()))
                          .sort(byNipAge)
                          .map(p => {
@@ -455,7 +455,7 @@ export default function NewAuditView({
                     <div className="overflow-y-auto p-1 space-y-0.5">
 {userProfiles
                          .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
-                         .filter(p => !userBidangId || p.bidang_id === userBidangId)
+                         .filter(p => userBidangId ? p.bidang_id === userBidangId : false)
                          .filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase()))
                          .sort(byNipAge)
                          .map(p => {
