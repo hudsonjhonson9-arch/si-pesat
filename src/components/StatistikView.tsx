@@ -209,11 +209,10 @@ export default function StatistikView({ audits }: StatistikViewProps) {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
         {[
           { icon: <FileText className="w-5 h-5 text-dark-gray" />, bg: 'bg-baby-blue', value: totals.kka, label: 'Total KKA', sub: `${totals.kka} pemeriksaan` },
           { icon: <CheckCircle className="w-5 h-5 text-dark-gray" />, bg: 'bg-pastel-green', value: totals.selesai, label: 'KKA Selesai', sub: `${completionPct}% dari total` },
-          { icon: <TrendingUp className="w-5 h-5 text-dark-gray" />, bg: 'bg-pastel-yellow', value: totals.nilai > 0 ? formatRupiah(totals.nilai) : 'Rp 0', label: 'Nilai Temuan', sub: 'akumulasi keuangan' },
         ].map((card, i) => (
           <div key={i} className="bg-white rounded-2xl p-4 border border-dark-gray/10 shadow-sm">
             <div className={`w-10 h-10 ${card.bg} rounded-xl flex items-center justify-center mb-3`}>{card.icon}</div>
