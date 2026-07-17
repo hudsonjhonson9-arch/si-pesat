@@ -10,7 +10,7 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 import {
-  TrendingUp, CheckCircle, AlertTriangle, FileText, Activity,
+  TrendingUp, CheckCircle, FileText, Activity,
   Search, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
@@ -213,7 +213,6 @@ export default function StatistikView({ audits }: StatistikViewProps) {
         {[
           { icon: <FileText className="w-5 h-5 text-dark-gray" />, bg: 'bg-baby-blue', value: totals.kka, label: 'Total KKA', sub: `${totals.kka} pemeriksaan` },
           { icon: <CheckCircle className="w-5 h-5 text-dark-gray" />, bg: 'bg-pastel-green', value: totals.selesai, label: 'KKA Selesai', sub: `${completionPct}% dari total` },
-          { icon: <AlertTriangle className="w-5 h-5 text-dark-gray" />, bg: 'bg-pastel-pink', value: totals.temuan, label: 'Total Temuan', sub: 'item bermasalah' },
           { icon: <TrendingUp className="w-5 h-5 text-dark-gray" />, bg: 'bg-pastel-yellow', value: totals.nilai > 0 ? formatRupiah(totals.nilai) : 'Rp 0', label: 'Nilai Temuan', sub: 'akumulasi keuangan' },
         ].map((card, i) => (
           <div key={i} className="bg-white rounded-2xl p-4 border border-dark-gray/10 shadow-sm">
