@@ -483,7 +483,7 @@ export default function NewAuditView({
               <button onClick={() => setIsAddingCat(false)} className="flex-1 py-2 text-xs font-bold bg-white border border-dark-gray/15 rounded-xl text-dark-gray hover:bg-slate-50 cursor-pointer transition">Batal</button>
               <button
                 onClick={handleAddCategory}
-                disabled={!selCategoryId}
+                disabled={!selCategoryId || !catAuditorName || catTeamMembers.length === 0}
                 className="flex-1 py-2 text-xs font-black bg-peach-accent border border-dark-gray/10 rounded-xl text-dark-gray hover:opacity-90 cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Plus className="w-3.5 h-3.5 inline mr-1" />Tambahkan
