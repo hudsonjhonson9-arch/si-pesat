@@ -943,7 +943,7 @@ export default function UserManagementView({
         <div>
           <p className="text-xs font-bold text-blue-800">Hak Akses Peran</p>
           <ul className="text-[11px] text-blue-700 mt-1.5 space-y-1">
-            <li>• <strong>Auditor & PPUPD Fungsional</strong>: Mengerjakan KKA, mengunggah bukti dokumen, dan dapat ditugaskan sebagai Ketua Tim atau Anggota Tim sesuai jenjang.</li>
+            <li>• <strong>Auditor Fungsional</strong>: Mengerjakan KKA, mengunggah bukti dokumen, dan dapat ditugaskan sebagai Ketua Tim atau Anggota Tim sesuai jenjang.</li>
             <li>• <strong>Inspektur Pembantu (Irban)</strong>: Meninjau KKA, mengatur tim, mengedit profil OPD, dan mengelola pengguna.</li>
             <li>• <strong>Inspektur</strong>: Akses penuh termasuk mengubah peran pengguna, toggle MFA, dan pengaturan master sistem.</li>
           </ul>
