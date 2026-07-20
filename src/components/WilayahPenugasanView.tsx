@@ -32,21 +32,23 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
   const [yearFilter, setYearFilter] = useState<string>('Semua');
   const [expandedEntityId, setExpandedEntityId] = useState<string | null>(null);
 
+  const hasSuperAccess = isSuperadmin || isAdmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const isIrban = userRole === 'Inspektur Pembantu';
+
+  const KABUPATEN_WILAYAH = 'Kabupaten Sumba Barat';
+
   const userBidang = useMemo(() => {
     if (!userBidangId) return null;
     return bidangList.find(b => b.id === userBidangId) || null;
   }, [userBidangId, bidangList]);
 
-  const userBidangName = userBidang?.name || null;
-  const userBidangWilayah = userBidang?.wilayah || null;
+  const userBidangName = userBidang?.name || (hasSuperAccess ? KABUPATEN_WILAYAH : null);
+  const userBidangWilayah = userBidang?.wilayah || (hasSuperAccess ? KABUPATEN_WILAYAH : null);
 
   const mapSrc = useMemo(() => {
     const q = userBidangWilayah || userBidangName || 'Kecamatan Loli, Sumba Barat';
     return `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
   }, [userBidangWilayah, userBidangName]);
-
-  const hasSuperAccess = isSuperadmin || isAdmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
-  const isIrban = userRole === 'Inspektur Pembantu';
 
   const bidangFilteredEntities = useMemo(() => {
     if (hasSuperAccess || !userBidangId) return targetEntities;
