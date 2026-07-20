@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, FileCheck, Building, BarChart3, User, Settings, PieChart, FolderSync, TrendingDown, Cloud, School, PlusCircle, ShieldAlert, Clock, MapPin } from 'lucide-react';
+import { Search, ChevronDown, FileCheck, Building, BarChart3, User, Settings, PieChart, FolderSync, TrendingDown, Cloud, School, PlusCircle, ShieldAlert, Clock, MapPin, X } from 'lucide-react';
 
 const sections = [
   {
@@ -180,19 +180,40 @@ Fitur:
 
 type Section = typeof sections[0];
 
-function SectionCard({ section, depth = 0, ...rest }: { section: Section; depth?: number; [key: string]: any }) {
+function highlightMatch(text: string, query: string) {
+  if (!query.trim()) return text;
+  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  return parts.map((p, i) =>
+    p.toLowerCase() === query.toLowerCase()
+      ? `<mark class="bg-yellow-200 text-dark-gray rounded-sm px-0.5">${p}</mark>`
+      : p
+  ).join('');
+}
+
+function SectionCard({ section, depth = 0, searchQuery, ...rest }: { section: Section; depth?: number; searchQuery?: string; [key: string]: any }) {
   const [isOpen, setIsOpen] = useState(false);
   const hasSubs = 'subsections' in section;
+  const matchesSearch = searchQuery
+    ? section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ('content' in section && section.content?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (hasSubs && section.subsections?.some((sub: any) =>
+        sub.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.content?.toLowerCase().includes(searchQuery.toLowerCase())
+      ))
+    : true;
+
+  if (searchQuery && !matchesSearch && !isOpen) return null;
+  if (searchQuery && matchesSearch && !isOpen) setIsOpen(true);
 
   return (
-    <div className={`${depth === 0 ? 'bg-white rounded-2xl border border-pastel-blue/20 shadow-sm overflow-hidden' : ''}`}>
+    <div className={`transition-all duration-300 ${depth === 0 ? 'bg-white rounded-2xl border border-pastel-blue/20 shadow-sm overflow-hidden' : ''} ${matchesSearch && searchQuery ? 'ring-2 ring-yellow-300/50' : ''}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between gap-3 text-left transition ${
+        className={`w-full flex items-center justify-between gap-3 text-left transition-all duration-200 ${
           depth === 0
             ? 'px-5 py-4 hover:bg-pastel-blue/5'
             : 'px-4 py-2.5 hover:bg-pastel-blue/5 rounded-lg'
-        }`}
+        } ${isOpen ? 'bg-pastel-blue/5' : ''}`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <span className={`${depth === 0 ? 'text-pastel-peach' : 'text-[var(--text-muted)]'} shrink-0`}>
@@ -201,36 +222,58 @@ function SectionCard({ section, depth = 0, ...rest }: { section: Section; depth?
           <span className={`${depth === 0 ? 'font-black text-sm' : 'font-bold text-xs'} text-[var(--ink-soft)]`}>
             {section.title}
           </span>
+          {matchesSearch && searchQuery && (
+            <span className="text-[9px] font-bold text-yellow-600 bg-yellow-100 px-1.5 py-0.5 rounded-full">cocok</span>
+          )}
         </div>
-        <ChevronDown className={`w-4 h-4 text-[var(--text-muted)] shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-[var(--text-muted)] shrink-0 transition-all duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {isOpen && (
+      <div className={`transition-all duration-300 overflow-hidden ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className={depth === 0 ? 'px-5 pb-4 space-y-3' : 'px-4 pb-3 space-y-2'}>
           {'content' in section && section.content && (
-            <pre className="text-xs text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap font-sans">
-              {section.content}
-            </pre>
+            <div
+              className="text-xs text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap font-sans"
+              dangerouslySetInnerHTML={{ __html: searchQuery ? highlightMatch(section.content, searchQuery) : section.content }}
+            />
           )}
           {'subsections' in section && section.subsections && (
             <div className="space-y-1">
               {section.subsections.map((sub: any) => (
-                <SectionCard key={sub.id} section={sub} depth={depth + 1} />
+                <SectionCard key={sub.id} section={sub} depth={depth + 1} searchQuery={searchQuery} />
               ))}
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 export default function GuideView() {
+  const [search, setSearch] = useState('');
+
   return (
     <div className="space-y-4 animate-fade-in" id="guide-view">
       <div className="flex items-center gap-2">
         <div className="w-1 h-6 bg-pastel-peach rounded-full" />
         <h2 className="text-lg font-black text-[var(--ink-soft)] tracking-tight">Panduan Aplikasi</h2>
+      </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-gray/30" />
+        <input
+          type="text"
+          placeholder="Cari fitur atau panduan..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full text-xs font-medium border border-dark-gray/15 bg-white pl-9 pr-8 py-2 rounded-xl focus:outline-none focus:border-peach-accent focus:ring-1 focus:ring-peach-accent/20 transition"
+        />
+        {search && (
+          <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-dark-gray/30 hover:text-dark-gray cursor-pointer">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       <p className="text-xs text-[var(--text-secondary)] font-medium max-w-2xl">
@@ -239,8 +282,20 @@ export default function GuideView() {
 
       <div className="space-y-3">
         {sections.map(section => (
-          <SectionCard key={section.id} section={section} />
+          <SectionCard key={section.id} section={section} searchQuery={search} />
         ))}
+        {search && !sections.some(s =>
+          s.title.toLowerCase().includes(search.toLowerCase()) ||
+          s.content?.toLowerCase().includes(search.toLowerCase()) ||
+          s.subsections?.some((sub: any) =>
+            sub.title.toLowerCase().includes(search.toLowerCase()) ||
+            sub.content?.toLowerCase().includes(search.toLowerCase())
+          )
+        ) && (
+          <div className="text-center py-8 text-xs text-dark-gray/40 font-medium">
+            Tidak ditemukan hasil untuk "{search}"
+          </div>
+        )}
       </div>
     </div>
   );
