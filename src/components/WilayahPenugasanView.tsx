@@ -45,8 +45,11 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
     return `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
   }, [userBidangWilayah, userBidangName]);
 
+  const hasSuperAccess = isSuperadmin || isAdmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const isIrban = userRole === 'Inspektur Pembantu';
+
   const bidangFilteredEntities = useMemo(() => {
-    if (isSuperadmin || (userRole === 'Inspektur' || userRole === 'Sekretaris') || !userBidangId) return targetEntities;
+    if (hasSuperAccess || !userBidangId) return targetEntities;
     return targetEntities.filter(e => e.bidang_id === userBidangId);
   }, [targetEntities, userBidangId, isAdmin, isSuperadmin]);
 

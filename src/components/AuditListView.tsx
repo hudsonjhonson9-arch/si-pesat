@@ -24,7 +24,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 
-const STRUKTURAL_ROLES = ['Inspektur', 'Inspektur Pembantu'];
+const STRUKTURAL_ROLES = ['Inspektur', 'Sekretaris', 'Inspektur Pembantu'];
 
 interface AuditListViewProps {
   audits: OpdAudit[];
@@ -67,6 +67,9 @@ export default function AuditListView({
   userProfiles = [],
   userBidangId
 }: AuditListViewProps) {
+
+  const hasSuperAccess = isAdmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const isIrban = userRole === 'Inspektur Pembantu';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -148,7 +151,7 @@ export default function AuditListView({
         (audit.teamMembers || []).some(m => m.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchType = typeFilter === 'all' || audit.opdType === typeFilter;
       const matchYear = yearFilter === 'all' || audit.fiscalYear === yearFilter;
-      const matchBidang = (userRole === 'Inspektur' || userRole === 'Sekretaris') || !userBidangId || audit.bidang_id === userBidangId;
+      const matchBidang = hasSuperAccess || isIrban || !userBidangId || audit.bidang_id === userBidangId;
 
       return matchSearch && matchType && matchYear && matchBidang;
     });
@@ -406,7 +409,7 @@ export default function AuditListView({
 
                       {/* Right side: Actions */}
                       <div className="flex items-center md:flex-col justify-end md:justify-center gap-2 shrink-0 border-t md:border-t-0 md:border-l border-dark-gray/10 pt-3 md:pt-0 md:pl-6">
-                        {(isAdmin || STRUKTURAL_ROLES.includes(userRole)) && (
+                        {(hasSuperAccess || isIrban) && (
                           <button onClick={(e) => { e.stopPropagation(); if (window.confirm(`Hapus KKA ${audit.opdName} (${audit.auditType}) TA ${audit.fiscalYear}?`)) onDeleteAudit(audit.id); }}
                             className="text-[9px] font-extrabold text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded transition cursor-pointer" title="Hapus KKA ini">
                             <Trash2 className="w-3 h-3" />

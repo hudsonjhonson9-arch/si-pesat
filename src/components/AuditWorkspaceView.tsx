@@ -98,6 +98,9 @@ export default function AuditWorkspaceView({
   const autoScrollRafRef = useRef<number | null>(null);
   const autoScrollSpeedRef = useRef<number>(0);
 
+  const hasSuperAccess = isSuperadmin || isAdmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const isIrban = userRole === 'Inspektur Pembantu';
+
   const [uploadingIds, setUploadingIds] = useState<Record<string, boolean>>({});
   const [copyingIds, setCopyingIds] = useState<Record<string, boolean>>({});
 
@@ -550,7 +553,7 @@ export default function AuditWorkspaceView({
                 <h1 className="text-2xl font-black text-dark-gray">{audit.opdName}</h1>
                 <p className="text-sm text-dark-gray/60">Jenjang {audit.opdType} • TA {audit.fiscalYear}</p>
               </div>
-              {STRUKTURAL_ROLES.includes(userRole) && (
+              {(hasSuperAccess || isIrban) && (
                 <button onClick={() => setIsEditingMetadata(true)} className="p-1 text-dark-gray/40 hover:text-dark-gray/70 cursor-pointer"><Edit2 className="w-4 h-4" /></button>
               )}
             </div>
@@ -581,7 +584,7 @@ export default function AuditWorkspaceView({
                     </div>
                   </div>
                 ))}
-                {STRUKTURAL_ROLES.includes(userRole) && (
+                {(hasSuperAccess || isIrban) && (
                   <div onClick={() => { setIsCatDropdownOpen(false); setIsAddingCategory(true); }}
                     className="px-3 py-2.5 text-xs font-bold text-blue-600 hover:bg-baby-blue cursor-pointer border-t border-dark-gray/10">
                     + Tambah Jenis Audit
@@ -597,7 +600,7 @@ export default function AuditWorkspaceView({
               <p>Ketua Tim: <span className="font-bold text-dark-gray">{activeCategory?.auditorName || 'Belum diatur'}</span></p>
               <p>Anggota: <span className="font-bold text-dark-gray">{activeCategory?.teamMembers?.length ? activeCategory.teamMembers.join(', ') : 'Belum diatur'}</span></p>
             </div>
-            {(isAdmin || STRUKTURAL_ROLES.includes(userRole) || currentUserName === activeCategory?.auditorName) && (
+            {(hasSuperAccess || isIrban) && (
               <button onClick={openEditCategoryTeam} className="p-1 text-dark-gray/40 hover:text-dark-gray/70 cursor-pointer"><Edit2 className="w-4 h-4" /></button>
             )}
           </div>
@@ -852,7 +855,7 @@ export default function AuditWorkspaceView({
                     <div className="overflow-y-auto p-1">
                       {userProfiles
                         .filter(p => KETUA_TIM_ROLES.includes(p.role))
-                        .filter(p => isSuperadmin || !userBidangId || p.bidang_id === userBidangId)
+                        .filter(p => hasSuperAccess || !userBidangId || p.bidang_id === userBidangId)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatAuditorSearchQuery.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => (
@@ -880,7 +883,7 @@ export default function AuditWorkspaceView({
                     <div className="overflow-y-auto p-1">
                       {userProfiles
                         .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
-                        .filter(p => isSuperadmin || !userBidangId || p.bidang_id === userBidangId)
+                        .filter(p => hasSuperAccess || !userBidangId || p.bidang_id === userBidangId)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(newCatTeamSearchQuery.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => {
@@ -924,7 +927,7 @@ export default function AuditWorkspaceView({
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatAuditorSearchQuery} onChange={e => setEditCatAuditorSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">{userProfiles
                         .filter(p => KETUA_TIM_ROLES.includes(p.role))
-                        .filter(p => isSuperadmin || !userBidangId || p.bidang_id === userBidangId)
+                        .filter(p => hasSuperAccess || !userBidangId || p.bidang_id === userBidangId)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatAuditorSearchQuery.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => (
@@ -949,7 +952,7 @@ export default function AuditWorkspaceView({
                     <div className="p-2 border-b bg-slate-50 sticky top-0"><input type="text" placeholder="Cari..." value={editCatTeamSearchQuery} onChange={e => setEditCatTeamSearchQuery(e.target.value)} onClick={e => e.stopPropagation()} className="w-full text-[10px] border px-2 py-1.5 rounded bg-white outline-none" /></div>
                     <div className="overflow-y-auto p-1">{userProfiles
                         .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
-                        .filter(p => isSuperadmin || !userBidangId || p.bidang_id === userBidangId)
+                        .filter(p => hasSuperAccess || !userBidangId || p.bidang_id === userBidangId)
                         .filter(p => (p.full_name || p.email).toLowerCase().includes(editCatTeamSearchQuery.toLowerCase()))
                         .sort(byNipAge)
                         .map(p => {

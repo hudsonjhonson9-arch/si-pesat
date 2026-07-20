@@ -192,9 +192,12 @@ export default function UserManagementView({
     }
   };
 
-  const canEdit = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || currentUserRole === 'Inspektur Pembantu' || isAdmin;
-  const canEditRole = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
-  const canToggleMfa = currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris' || isAdmin;
+  const hasSuperAccess = isAdmin || isSuperadmin || currentUserRole === 'Inspektur' || currentUserRole === 'Sekretaris';
+  const isIrban = currentUserRole === 'Inspektur Pembantu';
+
+  const canEdit = hasSuperAccess || isIrban;
+  const canEditRole = hasSuperAccess;
+  const canToggleMfa = hasSuperAccess;
 
   const bidangFilteredProfiles = useMemo(() => {
     if (isSuperadmin) {

@@ -34,6 +34,7 @@ interface NewAuditViewProps {
   targetEntities?: TargetEntity[];
   defaultAuditorName?: string;
   isAdmin?: boolean;
+  userRole?: string;
   userBidangId?: number | null;
   isSuperadmin?: boolean;
   onBack: () => void;
@@ -72,11 +73,15 @@ export default function NewAuditView({
   targetEntities = [],
   defaultAuditorName = '',
   isAdmin = false,
+  userRole = 'Auditor',
   userBidangId,
   isSuperadmin,
   onBack,
   onCreateAudit,
 }: NewAuditViewProps) {
+  const hasSuperAccess = isSuperadmin || isAdmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const isIrban = userRole === 'Inspektur Pembantu';
+
   const [opdName, setOpdName] = useState('');
   const [opdType, setOpdType] = useState<OpdAudit['opdType']>('Dinas');
   const [fiscalYear, setFiscalYear] = useState('2026');
@@ -401,7 +406,7 @@ export default function NewAuditView({
                       {/* Semua profil */}
 {userProfiles
                          .filter(p => KETUA_TIM_ROLES.includes(p.role))
-                         .filter(p => userBidangId ? p.bidang_id === userBidangId : false)
+                         .filter(p => hasSuperAccess || isIrban || !userBidangId || p.bidang_id === userBidangId)
                          .filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase()))
                          .sort(byNipAge)
                          .map(p => {
@@ -455,7 +460,7 @@ export default function NewAuditView({
                     <div className="overflow-y-auto p-1 space-y-0.5">
 {userProfiles
                          .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
-                         .filter(p => userBidangId ? p.bidang_id === userBidangId : false)
+                         .filter(p => hasSuperAccess || isIrban || !userBidangId || p.bidang_id === userBidangId)
                          .filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase()))
                          .sort(byNipAge)
                          .map(p => {

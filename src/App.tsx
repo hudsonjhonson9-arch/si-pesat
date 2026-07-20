@@ -144,7 +144,8 @@ export default function App() {
   const [userRole, setUserRole] = useState<string>('Auditor Pelaksana');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperadmin, setIsSuperadmin] = useState(false);
-  const isIrbanOrInspektur = userRole === 'Inspektur Pembantu' || userRole === 'Inspektur';
+  const hasSuperAccess = isAdmin || isSuperadmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const isIrban = userRole === 'Inspektur Pembantu';
   const [isSessionActive, setIsSessionActive] = useState<boolean>(false);
   const [customAuditorName, setCustomAuditorName] = useState<string>('');
 
@@ -1075,6 +1076,7 @@ export default function App() {
             userProfiles={userProfiles}
             targetEntities={targetEntities}
             defaultAuditorName={userProfiles.find(p => p.id === user?.id)?.full_name || user?.user_metadata?.full_name || user?.email || ''}
+            userRole={userRole}
             userBidangId={userBidangId}
             isSuperadmin={isSuperadmin}
             onBack={() => navigateTo('pengawasan')}
@@ -1300,7 +1302,7 @@ export default function App() {
                   </>
                 )}
               </div>
-              {(isAdmin || userRole === 'Inspektur Pembantu' || permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
+              {(hasSuperAccess || isIrban || permissionChecker.can('user.manage') || permissionChecker.can('role.manage')) && (
                 <div data-dropdown="pengaturan" className="relative" onPointerEnter={() => handleDropdownEnter('pengaturan')} onPointerLeave={() => handleDropdownLeave('pengaturan')}>
                   <button
                     onClick={(e) => toggleDropdown('pengaturan', e)}
@@ -1316,7 +1318,7 @@ export default function App() {
                     <>
                       <div className="absolute top-full left-0 right-0 h-2 z-50" onPointerEnter={() => handleDropdownEnter('pengaturan')} />
                       <div className="absolute top-[calc(100%+8px)] left-0 bg-white rounded-xl shadow-xl border border-dark-gray/10 py-1 min-w-[180px] z-50" onPointerEnter={() => handleDropdownEnter('pengaturan')} onPointerLeave={() => handleDropdownLeave('pengaturan')}>
-                        {(isAdmin || userRole === 'Inspektur Pembantu' || permissionChecker.can('user.manage')) && (
+                        {(hasSuperAccess || isIrban || permissionChecker.can('user.manage')) && (
                           <button
                             onClick={() => navigateTo('pengguna')}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
@@ -1332,7 +1334,7 @@ export default function App() {
                             <ShieldAlert className="w-4 h-4" /> Role & Permission
                           </button>
                         )}
-                        {(isAdmin || isIrbanOrInspektur) && (
+                        {(hasSuperAccess || isIrban) && (
                           <button
                             onClick={() => navigateTo('activity-log')}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
@@ -1340,7 +1342,7 @@ export default function App() {
                             <Clock className="w-4 h-4" /> Log Aktivitas
                           </button>
                         )}
-                        {(isAdmin || isIrbanOrInspektur) && (
+                        {(hasSuperAccess || isIrban) && (
                           <button
                             onClick={() => navigateTo('objek-audit')}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
@@ -1444,7 +1446,7 @@ export default function App() {
                 </button>
 
                 {/* Jenis Audit — hanya admin/Inspektur */}
-                {(userRole === 'Inspektur' || userRole === 'Inspektur Pembantu' || isAdmin) && (
+                {(hasSuperAccess || isIrban) && (
                   <button
                     onClick={() => { navigateTo('jenis-audit'); setIsMobileMoreOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
@@ -1456,7 +1458,7 @@ export default function App() {
                 )}
 
                 {/* Pengguna — hanya admin/Inspektur/Irban */}
-                {(userRole === 'Inspektur Pembantu' || permissionChecker.can('user.manage')) && (
+                {(isIrban || permissionChecker.can('user.manage')) && (
                   <button
                     onClick={() => { navigateTo('pengguna'); setIsMobileMoreOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
@@ -1476,7 +1478,7 @@ export default function App() {
                     <ShieldAlert className="w-4 h-4" /> Role & Permission
                   </button>
                 )}
-                {(isAdmin || isIrbanOrInspektur) && (
+                {(hasSuperAccess || isIrban) && (
                   <button
                     onClick={() => { navigateTo('activity-log'); setIsMobileMoreOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
@@ -1486,7 +1488,7 @@ export default function App() {
                     <Clock className="w-4 h-4" /> Log Aktivitas
                   </button>
                 )}
-                {(isAdmin || isIrbanOrInspektur) && (
+                {(hasSuperAccess || isIrban) && (
                   <button
                     onClick={() => { navigateTo('objek-audit'); setIsMobileMoreOpen(false); }}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition hover:bg-slate-50 ${
