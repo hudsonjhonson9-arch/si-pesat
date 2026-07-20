@@ -1,5 +1,23 @@
 import React, { useState } from 'react';
-import { Search, ChevronDown, FileCheck, Building, BarChart3, User, Settings, PieChart, FolderSync, TrendingDown, Cloud, School, PlusCircle, ShieldAlert, Clock, MapPin, X } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, FileCheck, Building, BarChart3, User, Settings, PieChart, FolderSync, TrendingDown, Cloud, School, PlusCircle, ShieldAlert, Clock, MapPin, X } from 'lucide-react';
+
+type NavRoute = string | { tab: string; sub?: string };
+
+const routeMap: Record<string, NavRoute> = {
+  beranda: 'dashboard',
+  'wilayah-penugasan': 'wilayah-penugasan',
+  kka: { tab: 'pengawasan', sub: 'audit' },
+  reviu: { tab: 'pengawasan', sub: 'reviu' },
+  evaluasi: { tab: 'pengawasan', sub: 'evaluasi' },
+  asistensi: { tab: 'pengawasan', sub: 'asistensi' },
+  statistik: 'statistik',
+  profil: 'profil',
+  pengguna: 'pengguna',
+  'role-permission': 'role-permission',
+  'log-aktivitas': 'activity-log',
+  'jenis-audit': 'jenis-audit',
+  'kka-workspace': 'new-audit',
+};
 
 const sections = [
   {
@@ -190,9 +208,10 @@ function highlightMatch(text: string, query: string) {
   ).join('');
 }
 
-function SectionCard({ section, depth = 0, searchQuery, ...rest }: { section: Section; depth?: number; searchQuery?: string; [key: string]: any }) {
+function SectionCard({ section, depth = 0, searchQuery, onNavigate }: { section: Section; depth?: number; searchQuery?: string; onNavigate?: (id: string) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const hasSubs = 'subsections' in section;
+  const route = !hasSubs ? routeMap[section.id] : undefined;
   const matchesSearch = searchQuery
     ? section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ('content' in section && section.content?.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -240,9 +259,17 @@ function SectionCard({ section, depth = 0, searchQuery, ...rest }: { section: Se
           {'subsections' in section && section.subsections && (
             <div className="space-y-1">
               {section.subsections.map((sub: any) => (
-                <SectionCard key={sub.id} section={sub} depth={depth + 1} searchQuery={searchQuery} />
+                <SectionCard key={sub.id} section={sub} depth={depth + 1} searchQuery={searchQuery} onNavigate={onNavigate} />
               ))}
             </div>
+          )}
+          {route && onNavigate && (
+            <button
+              onClick={() => onNavigate(section.id)}
+              className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-pastel-peach hover:text-pastel-peach/80 transition-colors"
+            >
+              Buka fitur ini <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           )}
         </div>
       </div>
@@ -250,8 +277,18 @@ function SectionCard({ section, depth = 0, searchQuery, ...rest }: { section: Se
   );
 }
 
-export default function GuideView() {
+export default function GuideView({ onNavigate }: { onNavigate?: (id: string) => void }) {
   const [search, setSearch] = useState('');
+
+  const handleNav = (id: string) => {
+    const route = routeMap[id];
+    if (!route) return;
+    if (typeof route === 'string') {
+      window.location.hash = route;
+    } else {
+      window.location.hash = `${route.tab}/${route.sub || ''}`;
+    }
+  };
 
   return (
     <div className="space-y-4 animate-fade-in" id="guide-view">
@@ -282,7 +319,7 @@ export default function GuideView() {
 
       <div className="space-y-3">
         {sections.map(section => (
-          <SectionCard key={section.id} section={section} searchQuery={search} />
+          <SectionCard key={section.id} section={section} searchQuery={search} onNavigate={handleNav} />
         ))}
         {search && !sections.some(s =>
           s.title.toLowerCase().includes(search.toLowerCase()) ||
