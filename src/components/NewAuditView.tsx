@@ -79,7 +79,7 @@ export default function NewAuditView({
   onBack,
   onCreateAudit,
 }: NewAuditViewProps) {
-  const hasSuperAccess = isSuperadmin || isAdmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const hasSuperAccess = userRole === 'Inspektur' || userRole === 'Sekretaris';
   const isIrban = userRole === 'Inspektur Pembantu';
 
   const [opdName, setOpdName] = useState('');
@@ -406,22 +406,22 @@ export default function NewAuditView({
                       {/* Semua profil */}
 {userProfiles
                          .filter(p => KETUA_TIM_ROLES.includes(p.role))
-                         .filter(p => hasSuperAccess || isIrban || !userBidangId || p.bidang_id === userBidangId)
-                         .filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase()))
-                         .sort(byNipAge)
-                         .map(p => {
-                        const name = p.full_name || p.email;
-                        const isSel = catAuditorName === name;
-                        return (
-                          <button key={p.id} onClick={() => { setCatAuditorName(name); setIsAuditorDropdownOpen(false); setCatAuditorSearch(''); }}
-                            className={`w-full text-left px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 cursor-pointer transition-colors ${isSel ? 'bg-peach-accent text-dark-gray' : 'hover:bg-slate-50 text-dark-gray'}`}>
-                            {isSel && <Check className="w-3 h-3 shrink-0" />}
-                            <User className="w-3 h-3 shrink-0 text-dark-gray/40" />
-                            {name}
-                            <span className="ml-auto text-[9px] text-dark-gray/40 font-normal">{p.role}</span>
-                          </button>
-                        );
-                      })}
+                          .filter(p => hasSuperAccess || !userBidangId || p.bidang_id === userBidangId)
+                          .filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase()))
+                          .sort(byNipAge)
+                          .map(p => {
+                         const name = p.full_name || p.email;
+                         const isSel = catAuditorName === name;
+                         return (
+                           <button key={p.id} onClick={() => { setCatAuditorName(name); setIsAuditorDropdownOpen(false); setCatAuditorSearch(''); }}
+                             className={`w-full text-left px-3 py-1.5 rounded text-[10px] font-bold flex items-center gap-2 cursor-pointer transition-colors ${isSel ? 'bg-peach-accent text-dark-gray' : 'hover:bg-slate-50 text-dark-gray'}`}>
+                             {isSel && <Check className="w-3 h-3 shrink-0" />}
+                             <User className="w-3 h-3 shrink-0 text-dark-gray/40" />
+                             {name}
+                             <span className="ml-auto text-[9px] text-dark-gray/40 font-normal">{p.role}</span>
+                           </button>
+                         );
+                       })}
                       {userProfiles.filter(p => (p.full_name || p.email).toLowerCase().includes(catAuditorSearch.toLowerCase())).length === 0
                         && !catAuditorSearch.trim() && (
                         <div className="px-3 py-2 text-[10px] text-dark-gray/40 italic">Tidak ada data pengguna</div>
@@ -460,8 +460,8 @@ export default function NewAuditView({
                     <div className="overflow-y-auto p-1 space-y-0.5">
 {userProfiles
                          .filter(p => ANGGOTA_TIM_ROLES.includes(p.role))
-                         .filter(p => hasSuperAccess || isIrban || !userBidangId || p.bidang_id === userBidangId)
-                         .filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase()))
+                          .filter(p => hasSuperAccess || !userBidangId || p.bidang_id === userBidangId)
+                          .filter(p => (p.full_name || p.email).toLowerCase().includes(catTeamSearch.toLowerCase()))
                          .sort(byNipAge)
                          .map(p => {
                         const name = p.full_name || p.email;

@@ -17,6 +17,7 @@ import {
 interface StatistikViewProps {
   audits: OpdAudit[];
   userRole?: string;
+  userBidangId?: number | null;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -49,7 +50,9 @@ type SortDir = 'asc' | 'desc';
 
 const PAGE_SIZE = 10;
 
-export default function StatistikView({ audits }: StatistikViewProps) {
+export default function StatistikView({ audits, userRole, userBidangId }: StatistikViewProps) {
+  const canBypassBidang = userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const filteredAudits = canBypassBidang || !userBidangId ? audits : audits.filter(a => a.bidang_id === userBidangId);
   // --- Rekap table state ---
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('fiscalYear');
@@ -59,22 +62,22 @@ export default function StatistikView({ audits }: StatistikViewProps) {
   // --- Chart data ---
   const statusData = useMemo(() => {
     const counts: Record<string, number> = { 'Sedang Berjalan': 0, 'Direview': 0, 'Selesai': 0 };
-    audits.forEach(a => { counts[a.status] = (counts[a.status] || 0) + 1; });
+    filteredAudits.forEach(a => { counts[a.status] = (counts[a.status] || 0) + 1; });
     return Object.entries(counts)
       .filter(([, v]) => v > 0)
       .map(([name, value]) => ({ name, value }));
-  }, [audits]);
+  }, [filteredAudits]);
 
   const opdTypeData = useMemo(() => {
     const counts: Record<string, number> = {};
-    audits.forEach(a => { counts[a.opdType] = (counts[a.opdType] || 0) + 1; });
+    filteredAudits.forEach(a => { counts[a.opdType] = (counts[a.opdType] || 0) + 1; });
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [audits]);
+  }, [filteredAudits]);
 
   const temuanData = useMemo(() => {
-    return audits
+    return filteredAudits
       .map(a => {
         let temuan = 0;
         a.categories.forEach(c => c.items.forEach(i => { if (i.status === 'Temuan') temuan++; }));
@@ -84,36 +87,36 @@ export default function StatistikView({ audits }: StatistikViewProps) {
       .filter(d => d.temuan > 0)
       .sort((a, b) => b.temuan - a.temuan)
       .slice(0, 10);
-  }, [audits]);
+  }, [filteredAudits]);
 
   const yearData = useMemo(() => {
     const counts: Record<string, number> = {};
-    audits.forEach(a => { counts[a.fiscalYear] = (counts[a.fiscalYear] || 0) + 1; });
+    filteredAudits.forEach(a => { counts[a.fiscalYear] = (counts[a.fiscalYear] || 0) + 1; });
     return Object.entries(counts)
       .sort(([a], [b]) => b.localeCompare(a))
       .map(([name, value]) => ({ name: `TA ${name}`, value }));
-  }, [audits]);
+  }, [filteredAudits]);
 
   const totals = useMemo(() => {
     let temuan = 0, nilai = 0;
-    audits.forEach(a => a.categories.forEach(c => c.items.forEach(i => {
+    filteredAudits.forEach(a => a.categories.forEach(c => c.items.forEach(i => {
       if (i.status === 'Temuan') { temuan++; nilai += i.nilaiTemuan || 0; }
     })));
-    return { kka: audits.length, selesai: audits.filter(a => a.status === 'Selesai').length, temuan, nilai };
-  }, [audits]);
+    return { kka: filteredAudits.length, selesai: filteredAudits.filter(a => a.status === 'Selesai').length, temuan, nilai };
+  }, [filteredAudits]);
 
   const completionPct = totals.kka > 0 ? Math.round((totals.selesai / totals.kka) * 100) : 0;
 
   // --- Rekap rows with computed fields ---
   const rekapRows = useMemo(() => {
-    return audits.map(a => {
+    return filteredAudits.map(a => {
       let temuan = 0, nilai = 0;
       a.categories.forEach(c => c.items.forEach(i => {
         if (i.status === 'Temuan') { temuan++; nilai += i.nilaiTemuan || 0; }
       }));
       return { audit: a, temuan, nilai };
     });
-  }, [audits]);
+  }, [filteredAudits]);
 
   // Grand total for footer
   const grandTotal = useMemo(() => ({
@@ -225,8 +228,8 @@ export default function StatistikView({ audits }: StatistikViewProps) {
 
       {/* Per-category completion */}
       {(() => {
-        const totalCats = audits.reduce((s, a) => s + a.categories.length, 0);
-        const doneCats = audits.reduce((s, a) => s + a.categories.filter(c => c.status === 'Selesai').length, 0);
+        const totalCats = filteredAudits.reduce((s, a) => s + a.categories.length, 0);
+        const doneCats = filteredAudits.reduce((s, a) => s + a.categories.filter(c => c.status === 'Selesai').length, 0);
         const catPct = totalCats > 0 ? Math.round((doneCats / totalCats) * 100) : 0;
         return totalCats > totals.kka ? (
           <div className="bg-white rounded-2xl p-4 border border-dark-gray/10 shadow-sm">
@@ -269,7 +272,7 @@ export default function StatistikView({ audits }: StatistikViewProps) {
         {/* Status Bar Chart */}
         <div className="bg-white rounded-2xl p-6 border border-dark-gray/10 shadow-sm">
           <h3 className="font-extrabold text-dark-gray text-sm mb-4">Status KKA</h3>
-          {audits.length === 0 ? <EmptyState /> : (
+          {filteredAudits.length === 0 ? <EmptyState /> : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={statusData} barSize={40}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -350,7 +353,7 @@ export default function StatistikView({ audits }: StatistikViewProps) {
       {/* ═══════════════════════════════════════════════════════
           REKAP LENGKAP KKA — Improved Table
           ═══════════════════════════════════════════════════════ */}
-      {audits.length > 0 && (
+      {filteredAudits.length > 0 && (
         <div className="bg-white rounded-2xl border border-dark-gray/10 shadow-sm overflow-hidden">
           {/* Header + Search */}
           <div className="px-6 py-4 border-b border-dark-gray/8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

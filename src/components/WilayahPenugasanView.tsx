@@ -32,7 +32,7 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
   const [yearFilter, setYearFilter] = useState<string>('Semua');
   const [expandedEntityId, setExpandedEntityId] = useState<string | null>(null);
 
-  const hasSuperAccess = isSuperadmin || isAdmin || userRole === 'Inspektur' || userRole === 'Sekretaris';
+  const canBypassBidang = userRole === 'Inspektur' || userRole === 'Sekretaris';
   const isIrban = userRole === 'Inspektur Pembantu';
 
   const KABUPATEN_WILAYAH = 'Kabupaten Sumba Barat';
@@ -42,8 +42,8 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
     return bidangList.find(b => b.id === userBidangId) || null;
   }, [userBidangId, bidangList]);
 
-  const userBidangName = userBidang?.name || (hasSuperAccess ? KABUPATEN_WILAYAH : null);
-  const userBidangWilayah = userBidang?.wilayah || (hasSuperAccess ? KABUPATEN_WILAYAH : null);
+  const userBidangName = userBidang?.name || (canBypassBidang || isAdmin || isSuperadmin ? KABUPATEN_WILAYAH : null);
+  const userBidangWilayah = userBidang?.wilayah || (canBypassBidang || isAdmin || isSuperadmin ? KABUPATEN_WILAYAH : null);
 
   const mapSrc = useMemo(() => {
     const q = userBidangWilayah || userBidangName || 'Kecamatan Loli, Sumba Barat';
@@ -51,9 +51,9 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
   }, [userBidangWilayah, userBidangName]);
 
   const bidangFilteredEntities = useMemo(() => {
-    if (hasSuperAccess || !userBidangId) return targetEntities;
+    if (canBypassBidang || !userBidangId) return targetEntities;
     return targetEntities.filter(e => e.bidang_id === userBidangId);
-  }, [targetEntities, userBidangId, isAdmin, isSuperadmin]);
+  }, [targetEntities, userBidangId, canBypassBidang]);
 
   const availableYears = useMemo(() => {
     const years = Array.from(new Set(audits.map(a => a.fiscalYear))).sort().reverse();

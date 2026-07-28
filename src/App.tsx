@@ -1100,7 +1100,7 @@ export default function App() {
           />
         );
       case 'statistik':
-        return <StatistikView audits={audits} userRole={userRole} />;
+        return <StatistikView audits={audits} userRole={userRole} userBidangId={userBidangId} />;
       case 'pengguna':
         return (
           <UserManagementView
@@ -1146,7 +1146,7 @@ export default function App() {
             targetEntities={targetEntities}
             bidangList={bidangList}
             userBidangId={userBidangId}
-            isSuperadmin={isSuperadmin}
+            userRole={userRole}
             onRefresh={() => {
               supabase.from('target_entities').select('*').order('type').then(({ data, error }) => {
                 if (!error && data) setTargetEntities(data as TargetEntity[]);
