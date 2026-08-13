@@ -1331,7 +1331,7 @@ export default function App() {
                             onClick={() => navigateTo('role-permission')}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-dark-gray hover:bg-peach-accent/20 transition rounded-lg"
                           >
-                            <ShieldAlert className="w-4 h-4" /> Role & Permission
+                            <ShieldAlert className="w-4 h-4" /> Peran & Hak Akses
                           </button>
                         )}
                         {(hasSuperAccess || isIrban) && (
@@ -1475,7 +1475,7 @@ export default function App() {
                       activeTab === 'role-permission' ? 'text-dark-gray bg-peach-accent/10' : 'text-slate-600'
                     }`}
                   >
-                    <ShieldAlert className="w-4 h-4" /> Role & Permission
+                    <ShieldAlert className="w-4 h-4" /> Peran & Hak Akses
                   </button>
                 )}
                 {(hasSuperAccess || isIrban) && (

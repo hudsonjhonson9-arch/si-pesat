@@ -78,7 +78,7 @@ export default function RolePermissionView({ rolesList, permissionsList, bidangL
 
       const roleName = rolesList.find(r => r.id === selectedRoleId)?.name || String(selectedRoleId);
       logActivity('update_role_permissions', 'role', roleName);
-      onShowToast?.('Permission berhasil disimpan.', 'success');
+      onShowToast?.('Hak akses berhasil disimpan.', 'success');
     } catch (err: any) {
       onShowToast?.('Gagal menyimpan: ' + (err.message || err), 'error');
     } finally {
@@ -91,11 +91,11 @@ export default function RolePermissionView({ rolesList, permissionsList, bidangL
     const maxId = Math.max(...rolesList.map(r => r.id), 0);
     const { error } = await supabase.from('roles').insert({ id: maxId + 1, name: newRoleName.trim() });
     if (error) {
-      onShowToast?.('Gagal menambah role: ' + error.message, 'error');
+      onShowToast?.('Gagal menambah peran: ' + error.message, 'error');
       return;
     }
     logActivity('create_role', 'role', newRoleName.trim());
-    onShowToast?.('Role berhasil ditambahkan.', 'success');
+    onShowToast?.('Peran berhasil ditambahkan.', 'success');
     setShowAddRole(false);
     setNewRoleName('');
   };
@@ -107,20 +107,20 @@ export default function RolePermissionView({ rolesList, permissionsList, bidangL
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-black text-dark-gray flex items-center gap-2">
-            <Shield className="w-5 h-5 text-dark-gray/70" /> Role & Permission
+            <Shield className="w-5 h-5 text-dark-gray/70" /> Peran & Hak Akses
           </h2>
-          <p className="text-xs text-dark-gray/60 mt-1">Atur hak akses setiap role. Perubahan berlaku setelah login ulang.</p>
+          <p className="text-xs text-dark-gray/60 mt-1">Atur hak akses untuk setiap peran. Perubahan berlaku setelah login ulang.</p>
         </div>
         <button onClick={() => setShowAddRole(true)}
           className="inline-flex items-center gap-2 text-xs font-black px-4 py-2 rounded-xl bg-dark-gray text-white hover:bg-dark-gray/85 transition-all shadow-sm cursor-pointer">
-          <Plus className="w-3.5 h-3.5" /> Tambah Role
+          <Plus className="w-3.5 h-3.5" /> Tambah Peran
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-1 bg-white rounded-2xl border border-dark-gray/10 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-slate-100">
-            <h3 className="font-bold text-sm text-dark-gray">Daftar Role</h3>
+            <h3 className="font-bold text-sm text-dark-gray">Daftar Peran</h3>
           </div>
           <div className="divide-y divide-slate-50 max-h-[500px] overflow-y-auto">
             {rolesList.map(role => (
@@ -139,14 +139,14 @@ export default function RolePermissionView({ rolesList, permissionsList, bidangL
           {!selectedRole ? (
             <div className="p-12 text-center">
               <Shield className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-              <p className="text-sm font-bold text-slate-400">Pilih role untuk mengatur permission</p>
+              <p className="text-sm font-bold text-slate-400">Pilih peran untuk mengatur hak akses</p>
             </div>
           ) : (
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="font-bold text-base text-dark-gray">{selectedRole.name}</h3>
-                  <p className="text-[10px] text-dark-gray/60 mt-0.5">Atur permission dan scope untuk role ini</p>
+                  <p className="text-[10px] text-dark-gray/60 mt-0.5">Atur hak akses dan jangkauannya untuk peran ini</p>
                 </div>
                 <button onClick={handleSave} disabled={isSaving}
                   className="inline-flex items-center gap-2 text-xs font-black px-4 py-2 rounded-xl bg-dark-gray text-white hover:bg-dark-gray/85 transition-all shadow-sm cursor-pointer disabled:opacity-60">
@@ -181,12 +181,12 @@ export default function RolePermissionView({ rolesList, permissionsList, bidangL
                       </div>
                       {permState.enabled && (
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-slate-500">Scope:</span>
+                          <span className="text-[10px] font-bold text-slate-500">Jangkauan:</span>
                           <select value={permState.scope}
                             onChange={e => handleScopeChange(perm.code, e.target.value as 'bidang' | 'all')}
                             className="text-[10px] font-bold border border-slate-300 px-2 py-1 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400">
-                            <option value="bidang">Bidang (halaman sendiri)</option>
-                            <option value="all">Semua (lintas bidang)</option>
+                            <option value="bidang">Bidang (hanya wilayah sendiri)</option>
+                            <option value="all">Semua (boleh lintas bidang)</option>
                           </select>
                         </div>
                       )}
@@ -205,14 +205,14 @@ export default function RolePermissionView({ rolesList, permissionsList, bidangL
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 w-full max-w-md"
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-base text-dark-gray">Tambah Role Baru</h3>
+              <h3 className="font-bold text-base text-dark-gray">Tambah Peran Baru</h3>
               <button onClick={() => setShowAddRole(false)} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Nama Role</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Nama Peran</label>
                 <input type="text" value={newRoleName} onChange={e => setNewRoleName(e.target.value)}
                   placeholder="Contoh: Auditor Kontrak"
                   className="w-full text-sm font-bold border border-slate-200 p-2.5 rounded-lg bg-white text-slate-700 outline-none focus:ring-1 focus:ring-blue-400" />
