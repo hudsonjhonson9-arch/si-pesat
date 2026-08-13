@@ -34,16 +34,34 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
 
   const canBypassBidang = userRole === 'Inspektur' || userRole === 'Sekretaris';
   const isIrban = userRole === 'Inspektur Pembantu';
+  const isSuperAccess = canBypassBidang || isAdmin || isSuperadmin;
 
   const KABUPATEN_WILAYAH = 'Kabupaten Sumba Barat';
+
+  const [irbanFilter, setIrbanFilter] = useState<string>('semua');
 
   const userBidang = useMemo(() => {
     if (!userBidangId) return null;
     return bidangList.find(b => b.id === userBidangId) || null;
   }, [userBidangId, bidangList]);
 
-  const userBidangName = userBidang?.name || (canBypassBidang || isAdmin || isSuperadmin ? KABUPATEN_WILAYAH : null);
-  const userBidangWilayah = userBidang?.wilayah || (canBypassBidang || isAdmin || isSuperadmin ? KABUPATEN_WILAYAH : null);
+  const selectedBidang = userBidang || (
+    isSuperAccess && irbanFilter !== 'semua' && irbanFilter !== 'unassigned'
+      ? bidangList.find(b => b.id === Number(irbanFilter)) || null
+      : null
+  );
+
+  const userBidangName = selectedBidang?.name || (isSuperAccess ? KABUPATEN_WILAYAH : null);
+  const userBidangWilayah = selectedBidang?.wilayah || (isSuperAccess ? KABUPATEN_WILAYAH : null);
+
+  const irbanCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    targetEntities.forEach(e => {
+      const key = e.bidang_id ? String(e.bidang_id) : 'unassigned';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return counts;
+  }, [targetEntities]);
 
   const mapSrc = useMemo(() => {
     const q = userBidangWilayah || userBidangName || 'Kecamatan Loli, Sumba Barat';
@@ -51,9 +69,14 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
   }, [userBidangWilayah, userBidangName]);
 
   const bidangFilteredEntities = useMemo(() => {
-    if (canBypassBidang || !userBidangId) return targetEntities;
-    return targetEntities.filter(e => e.bidang_id === userBidangId);
-  }, [targetEntities, userBidangId, canBypassBidang]);
+    if (!isSuperAccess) {
+      if (!userBidangId) return targetEntities;
+      return targetEntities.filter(e => e.bidang_id === userBidangId);
+    }
+    if (irbanFilter === 'unassigned') return targetEntities.filter(e => !e.bidang_id);
+    if (irbanFilter !== 'semua') return targetEntities.filter(e => e.bidang_id === Number(irbanFilter));
+    return targetEntities;
+  }, [targetEntities, isSuperAccess, userBidangId, irbanFilter]);
 
   const availableYears = useMemo(() => {
     const years = Array.from(new Set(audits.map(a => a.fiscalYear))).sort().reverse();
@@ -150,6 +173,22 @@ export default function WilayahPenugasanView({ targetEntities, audits = [], onSe
 
           {/* Year Filter */}
           <div className="flex items-center gap-2">
+            {isSuperAccess && (
+              <select
+                value={irbanFilter}
+                onChange={e => setIrbanFilter(e.target.value)}
+                className="text-xs font-bold border border-dark-gray/15 px-2 py-1 rounded-lg bg-white text-dark-gray outline-none focus:border-peach-accent"
+              >
+                <option value="semua">Semua Irban ({targetEntities.length})</option>
+                {bidangList.map(b => {
+                  const c = irbanCounts[String(b.id)] || 0;
+                  return <option key={b.id} value={b.id}>{b.name}{c > 0 ? ` (${c})` : ''}</option>;
+                })}
+                {(irbanCounts.unassigned || 0) > 0 && (
+                  <option value="unassigned">Tanpa Wilayah ({irbanCounts.unassigned})</option>
+                )}
+              </select>
+            )}
             <label className="text-[10px] font-bold text-dark-gray/70 uppercase tracking-wider">Tahun</label>
             <select
               value={yearFilter}
